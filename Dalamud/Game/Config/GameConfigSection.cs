@@ -1,11 +1,11 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 
-using Dalamud.Memory;
+using Dalamud.Logging.Internal;
 using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Common.Configuration;
-using Serilog;
 
 namespace Dalamud.Game.Config;
 
@@ -14,6 +14,8 @@ namespace Dalamud.Game.Config;
 /// </summary>
 public class GameConfigSection
 {
+    private static readonly ModuleLog Log = ModuleLog.Create<GameConfigSection>();
+
     private readonly Framework framework;
     private readonly ConcurrentDictionary<string, uint> indexMap = new();
     private readonly ConcurrentDictionary<uint, object> enumMap = new();
@@ -40,7 +42,7 @@ public class GameConfigSection
         this.SectionName = sectionName;
         this.framework = framework;
         this.GetConfigBase = getConfigBase;
-        Log.Verbose("[GameConfig] Initalizing {SectionName} with {ConfigCount} entries.", this.SectionName, this.ConfigCount);
+        Log.Verbose("Initalizing {SectionName} with {ConfigCount} entries.", this.SectionName, this.ConfigCount);
     }
 
     /// <summary>
@@ -52,7 +54,7 @@ public class GameConfigSection
     /// <summary>
     /// Event which is fired when a game config option is changed within the section.
     /// </summary>
-    internal event EventHandler<ConfigChangeEvent>? Changed; 
+    internal event EventHandler<ConfigChangeEvent>? Changed;
 
     /// <summary>
     /// Gets the number of config entries contained within the section.
@@ -512,7 +514,7 @@ public class GameConfigSection
         }
 
         var prop = entry->Properties.String;
-        properties = new StringConfigProperties(prop.DefaultValue == null ? null : MemoryHelper.ReadSeString(prop.DefaultValue));
+        properties = new StringConfigProperties(prop.DefaultValue == null ? null : prop.DefaultValue->AsDalamudSeString());
         return true;
     }
 
@@ -526,8 +528,8 @@ public class GameConfigSection
     {
         if (!this.enumMap.TryGetValue(entry->Index, out var enumObject))
         {
-            if (entry->Name == null) return null;
-            var name = MemoryHelper.ReadStringNullTerminated(new IntPtr(entry->Name));
+            if (entry->Name.Value == null) return null;
+            var name = entry->Name.ToString();
             if (Enum.TryParse(typeof(TEnum), name, out enumObject))
             {
                 this.enumMap.TryAdd(entry->Index, enumObject);
@@ -540,11 +542,11 @@ public class GameConfigSection
         }
 
         if (enumObject == null) return null;
-        var eventArgs = new ConfigChangeEvent<TEnum>((TEnum)enumObject);
+        var eventArgs = new ConfigChangeEvent<TEnum>((TEnum)enumObject, entry->Name.ToString());
         this.Changed?.InvokeSafely(this, eventArgs);
         return eventArgs;
     }
-    
+
     private unsafe bool TryGetIndex(string name, out uint index)
     {
         if (this.indexMap.TryGetValue(name, out index))
@@ -556,12 +558,12 @@ public class GameConfigSection
         var e = configBase->ConfigEntry;
         for (var i = 0U; i < configBase->ConfigCount; i++, e++)
         {
-            if (e->Name == null)
+            if (e->Name.Value == null)
             {
                 continue;
             }
 
-            var eName = MemoryHelper.ReadStringNullTerminated(new IntPtr(e->Name));
+            var eName = e->Name.ToString();
             if (eName.Equals(name))
             {
                 this.indexMap.TryAdd(name, i);

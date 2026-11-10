@@ -1,6 +1,8 @@
 using System.Runtime.InteropServices;
 using System.Text;
 
+using Windows.Win32.Foundation;
+
 namespace Dalamud;
 
 /// <summary>
@@ -12,11 +14,11 @@ namespace Dalamud;
 /// </remarks>
 public static class SafeMemory
 {
-    private static readonly IntPtr Handle;
+    private static readonly HANDLE Handle;
 
     static SafeMemory()
     {
-        Handle = Imports.GetCurrentProcess();
+        Handle = Windows.Win32.PInvoke.GetCurrentProcess();
     }
 
     /// <summary>
@@ -25,11 +27,31 @@ public static class SafeMemory
     /// <param name="address">The address to read from.</param>
     /// <param name="count">The amount of bytes to read.</param>
     /// <param name="buffer">The result buffer.</param>
-    /// <returns>Whether or not the read succeeded.</returns>
-    public static bool ReadBytes(IntPtr address, int count, out byte[] buffer)
+    /// <returns>Whether the read succeeded.</returns>
+    public static unsafe bool ReadBytes(IntPtr address, int count, out byte[] buffer)
     {
+        if (Handle.IsNull)
+        {
+            buffer = [];
+            return false;
+        }
+
         buffer = new byte[count <= 0 ? 0 : count];
-        return Imports.ReadProcessMemory(Handle, address, buffer, buffer.Length, out _);
+        fixed (byte* p = buffer)
+        {
+            UIntPtr bytesRead;
+            if (!Windows.Win32.PInvoke.ReadProcessMemory(
+                Handle,
+                address.ToPointer(),
+                p,
+                new UIntPtr((uint)count),
+                &bytesRead))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -37,10 +59,30 @@ public static class SafeMemory
     /// </summary>
     /// <param name="address">The address to write to.</param>
     /// <param name="buffer">The buffer to write.</param>
-    /// <returns>Whether or not the write succeeded.</returns>
-    public static bool WriteBytes(IntPtr address, byte[] buffer)
+    /// <returns>Whether the write succeeded.</returns>
+    public static unsafe bool WriteBytes(IntPtr address, byte[] buffer)
     {
-        return Imports.WriteProcessMemory(Handle, address, buffer, buffer.Length, out _);
+        if (Handle.IsNull)
+            return false;
+
+        if (buffer.Length == 0)
+            return true;
+
+        UIntPtr bytesWritten;
+        fixed (byte* p = buffer)
+        {
+            if (!Windows.Win32.PInvoke.WriteProcessMemory(
+                Handle,
+                address.ToPointer(),
+                p,
+                new UIntPtr((uint)buffer.Length),
+                &bytesWritten))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -49,7 +91,7 @@ public static class SafeMemory
     /// <typeparam name="T">The type of the struct.</typeparam>
     /// <param name="address">The address to read from.</param>
     /// <param name="result">The resulting object.</param>
-    /// <returns>Whether or not the read succeeded.</returns>
+    /// <returns>Whether the read succeeded.</returns>
     public static bool Read<T>(IntPtr address, out T result) where T : struct
     {
         if (!ReadBytes(address, SizeCache<T>.Size, out var buffer))
@@ -91,7 +133,7 @@ public static class SafeMemory
     /// <typeparam name="T">The type of the struct.</typeparam>
     /// <param name="address">The address to write to.</param>
     /// <param name="obj">The object to write.</param>
-    /// <returns>Whether or not the write succeeded.</returns>
+    /// <returns>Whether the write succeeded.</returns>
     public static bool Write<T>(IntPtr address, T obj) where T : struct
     {
         using var mem = new LocalMemory(SizeCache<T>.Size);
@@ -105,7 +147,7 @@ public static class SafeMemory
     /// <typeparam name="T">The type of the structs.</typeparam>
     /// <param name="address">The address to write to.</param>
     /// <param name="objArray">The array to write.</param>
-    /// <returns>Whether or not the write succeeded.</returns>
+    /// <returns>Whether the write succeeded.</returns>
     public static bool Write<T>(IntPtr address, T[] objArray) where T : struct
     {
         if (objArray == null || objArray.Length == 0)
@@ -151,7 +193,7 @@ public static class SafeMemory
             return null;
         var data = encoding.GetString(buffer);
         var eosPos = data.IndexOf('\0');
-        return eosPos == -1 ? data : data.Substring(0, eosPos);
+        return eosPos == -1 ? data : data[..eosPos];
     }
 
     /// <summary>
@@ -164,7 +206,7 @@ public static class SafeMemory
     /// </remarks>
     /// <param name="address">The address to write to.</param>
     /// <param name="str">The string to write.</param>
-    /// <returns>Whether or not the write succeeded.</returns>
+    /// <returns>Whether the write succeeded.</returns>
     public static bool WriteString(IntPtr address, string str)
     {
         return WriteString(address, str, Encoding.UTF8);
@@ -181,7 +223,7 @@ public static class SafeMemory
     /// <param name="address">The address to write to.</param>
     /// <param name="str">The string to write.</param>
     /// <param name="encoding">The encoding to use.</param>
-    /// <returns>Whether or not the write succeeded.</returns>
+    /// <returns>Whether the write succeeded.</returns>
     public static bool WriteString(IntPtr address, string str, Encoding encoding)
     {
         if (string.IsNullOrEmpty(str))
@@ -240,18 +282,6 @@ public static class SafeMemory
         }
     }
 
-    private static class Imports
-    {
-        [DllImport("kernel32", SetLastError = true)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out int lpNumberOfBytesRead);
-
-        [DllImport("kernel32", SetLastError = true)]
-        public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int nSize, out int lpNumberOfBytesWritten);
-
-        [DllImport("kernel32", SetLastError = false)]
-        public static extern IntPtr GetCurrentProcess();
-    }
-
     private sealed class LocalMemory : IDisposable
     {
         private readonly int size;
@@ -273,7 +303,7 @@ public static class SafeMemory
             return bytes;
         }
 
-        public T Read<T>(int offset = 0) => (T)Marshal.PtrToStructure(this.hGlobal + offset, typeof(T));
+        public T Read<T>(int offset = 0) => Marshal.PtrToStructure<T>(this.hGlobal + offset);
 
         public object? Read(Type type, int offset = 0) => Marshal.PtrToStructure(this.hGlobal + offset, type);
 

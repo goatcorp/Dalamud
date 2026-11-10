@@ -64,9 +64,9 @@ public interface IObjectWithLocalizableName
         var result = new Dictionary<string, string>((int)count);
         for (var i = 0u; i < count; i++)
         {
-            fn->GetLocaleName(i, (ushort*)buf, maxStrLen).ThrowOnError();
+            fn->GetLocaleName(i, buf, maxStrLen).ThrowOnError();
             var key = new string(buf);
-            fn->GetString(i, (ushort*)buf, maxStrLen).ThrowOnError();
+            fn->GetString(i, buf, maxStrLen).ThrowOnError();
             var value = new string(buf);
             result[key.ToLowerInvariant()] = value;
         }

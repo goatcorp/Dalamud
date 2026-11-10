@@ -1,13 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
+using Dalamud.Game.Player;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
 
 using CSGroupManager = FFXIVClientStructs.FFXIV.Client.Game.Group.GroupManager;
+using CSPartyMember = FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember;
 
 namespace Dalamud.Game.ClientState.Party;
 
@@ -25,7 +26,7 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     private const int AllianceLength = 20;
 
     [ServiceManager.ServiceDependency]
-    private readonly ClientState clientState = Service<ClientState>.Get();
+    private readonly PlayerState playerState = Service<PlayerState>.Get();
 
     [ServiceManager.ServiceConstructor]
     private PartyList()
@@ -42,20 +43,18 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     public bool IsAlliance => this.GroupManagerStruct->MainGroup.AllianceFlags > 0;
 
     /// <inheritdoc/>
-    public unsafe IntPtr GroupManagerAddress => (nint)CSGroupManager.Instance();
+    public nint GroupManagerAddress => (nint)CSGroupManager.Instance();
 
     /// <inheritdoc/>
-    public IntPtr GroupListAddress => (IntPtr)Unsafe.AsPointer(ref GroupManagerStruct->MainGroup.PartyMembers[0]);
+    public nint GroupListAddress => (nint)Unsafe.AsPointer(ref this.GroupManagerStruct->MainGroup.PartyMembers[0]);
 
     /// <inheritdoc/>
-    public IntPtr AllianceListAddress => (IntPtr)Unsafe.AsPointer(ref this.GroupManagerStruct->MainGroup.AllianceMembers[0]);
+    public nint AllianceListAddress => (nint)Unsafe.AsPointer(ref this.GroupManagerStruct->MainGroup.AllianceMembers[0]);
 
     /// <inheritdoc/>
     public long PartyId => this.GroupManagerStruct->MainGroup.PartyId;
 
-    private static int PartyMemberSize { get; } = Marshal.SizeOf<FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember>();
-
-    private FFXIVClientStructs.FFXIV.Client.Game.Group.GroupManager* GroupManagerStruct => (FFXIVClientStructs.FFXIV.Client.Game.Group.GroupManager*)this.GroupManagerAddress;
+    private CSGroupManager* GroupManagerStruct => (CSGroupManager*)this.GroupManagerAddress;
 
     /// <inheritdoc/>
     public IPartyMember? this[int index]
@@ -80,42 +79,42 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     }
 
     /// <inheritdoc/>
-    public IntPtr GetPartyMemberAddress(int index)
+    public nint GetPartyMemberAddress(int index)
     {
         if (index < 0 || index >= GroupLength)
-            return IntPtr.Zero;
+            return 0;
 
-        return this.GroupListAddress + (index * PartyMemberSize);
+        return this.GroupListAddress + (index * CSPartyMember.StructSize);
     }
 
     /// <inheritdoc/>
-    public IPartyMember? CreatePartyMemberReference(IntPtr address)
+    public IPartyMember? CreatePartyMemberReference(nint address)
     {
-        if (this.clientState.LocalContentId == 0)
+        if (this.playerState.ContentId == 0)
             return null;
 
-        if (address == IntPtr.Zero)
+        if (address == 0)
             return null;
 
         return new PartyMember(address);
     }
 
     /// <inheritdoc/>
-    public IntPtr GetAllianceMemberAddress(int index)
+    public nint GetAllianceMemberAddress(int index)
     {
         if (index < 0 || index >= AllianceLength)
-            return IntPtr.Zero;
+            return 0;
 
-        return this.AllianceListAddress + (index * PartyMemberSize);
+        return this.AllianceListAddress + (index * CSPartyMember.StructSize);
     }
 
     /// <inheritdoc/>
-    public IPartyMember? CreateAllianceMemberReference(IntPtr address)
+    public IPartyMember? CreateAllianceMemberReference(nint address)
     {
-        if (this.clientState.LocalContentId == 0)
+        if (this.playerState.ContentId == 0)
             return null;
 
-        if (address == IntPtr.Zero)
+        if (address == 0)
             return null;
 
         return new PartyMember(address);
@@ -133,18 +132,43 @@ internal sealed partial class PartyList
     /// <inheritdoc/>
     public IEnumerator<IPartyMember> GetEnumerator()
     {
-        // Normally using Length results in a recursion crash, however we know the party size via ptr.
-        for (var i = 0; i < this.Length; i++)
-        {
-            var member = this[i];
-
-            if (member == null)
-                break;
-
-            yield return member;
-        }
+        return new Enumerator(this);
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+    private struct Enumerator(PartyList partyList) : IEnumerator<IPartyMember>
+    {
+        private int index = -1;
+
+        public IPartyMember Current { get; private set; }
+
+        object IEnumerator.Current => this.Current;
+
+        public bool MoveNext()
+        {
+            while (++this.index < partyList.Length)
+            {
+                var partyMember = partyList[this.index];
+                if (partyMember != null)
+                {
+                    this.Current = partyMember;
+                    return true;
+                }
+            }
+
+            this.Current = default;
+            return false;
+        }
+
+        public void Reset()
+        {
+            this.index = -1;
+        }
+
+        public void Dispose()
+        {
+        }
+    }
 }

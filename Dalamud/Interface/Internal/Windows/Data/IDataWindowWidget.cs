@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 
 namespace Dalamud.Interface.Internal.Windows.Data;
 
@@ -11,12 +11,12 @@ internal interface IDataWindowWidget
     /// Gets the command strings that can be used to open the data window directly to this module.
     /// </summary>
     string[]? CommandShortcuts { get; init; }
-    
+
     /// <summary>
     /// Gets the display name for this module.
     /// </summary>
     string DisplayName { get; init; }
-    
+
     /// <summary>
     /// Gets or sets a value indicating whether this data window module is ready.
     /// </summary>
@@ -26,7 +26,7 @@ internal interface IDataWindowWidget
     /// Loads the necessary data for this data window module.
     /// </summary>
     void Load();
-    
+
     /// <summary>
     /// Draws this data window module.
     /// </summary>

@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration;
@@ -13,19 +14,17 @@ using Dalamud.Data;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.Sanitizer;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
-using Dalamud.Interface.Internal.Windows.PluginInstaller;
-using Dalamud.Interface.Internal.Windows.Settings;
+using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc;
-using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
+using Dalamud.Plugin.VersionInfo;
+using Dalamud.Utility;
 
 using Serilog;
 
@@ -82,128 +81,95 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
 
         localization.LocalizationChanged += this.OnLocalizationChanged;
         configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
+
+        // Clone manifest, fixup testing fields we moved
+        // API16: Remove
+        var copiedManifest = ((PluginManifest)plugin.Manifest).Copy();
+        copiedManifest.TestingAssemblyVersion = copiedManifest.AssemblyVersion;
+        copiedManifest.TestingDalamudApiLevel = copiedManifest.DalamudApiLevel;
+        copiedManifest.IsTestingExclusive = false; // No way to know
+        this.Manifest = copiedManifest;
     }
 
-    /// <summary>
-    /// Event that gets fired when loc is changed
-    /// </summary>
+    /// <inheritdoc/>
     public event IDalamudPluginInterface.LanguageChangedDelegate? LanguageChanged;
 
-    /// <summary>
-    /// Event that is fired when the active list of plugins is changed.
-    /// </summary>
+    /// <inheritdoc/>
     public event IDalamudPluginInterface.ActivePluginsChangedDelegate? ActivePluginsChanged;
 
-    /// <summary>
-    /// Gets the reason this plugin was loaded.
-    /// </summary>
+    /// <inheritdoc/>
     public PluginLoadReason Reason { get; }
 
-    /// <summary>
-    /// Gets a value indicating whether or not auto-updates have already completed this session.
-    /// </summary>
-    public bool IsAutoUpdateComplete => Service<AutoUpdateManager>.Get().IsAutoUpdateComplete;
+    /// <inheritdoc/>
+    public bool IsAutoUpdateComplete => Service<AutoUpdateManager>.GetNullable()?.IsAutoUpdateComplete ?? false;
 
-    /// <summary>
-    /// Gets the repository from which this plugin was installed.
-    ///
-    /// If a plugin was installed from the official/main repository, this will return the value of
-    /// <see cref="SpecialPluginSource.MainRepo"/>. Developer plugins will return the value of
-    /// <see cref="SpecialPluginSource.DevPlugin"/>.
-    /// </summary>
+    /// <inheritdoc/>
     public string SourceRepository { get; }
 
-    /// <summary>
-    /// Gets the current internal plugin name.
-    /// </summary>
+    /// <inheritdoc/>
     public string InternalName => this.plugin.InternalName;
 
-    /// <summary>
-    /// Gets the plugin's manifest.
-    /// </summary>
-    public IPluginManifest Manifest => this.plugin.Manifest;
+    /// <inheritdoc/>
+    public Guid WorkingPluginId => this.plugin.Manifest.WorkingPluginId;
 
-    /// <summary>
-    /// Gets a value indicating whether this is a dev plugin.
-    /// </summary>
+    /// <inheritdoc/>
+    public IPluginManifest Manifest { get; }
+
+    /// <inheritdoc/>
     public bool IsDev => this.plugin.IsDev;
 
-    /// <summary>
-    /// Gets a value indicating whether this is a testing release of a plugin.
-    /// </summary>
-    /// <remarks>
-    /// Dev plugins have undefined behavior for this value, but can be expected to return <c>false</c>.
-    /// </remarks>
+    /// <inheritdoc/>
     public bool IsTesting { get; }
 
-    /// <summary>
-    /// Gets the time that this plugin was loaded.
-    /// </summary>
+    /// <inheritdoc/>
+    public bool IsInProfile => !this.plugin.IsInDefaultProfile;
+
+    /// <inheritdoc/>
     public DateTime LoadTime { get; }
 
-    /// <summary>
-    /// Gets the UTC time that this plugin was loaded.
-    /// </summary>
+    /// <inheritdoc/>
     public DateTime LoadTimeUTC { get; }
 
-    /// <summary>
-    /// Gets the timespan delta from when this plugin was loaded.
-    /// </summary>
+    /// <inheritdoc/>
     public TimeSpan LoadTimeDelta => DateTime.Now - this.LoadTime;
 
-    /// <summary>
-    /// Gets the directory Dalamud assets are stored in.
-    /// </summary>
+    /// <inheritdoc/>
     public DirectoryInfo DalamudAssetDirectory => Service<Dalamud>.Get().AssetDirectory;
 
-    /// <summary>
-    /// Gets the location of your plugin assembly.
-    /// </summary>
+    /// <inheritdoc/>
+    public Assembly Assembly => this.plugin.Assembly;
+
+    /// <inheritdoc/>
     public FileInfo AssemblyLocation => this.plugin.DllFile;
 
-    /// <summary>
-    /// Gets the directory your plugin configurations are stored in.
-    /// </summary>
+    /// <inheritdoc/>
     public DirectoryInfo ConfigDirectory => new(this.GetPluginConfigDirectory());
 
-    /// <summary>
-    /// Gets the config file of your plugin.
-    /// </summary>
+    /// <inheritdoc/>
     public FileInfo ConfigFile => this.configs.GetConfigFile(this.plugin.InternalName);
 
-    /// <summary>
-    /// Gets the <see cref="UiBuilder"/> instance which allows you to draw UI into the game via ImGui draw calls.
-    /// </summary>
+    /// <inheritdoc/>
     public IUiBuilder UiBuilder { get; private set; }
 
-    /// <summary>
-    /// Gets a value indicating whether Dalamud is running in Debug mode or the /xldev menu is open. This can occur on release builds.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsDevMenuOpen => Service<DalamudInterface>.GetNullable() is { IsDevMenuOpen: true }; // Can be null during boot
 
-    /// <summary>
-    /// Gets a value indicating whether a debugger is attached.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsDebugging => Debugger.IsAttached;
 
-    /// <summary>
-    /// Gets the current UI language in two-letter iso format.
-    /// </summary>
+    /// <inheritdoc/>
+    public bool AllowSeasonalEvents => Service<DalamudConfiguration>.Get().AllowSeasonalEvents;
+
+    /// <inheritdoc/>
     public string UiLanguage { get; private set; }
 
-    /// <summary>
-    /// Gets serializer class with functions to remove special characters from strings.
-    /// </summary>
+    /// <inheritdoc/>
     public ISanitizer Sanitizer { get; }
 
-    /// <summary>
-    /// Gets the chat type used by default for plugin messages.
-    /// </summary>
+    /// <inheritdoc/>
     public XivChatType GeneralChatType { get; private set; }
 
-    /// <summary>
-    /// Gets a list of installed plugins along with their current state.
-    /// </summary>
+    /// <inheritdoc/>
     public IEnumerable<IExposedPlugin> InstalledPlugins =>
         Service<PluginManager>.Get().InstalledPlugins.Select(p => new ExposedPlugin(p));
 
@@ -212,12 +178,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     /// </summary>
     internal UiBuilder LocalUiBuilder => this.uiBuilder;
 
-    /// <summary>
-    /// Opens the <see cref="PluginInstallerWindow"/>, with an optional search term.
-    /// </summary>
-    /// <param name="openTo">The page to open the installer to. Defaults to the "All Plugins" page.</param>
-    /// <param name="searchText">An optional search text to input in the search box.</param>
-    /// <returns>Returns false if the DalamudInterface was null.</returns>
+    /// <inheritdoc/>
     public bool OpenPluginInstallerTo(PluginInstallerOpenKind openTo = PluginInstallerOpenKind.AllPlugins, string? searchText = null)
     {
         var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
@@ -232,12 +193,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
         return true;
     }
 
-    /// <summary>
-    /// Opens the <see cref="SettingsWindow"/>, with an optional search term.
-    /// </summary>
-    /// <param name="openTo">The tab to open the settings to. Defaults to the "General" tab.</param>
-    /// <param name="searchText">An optional search text to input in the search box.</param>
-    /// <returns>Returns false if the DalamudInterface was null.</returns>
+    /// <inheritdoc/>
     public bool OpenDalamudSettingsTo(SettingsOpenKind openTo = SettingsOpenKind.General, string? searchText = null)
     {
         var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
@@ -252,10 +208,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
         return true;
     }
 
-    /// <summary>
-    /// Opens the dev menu bar.
-    /// </summary>
-    /// <returns>Returns false if the DalamudInterface was null.</returns>
+    /// <inheritdoc/>
     public bool OpenDeveloperMenu()
     {
         var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
@@ -268,115 +221,123 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
         return true;
     }
 
+    /// <inheritdoc/>
+    public IExposedPlugin? GetPlugin(Assembly assembly)
+        => AssemblyLoadContext.GetLoadContext(assembly) switch
+        {
+            null => null,
+            var context => this.GetPlugin(context),
+        };
+
+    /// <inheritdoc/>
+    public IExposedPlugin? GetPlugin(AssemblyLoadContext context)
+        => Service<PluginManager>.Get().InstalledPlugins.FirstOrDefault(p => p.LoadsIn(context)) switch
+        {
+            null => null,
+            var p => new ExposedPlugin(p),
+        };
+
+    /// <inheritdoc/>
+    public IDalamudVersionInfo GetDalamudVersion()
+    {
+        return new DalamudVersionInfo(Versioning.GetAssemblyVersionParsed(), Versioning.GetActiveTrack(), Versioning.GetGitHash(), Versioning.GetGitHashClientStructs(), Versioning.GetScmVersion());
+    }
+
     #region IPC
 
-    /// <inheritdoc cref="DataShare.GetOrCreateData{T}"/>
+    /// <inheritdoc/>
     public T GetOrCreateData<T>(string tag, Func<T> dataGenerator) where T : class
-        => Service<DataShare>.Get().GetOrCreateData(tag, dataGenerator);
+        => Service<DataShare>.Get().GetOrCreateData(tag, new DataCachePluginId(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId), dataGenerator);
 
-    /// <inheritdoc cref="DataShare.RelinquishData"/>
+    /// <inheritdoc/>
     public void RelinquishData(string tag)
-        => Service<DataShare>.Get().RelinquishData(tag);
+        => Service<DataShare>.Get().RelinquishData(tag, new DataCachePluginId(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId));
 
-    /// <inheritdoc cref="DataShare.TryGetData{T}"/>
+    /// <inheritdoc/>
     public bool TryGetData<T>(string tag, [NotNullWhen(true)] out T? data) where T : class
-        => Service<DataShare>.Get().TryGetData(tag, out data);
+        => Service<DataShare>.Get().TryGetData(tag, new DataCachePluginId(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId), out data);
 
-    /// <inheritdoc cref="DataShare.GetData{T}"/>
+    /// <inheritdoc/>
     public T? GetData<T>(string tag) where T : class
-        => Service<DataShare>.Get().GetData<T>(tag);
+        => Service<DataShare>.Get().GetData<T>(tag, new DataCachePluginId(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId));
 
-    /// <summary>
-    /// Gets an IPC provider.
-    /// </summary>
-    /// <typeparam name="TRet">The return type for funcs. Use object if this is unused.</typeparam>
-    /// <param name="name">The name of the IPC registration.</param>
-    /// <returns>An IPC provider.</returns>
-    /// <exception cref="IpcTypeMismatchError">This is thrown when the requested types do not match the previously registered types are different.</exception>
+    /// <inheritdoc/>
     public ICallGateProvider<TRet> GetIpcProvider<TRet>(string name)
-        => new CallGatePubSub<TRet>(name);
+        => new CallGatePubSub<TRet>(name, this.plugin);
 
-    /// <inheritdoc cref="ICallGateProvider{TRet}"/>
+    /// <inheritdoc/>
     public ICallGateProvider<T1, TRet> GetIpcProvider<T1, TRet>(string name)
-        => new CallGatePubSub<T1, TRet>(name);
+        => new CallGatePubSub<T1, TRet>(name, this.plugin);
 
-    /// <inheritdoc cref="ICallGateProvider{TRet}"/>
+    /// <inheritdoc/>
     public ICallGateProvider<T1, T2, TRet> GetIpcProvider<T1, T2, TRet>(string name)
-        => new CallGatePubSub<T1, T2, TRet>(name);
+        => new CallGatePubSub<T1, T2, TRet>(name, this.plugin);
 
-    /// <inheritdoc cref="ICallGateProvider{TRet}"/>
+    /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, TRet> GetIpcProvider<T1, T2, T3, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, TRet>(name, this.plugin);
 
-    /// <inheritdoc cref="ICallGateProvider{TRet}"/>
+    /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, T4, TRet> GetIpcProvider<T1, T2, T3, T4, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, TRet>(name, this.plugin);
 
-    /// <inheritdoc cref="ICallGateProvider{TRet}"/>
+    /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, T4, T5, TRet> GetIpcProvider<T1, T2, T3, T4, T5, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, TRet>(name, this.plugin);
 
-    /// <inheritdoc cref="ICallGateProvider{TRet}"/>
+    /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, T4, T5, T6, TRet> GetIpcProvider<T1, T2, T3, T4, T5, T6, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, TRet>(name, this.plugin);
 
-    /// <inheritdoc cref="ICallGateProvider{TRet}"/>
+    /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, T4, T5, T6, T7, TRet> GetIpcProvider<T1, T2, T3, T4, T5, T6, T7, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, TRet>(name, this.plugin);
 
-    /// <inheritdoc cref="ICallGateProvider{TRet}"/>
+    /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, T4, T5, T6, T7, T8, TRet> GetIpcProvider<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(name, this.plugin);
 
-    /// <summary>
-    /// Gets an IPC subscriber.
-    /// </summary>
-    /// <typeparam name="TRet">The return type for funcs. Use object if this is unused.</typeparam>
-    /// <param name="name">The name of the IPC registration.</param>
-    /// <returns>An IPC subscriber.</returns>
+    /// <inheritdoc/>
     public ICallGateSubscriber<TRet> GetIpcSubscriber<TRet>(string name)
-        => new CallGatePubSub<TRet>(name);
+        => new CallGatePubSub<TRet>(name, this.plugin);
 
-    /// <inheritdoc cref="ICallGateSubscriber{TRet}"/>
+    /// <inheritdoc/>
     public ICallGateSubscriber<T1, TRet> GetIpcSubscriber<T1, TRet>(string name)
-        => new CallGatePubSub<T1, TRet>(name);
+        => new CallGatePubSub<T1, TRet>(name, this.plugin);
 
-    /// <inheritdoc cref="ICallGateSubscriber{TRet}"/>
+    /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, TRet> GetIpcSubscriber<T1, T2, TRet>(string name)
-        => new CallGatePubSub<T1, T2, TRet>(name);
+        => new CallGatePubSub<T1, T2, TRet>(name, this.plugin);
 
-    /// <inheritdoc cref="ICallGateSubscriber{TRet}"/>
+    /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, TRet> GetIpcSubscriber<T1, T2, T3, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, TRet>(name, this.plugin);
 
-    /// <inheritdoc cref="ICallGateSubscriber{TRet}"/>
+    /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, T4, TRet> GetIpcSubscriber<T1, T2, T3, T4, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, TRet>(name, this.plugin);
 
-    /// <inheritdoc cref="ICallGateSubscriber{TRet}"/>
+    /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, T4, T5, TRet> GetIpcSubscriber<T1, T2, T3, T4, T5, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, TRet>(name, this.plugin);
 
-    /// <inheritdoc cref="ICallGateSubscriber{TRet}"/>
+    /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, T4, T5, T6, TRet> GetIpcSubscriber<T1, T2, T3, T4, T5, T6, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, TRet>(name, this.plugin);
 
-    /// <inheritdoc cref="ICallGateSubscriber{TRet}"/>
+    /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, T4, T5, T6, T7, TRet> GetIpcSubscriber<T1, T2, T3, T4, T5, T6, T7, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, TRet>(name, this.plugin);
 
-    /// <inheritdoc cref="ICallGateSubscriber{TRet}"/>
+    /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, T4, T5, T6, T7, T8, TRet> GetIpcSubscriber<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(name, this.plugin);
 
     #endregion
 
     #region Configuration
 
-    /// <summary>
-    /// Save a plugin configuration(inheriting IPluginConfiguration).
-    /// </summary>
-    /// <param name="currentConfig">The current configuration.</param>
+    /// <inheritdoc/>
     public void SavePluginConfig(IPluginConfiguration? currentConfig)
     {
         if (currentConfig == null)
@@ -385,10 +346,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
         this.configs.Save(currentConfig, this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId);
     }
 
-    /// <summary>
-    /// Get a previously saved plugin configuration or null if none was saved before.
-    /// </summary>
-    /// <returns>A previously saved config or null if none was saved before.</returns>
+    /// <inheritdoc/>
     public IPluginConfiguration? GetPluginConfig()
     {
         // This is done to support json deserialization of plugin configurations
@@ -404,7 +362,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
             {
                 var mi = this.configs.GetType().GetMethod("LoadForType");
                 var fn = mi.MakeGenericMethod(type);
-                return (IPluginConfiguration)fn.Invoke(this.configs, new object[] { this.plugin.InternalName });
+                return (IPluginConfiguration)fn.Invoke(this.configs, [this.plugin.InternalName]);
             }
         }
 
@@ -412,54 +370,21 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
         return this.configs.Load(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId);
     }
 
-    /// <summary>
-    /// Get the config directory.
-    /// </summary>
-    /// <returns>directory with path of AppData/XIVLauncher/pluginConfig/PluginInternalName.</returns>
+    /// <inheritdoc/>
     public string GetPluginConfigDirectory() => this.configs.GetDirectory(this.plugin.InternalName);
 
-    /// <summary>
-    /// Get the loc directory.
-    /// </summary>
-    /// <returns>directory with path of AppData/XIVLauncher/pluginConfig/PluginInternalName/loc.</returns>
+    /// <inheritdoc/>
     public string GetPluginLocDirectory() => this.configs.GetDirectory(Path.Combine(this.plugin.InternalName, "loc"));
 
     #endregion
 
-    #region Chat Links
-
-    // TODO API9: Move to chatgui, don't allow passing own commandId
-
-    /// <summary>
-    /// Register a chat link handler.
-    /// </summary>
-    /// <param name="commandId">The ID of the command.</param>
-    /// <param name="commandAction">The action to be executed.</param>
-    /// <returns>Returns an SeString payload for the link.</returns>
-    public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction)
-    {
-        return Service<ChatGui>.Get().AddChatLinkHandler(this.plugin.InternalName, commandId, commandAction);
-    }
-
-    /// <summary>
-    /// Remove a chat link handler.
-    /// </summary>
-    /// <param name="commandId">The ID of the command.</param>
-    public void RemoveChatLinkHandler(uint commandId)
-    {
-        Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName, commandId);
-    }
-
-    /// <summary>
-    /// Removes all chat link handlers registered by the plugin.
-    /// </summary>
-    public void RemoveChatLinkHandler()
-    {
-        Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName);
-    }
-    #endregion
-
     #region Dependency Injection
+
+    /// <inheritdoc/>
+    public object? GetService(Type serviceType)
+    {
+        return this.plugin.ServiceScope.GetService(serviceType);
+    }
 
     /// <inheritdoc/>
     public T? Create<T>(params object[] scopedObjects) where T : class
@@ -482,7 +407,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
 
     /// <inheritdoc/>
     public async Task<T> CreateAsync<T>(params object[] scopedObjects) where T : class =>
-        (T)await this.plugin.ServiceScope!.CreateAsync(typeof(T), this.GetPublicIocScopes(scopedObjects));
+        (T)await this.plugin.ServiceScope!.CreateAsync(typeof(T), ObjectInstanceVisibility.ExposedToPlugins, this.GetPublicIocScopes(scopedObjects));
 
     /// <inheritdoc/>
     public bool Inject(object instance, params object[] scopedObjects)
@@ -509,8 +434,19 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
 
     #endregion
 
-    /// <summary>Unregister the plugin and dispose all references.</summary>
-    /// <remarks>Dalamud internal use only.</remarks>
+    /// <inheritdoc/>
+    public async Task<PluginUpdate?> CheckForUpdateAsync()
+    {
+        var pm = Service<PluginManager>.Get();
+        await pm.WaitForReposAsync();
+
+        var update = pm.UpdatablePlugins.FirstOrDefault(x =>
+                                                            x.UpdateManifest.SourceRepo.PluginMasterUrl == this.SourceRepository &&
+                                                            x.UpdateManifest.InternalName == this.plugin.InternalName);
+        return update == null ? null : new PluginUpdate(update.EffectiveVersion, update.UseTesting, update.UpdateManifest.Changelog);
+    }
+
+    /// <inheritdoc/>
     public void Dispose()
     {
         Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName);
@@ -522,22 +458,18 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     /// <summary>
     /// Dispatch the active plugins changed event.
     /// </summary>
-    /// <param name="kind">What action caused this event to be fired.</param>
-    /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
-    internal void NotifyActivePluginsChanged(PluginListInvalidationKind kind, bool affectedThisPlugin)
+    /// <param name="args">The event arguments containing information about the change.</param>
+    internal void NotifyActivePluginsChanged(IActivePluginsChangedEventArgs args)
     {
-        if (this.ActivePluginsChanged is { } callback)
+        foreach (var action in Delegate.EnumerateInvocationList(this.ActivePluginsChanged))
         {
-            foreach (var action in callback.GetInvocationList().Cast<IDalamudPluginInterface.ActivePluginsChangedDelegate>())
+            try
             {
-                try
-                {
-                    action(kind, affectedThisPlugin);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                }
+                action(args);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during raise of {handler}", action.Method);
             }
         }
     }
@@ -546,18 +478,15 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     {
         this.UiLanguage = langCode;
 
-        if (this.LanguageChanged is { } callback)
+        foreach (var action in Delegate.EnumerateInvocationList(this.LanguageChanged))
         {
-            foreach (var action in callback.GetInvocationList().Cast<IDalamudPluginInterface.LanguageChangedDelegate>())
+            try
             {
-                try
-                {
-                    action(langCode);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                }
+                action(langCode);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during raise of {handler}", action.Method);
             }
         }
     }

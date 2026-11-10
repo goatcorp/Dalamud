@@ -1,7 +1,6 @@
-﻿using Dalamud.Game.ClientState.GamePad;
+using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -11,10 +10,10 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal class GamepadWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "gamepad", "controller" };
-    
+    public string[]? CommandShortcuts { get; init; } = ["gamepad", "controller"];
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Gamepad"; 
+    public string DisplayName { get; init; } = "Gamepad";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -40,26 +39,14 @@ internal class GamepadWidget : IDataWindowWidget
             ImGui.SetClipboardText($"{Util.DescribeAddress(gamepadState.GamepadInputAddress)}");
 #endif
 
-        this.DrawHelper(
-            "Buttons Raw",
-            gamepadState.ButtonsRaw,
-            gamepadState.Raw);
-        this.DrawHelper(
-            "Buttons Pressed",
-            gamepadState.ButtonsPressed,
-            gamepadState.Pressed);
-        this.DrawHelper(
-            "Buttons Repeat",
-            gamepadState.ButtonsRepeat,
-            gamepadState.Repeat);
-        this.DrawHelper(
-            "Buttons Released",
-            gamepadState.ButtonsReleased,
-            gamepadState.Released);
+        this.DrawHelper("Buttons Raw", (uint)gamepadState.ButtonsRaw, gamepadState.Raw);
+        this.DrawHelper("Buttons Pressed", (uint)gamepadState.ButtonsPressed, gamepadState.Pressed);
+        this.DrawHelper("Buttons Repeat", (uint)gamepadState.ButtonsRepeat, gamepadState.Repeat);
+        this.DrawHelper("Buttons Released", (uint)gamepadState.ButtonsReleased, gamepadState.Released);
         ImGui.Text($"LeftStick {gamepadState.LeftStick}");
         ImGui.Text($"RightStick {gamepadState.RightStick}");
     }
-    
+
     private void DrawHelper(string text, uint mask, Func<GamepadButtons, float> resolve)
     {
         ImGui.Text($"{text} {mask:X4}");

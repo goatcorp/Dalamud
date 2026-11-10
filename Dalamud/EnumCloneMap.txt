@@ -1,0 +1,35 @@
+# Format: Target.Full.TypeName = Source.Full.EnumTypeName
+# Example: Generate a local enum MyGeneratedEnum in namespace Sample.Gen mapped to SourceEnums.SampleSourceEnum
+Dalamud.Game.Agent.AgentId = FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentId
+Dalamud.Game.Addon.Events.AddonEventType = FFXIVClientStructs.FFXIV.Component.GUI.AtkEventType
+Dalamud.Game.ClientState.Objects.Enums.ObjectKind = FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectKind
+Dalamud.Game.ClientState.Objects.Enums.BattleNpcSubKind = FFXIVClientStructs.FFXIV.Client.Game.Object.BattleNpcSubKind
+Dalamud.Game.ClientState.Fates.FateState = FFXIVClientStructs.FFXIV.Client.Game.Fate.FateState
+Dalamud.Game.ClientState.JobGauge.Enums.BeastChakra = FFXIVClientStructs.FFXIV.Client.Game.Gauge.BeastChakraType
+Dalamud.Game.ClientState.JobGauge.Enums.CanvasFlags = FFXIVClientStructs.FFXIV.Client.Game.Gauge.CanvasFlags
+Dalamud.Game.ClientState.JobGauge.Enums.CardType = FFXIVClientStructs.FFXIV.Client.Game.Gauge.AstrologianCard
+Dalamud.Game.ClientState.JobGauge.Enums.CreatureFlags = FFXIVClientStructs.FFXIV.Client.Game.Gauge.CreatureFlags
+Dalamud.Game.ClientState.JobGauge.Enums.DrawType = FFXIVClientStructs.FFXIV.Client.Game.Gauge.AstrologianDraw
+Dalamud.Game.ClientState.JobGauge.Enums.DreadCombo = FFXIVClientStructs.FFXIV.Client.Game.Gauge.DreadCombo
+Dalamud.Game.ClientState.JobGauge.Enums.Kaeshi = FFXIVClientStructs.FFXIV.Client.Game.Gauge.KaeshiAction
+Dalamud.Game.ClientState.JobGauge.Enums.Nadi = FFXIVClientStructs.FFXIV.Client.Game.Gauge.NadiFlags
+Dalamud.Game.ClientState.JobGauge.Enums.Sen = FFXIVClientStructs.FFXIV.Client.Game.Gauge.SenFlags
+Dalamud.Game.ClientState.JobGauge.Enums.SerpentCombo = FFXIVClientStructs.FFXIV.Client.Game.Gauge.SerpentCombo
+Dalamud.Game.ClientState.JobGauge.Enums.Song = FFXIVClientStructs.FFXIV.Client.Game.Gauge.SongFlags
+Dalamud.Game.ClientState.JobGauge.Enums.AetherFlags = FFXIVClientStructs.FFXIV.Client.Game.Gauge.AetherFlags
+Dalamud.Game.Gui.NamePlate.NamePlateKind = FFXIVClientStructs.FFXIV.Client.UI.UIObjectKind
+Dalamud.Game.Gui.PartyFinder.Types.ConditionFlags = FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentLookingForGroup.CompletionStatus
+Dalamud.Game.Gui.PartyFinder.Types.DutyCategory = FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentLookingForGroup.DutyCategory
+Dalamud.Game.Gui.PartyFinder.Types.DutyFinderSettingsFlags = FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentLookingForGroup.DutyFinderSetting
+Dalamud.Game.Gui.PartyFinder.Types.LootRuleFlags = FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentLookingForGroup.LootRule
+Dalamud.Game.Gui.PartyFinder.Types.ObjectiveFlags = FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentLookingForGroup.Objective
+Dalamud.Game.Gui.PartyFinder.Types.SearchAreaFlags = FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentLookingForGroup.JoinCondition
+Dalamud.Game.Gui.AgentUpdateFlag = FFXIVClientStructs.FFXIV.Client.UI.RaptureAtkModule.AgentUpdateFlags
+Dalamud.Game.Inventory.GameInventoryType = FFXIVClientStructs.FFXIV.Client.Game.InventoryType
+Dalamud.Game.NativeWrapper.AtkValueType = FFXIVClientStructs.FFXIV.Component.GUI.AtkValueType
+Dalamud.Game.Network.Structures.InfoProxy.DisplayGroup = FFXIVClientStructs.FFXIV.Client.UI.Info.InfoProxyCommonList.DisplayGroup
+Dalamud.Game.Player.PlayerAttribute = FFXIVClientStructs.FFXIV.Client.Game.UI.PlayerAttribute
+Dalamud.Game.Text.Evaluator.Internal.SheetRedirectFlags = FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureTextModule.SheetRedirectFlags
+Dalamud.Game.Text.XivChatRelationKind = FFXIVClientStructs.FFXIV.Client.UI.Misc.EntityRelationKind
+Dalamud.Game.Gui.DetailKind = FFXIVClientStructs.FFXIV.Client.Enums.DetailKind
+

@@ -2,7 +2,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 
+using Dalamud.Game;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Dalamud.Utility;
@@ -20,7 +22,10 @@ internal class HookManager : IInternalDisposableService
     /// <summary>
     /// Logger shared with <see cref="Unhooker"/>.
     /// </summary>
-    internal static readonly ModuleLog Log = new("HM");
+    internal static readonly ModuleLog Log = ModuleLog.Create<HookManager>();
+
+    [ServiceManager.ServiceDependency]
+    private readonly Framework framework = Service<Framework>.Get();
 
     [ServiceManager.ServiceConstructor]
     private HookManager()
@@ -30,7 +35,7 @@ internal class HookManager : IInternalDisposableService
     /// <summary>
     /// Gets sync root object for hook enabling/disabling.
     /// </summary>
-    internal static object HookEnableSyncRoot { get; } = new();
+    internal static Lock HookEnableSyncRoot { get; } = new();
 
     /// <summary>
     /// Gets a static list of tracked and registered hooks.
@@ -77,9 +82,13 @@ internal class HookManager : IInternalDisposableService
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        RevertHooks();
-        TrackedHooks.Clear();
-        Unhookers.Clear();
+        // Reduce chances of trampling code that is currently executing by reverting on main thread
+        this.framework.Run(() =>
+        {
+            RevertHooks();
+            TrackedHooks.Clear();
+            Unhookers.Clear();
+        }).Wait();
     }
 
     /// <summary>
@@ -134,6 +143,10 @@ internal class HookManager : IInternalDisposableService
                         newAddress = (IntPtr)inst.IPRelativeMemoryAddress;
                         newAddress = Marshal.ReadIntPtr(newAddress);
                         break;
+                    case OpKind.Memory when inst.IsJmpNearIndirect:
+                    case OpKind.Memory when inst.IsJmpFarIndirect:
+                        Log.Verbose($"Encountered indirect assembly jump ({kind}) from {address.ToInt64():X}, returning unresolved");
+                        return address;
                     case OpKind.Memory:
                         newAddress = (IntPtr)inst.MemoryDisplacement64;
                         newAddress = Marshal.ReadIntPtr(newAddress);

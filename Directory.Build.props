@@ -1,14 +1,26 @@
+<!-- Shared settings for all Dalamud projects. -->
 <Project>
-    <!-- Dependency versions -->
-    <PropertyGroup Label="Dependency Versions">
-        <LuminaVersion>5.6.1</LuminaVersion>
-        <LuminaExcelVersion>7.1.3</LuminaExcelVersion>
-        <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
+
+    <PropertyGroup Label="Target">
+        <TargetFramework>net10.0-windows</TargetFramework>
+        <PlatformTarget>x64</PlatformTarget>
+        <Platforms>x64</Platforms>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+
+        <!-- preview, as docfx is late at upgrading Roslyn versions -->
+        <LangVersion>preview</LangVersion>
+
+        <!-- Disable Intel CET. Causes crashes on unpatched Windows 10 systems. -->
+        <!-- https://github.com/dotnet/runtime/issues/108589 -->
+        <CETCompat>false</CETCompat>
+
+        <!-- Full nullability -->
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <!-- Code analysis settings for all Dalamud projects. -->
     <ItemGroup Label="Code Analysis">
-        <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" PrivateAssets="All" />
+        <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="All" />
         <AdditionalFiles Include="$(MSBuildThisFileDirectory)tools\BannedSymbols.txt" />
     </ItemGroup>
     <!--

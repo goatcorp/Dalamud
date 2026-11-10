@@ -15,8 +15,8 @@ namespace Dalamud.Logging.Internal;
 [ServiceManager.EarlyLoadedService]
 internal class TaskTracker : IInternalDisposableService
 {
-    private static readonly ModuleLog Log = new("TT");
-    private static readonly List<TaskInfo> TrackedTasksInternal = new();
+    private static readonly ModuleLog Log = ModuleLog.Create<TaskTracker>();
+    private static readonly List<TaskInfo> TrackedTasksInternal = [];
     private static readonly ConcurrentQueue<TaskInfo> NewlyCreatedTasks = new();
     private static bool clearRequested = false;
 
@@ -31,7 +31,7 @@ internal class TaskTracker : IInternalDisposableService
     private TaskTracker()
     {
 #if DEBUG
-            this.Enable();
+        this.Enable();
 #endif
     }
 
@@ -200,22 +200,22 @@ internal class TaskTracker : IInternalDisposableService
         public StackTrace? StackTrace { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not the task was completed.
+        /// Gets or sets a value indicating whether the task was completed.
         /// </summary>
         public bool IsCompleted { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not the task faulted.
+        /// Gets or sets a value indicating whether the task faulted.
         /// </summary>
         public bool IsFaulted { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not the task was canceled.
+        /// Gets or sets a value indicating whether the task was canceled.
         /// </summary>
         public bool IsCanceled { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not the task was completed successfully.
+        /// Gets or sets a value indicating whether the task was completed successfully.
         /// </summary>
         public bool IsCompletedSuccessfully { get; set; }
 

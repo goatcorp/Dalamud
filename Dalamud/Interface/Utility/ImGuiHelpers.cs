@@ -3,28 +3,30 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Reactive.Disposables;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Unicode;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Interface.ImGuiBackend.InputHandler;
+using Dalamud.Interface.ImGuiBackend.Renderers;
 using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Utility;
 
-using ImGuiNET;
-using ImGuiScene;
+using VirtualKey = Dalamud.Game.ClientState.Keys.VirtualKey;
 
 namespace Dalamud.Interface.Utility;
 
 /// <summary>
 /// Class containing various helper methods for use with ImGui inside Dalamud.
 /// </summary>
-public static class ImGuiHelpers
+public static partial class ImGuiHelpers
 {
     /// <summary>
     /// Gets the main viewport.
@@ -34,21 +36,23 @@ public static class ImGuiHelpers
     /// <summary>
     /// Gets the global Dalamud scale.
     /// </summary>
-    public static float GlobalScale { get; private set; }
+    public static float GlobalScale =>
+        IsImGuiInitialized ? ImGui.GetIO().FontGlobalScale : Service<DalamudConfiguration>.Get().GlobalUiScale;
 
     /// <summary>
     /// Gets a value indicating whether ImGui is initialized and ready for use.<br />
     /// This does not necessarily mean you can call drawing functions.
     /// </summary>
     public static unsafe bool IsImGuiInitialized =>
-        ImGui.GetCurrentContext() != nint.Zero && ImGui.GetIO().NativePtr is not null;
+        ImGui.GetCurrentContext().Handle is not null && ImGui.GetIO().Handle is not null;
 
     /// <summary>
     /// Gets the global Dalamud scale; even available before drawing is ready.<br />
     /// If you are sure that drawing is ready, at the point of using this, use <see cref="GlobalScale"/> instead.
     /// </summary>
-    public static float GlobalScaleSafe =>
-        IsImGuiInitialized ? ImGui.GetIO().FontGlobalScale : Service<DalamudConfiguration>.Get().GlobalUiScale;
+    [Obsolete("Use GlobalScale. It's always safe now.")]
+    [Api16ToDo("Remove this property and replace usages with GlobalScale.")]
+    public static float GlobalScaleSafe => GlobalScale;
 
     /// <summary>
     /// Check if the current ImGui window is on the main viewport.
@@ -88,6 +92,133 @@ public static class ImGuiHelpers
     public static void ForceNextWindowMainViewport() => ImGui.SetNextWindowViewport(MainViewport.ID);
 
     /// <summary>
+    /// Adds a blur-behind region to an ImGui draw list.
+    /// Optionally applies a luminosity blend, color tint and grain noise.
+    /// </summary>
+    /// <param name="drawList">
+    /// Target draw list. For windows, you may want to use <see cref="PrependBlurBehind"/>, since calling this after ImGui.Begin()
+    /// will affect the title bar and the window background.
+    /// </param>
+    /// <param name="min">Top-left corner of the blur region in display (screen) coordinates.</param>
+    /// <param name="max">Bottom-right corner of the blur region in display (screen) coordinates.</param>
+    /// <param name="blurStrength">
+    /// Controls the strength of the blur. Higher values produce stronger blur.
+    /// </param>
+    /// <param name="rounding">
+    /// Corner radius of the rounded-rectangle mask in pixels.
+    /// Use <c>0</c> for sharp corners, or match the value from <c>ImGui.GetStyle().WindowRounding</c>
+    /// to align with the window border.
+    /// </param>
+    /// <param name="tintColor">
+    /// Tint color (RGB) and tint blend strength (A in [0, 1]).
+    /// A = 0 (default) means no tint is applied.
+    /// </param>
+    /// <param name="luminosityColor">
+    /// Luminosity target color (RGB) and blend strength (A in [0, 1]).
+    /// The luminosity step reduces contrast in the blurred image by replacing its lightness with the
+    /// target's lightness.
+    /// A = 0 (default) skips the step. A typical value is around 0.64–0.85.
+    /// </param>
+    /// <param name="noiseOpacity">
+    /// Opacity of the tiled noise grain layer composited on top, in [0, 1].
+    /// Defaults to an aesthetically pleasing value that was scientifically determined by the implementor
+    /// Pass <c>0</c> to disable grain.
+    /// </param>
+    public static unsafe void AddBlurBehind(
+        ImDrawListPtr drawList,
+        Vector2 min,
+        Vector2 max,
+        float blurStrength = 1.5f,
+        float rounding = 4f,
+        Vector4 tintColor = default,
+        Vector4 luminosityColor = default,
+        float noiseOpacity = 0.17f)
+    {
+        blurStrength = Math.Clamp(blurStrength, 0.05f, 8f);
+        rounding = Math.Max(0f, rounding);
+
+        var data = BlurCallbackDataPool.Rent();
+        data->BlurStrength = blurStrength;
+        data->Rounding = rounding;
+        data->TintColor = tintColor;
+        data->LuminosityColor = luminosityColor;
+        data->NoiseOpacity = noiseOpacity;
+
+        // PushClipRect with intersect=false so cmd.ClipRect always contains the unclipped min/max,
+        // callback handler uses clip rect to determine blur region
+        drawList.PushClipRect(min, max, false);
+        ImGuiNative.AddCallback(
+            drawList,
+            (delegate*<ImDrawList*, ImDrawCmd*, void>)(nint)(long)CustomImDrawCallbackEnum.Blur,
+            data);
+        drawList.PopClipRect();
+    }
+
+    /// <summary>
+    /// Like <see cref="AddBlurBehind"/>, but inserts the blur callback at index 0 of the draw list's
+    /// command buffer so that it fires before all other draw commands.
+    /// This is the correct variant to use from within a window, because it preserves z-order.
+    /// Each window's blur fires after all lower-z windows have been rendered to the RT, so an
+    /// overlapping blurred window correctly captures the window behind it rather than only the
+    /// game.
+    /// </summary>
+    /// <param name="drawList">
+    /// The drawlist to prepend the blur command to. Usually the window drawlist.
+    /// </param>
+    /// <param name="min">
+    /// Top-left corner of the blur region in display (screen) coordinates.
+    /// </param>
+    /// <param name="max">
+    /// Bottom-right corner of the blur region in display (screen) coordinates.
+    /// </param>
+    /// <param name="blurStrength">
+    /// Controls the strength of the blur. Higher values produce stronger blur.
+    /// </param>
+    /// <param name="rounding">
+    /// Corner radius of the rounded-rectangle mask in pixels.
+    /// </param>
+    /// <param name="tintColor">
+    /// Tint colour RGB and blend strength A. A=0 disables the tint.
+    /// </param>
+    /// <param name="luminosityColor">
+    /// Luminosity target RGB and blend strength A. A=0 skips the step.
+    /// </param>
+    /// <param name="noiseOpacity">
+    /// Noise grain opacity [0, 1]. Defaults to an aesthetically pleasing value that was scientifically determined by the implementor.
+    /// </param>
+    public static unsafe void PrependBlurBehind(
+        ImDrawListPtr drawList,
+        Vector2 min,
+        Vector2 max,
+        float blurStrength = 1.5f,
+        float rounding = 4f,
+        Vector4 tintColor = default,
+        Vector4 luminosityColor = default,
+        float noiseOpacity = 0.17f)
+    {
+        blurStrength = Math.Clamp(blurStrength, 0.05f, 8f);
+        rounding = Math.Max(0f, rounding);
+
+        var data = BlurCallbackDataPool.Rent();
+        data->BlurStrength = blurStrength;
+        data->Rounding = rounding;
+        data->TintColor = tintColor;
+        data->LuminosityColor = luminosityColor;
+        data->NoiseOpacity = noiseOpacity;
+
+        var blurCmd = new ImDrawCmd
+        {
+            ClipRect = new Vector4(min.X, min.Y, max.X, max.Y),
+            ElemCount = 0,
+            UserCallback = (void*)(nint)(long)CustomImDrawCallbackEnum.Blur,
+            UserCallbackData = data,
+        };
+
+        var cmdVec = new ImVectorWrapper<ImDrawCmd>(drawList.Handle->CmdBuffer.ToUntyped());
+        cmdVec.Insert(0, blurCmd);
+    }
+
+    /// <summary>
     /// Create a dummy scaled by the global Dalamud scale.
     /// </summary>
     /// <param name="size">The size of the dummy.</param>
@@ -111,7 +242,7 @@ public static class ImGuiHelpers
     /// </summary>
     /// <param name="size">The size of the indent.</param>
     public static void ScaledIndent(float size) => ImGui.Indent(size * GlobalScale);
-    
+
     /// <summary>
     /// Use a relative ImGui.SameLine() from your current cursor position, scaled by the Dalamud global scale.
     /// </summary>
@@ -135,7 +266,7 @@ public static class ImGuiHelpers
     /// <param name="name">The name/ID of the window.</param>
     /// <param name="position">The position of the window.</param>
     /// <param name="condition">When to set the position.</param>
-    public static void SetWindowPosRelativeMainViewport(string name, Vector2 position, ImGuiCond condition = ImGuiCond.None)
+    public static void SetWindowPosRelativeMainViewport(ImU8String name, Vector2 position, ImGuiCond condition = ImGuiCond.None)
         => ImGui.SetWindowPos(name, position + MainViewport.Pos, condition);
 
     /// <summary>
@@ -143,12 +274,13 @@ public static class ImGuiHelpers
     /// </summary>
     /// <param name="swatchCount">The total number of swatches to use.</param>
     /// <returns>Default color palette.</returns>
-    public static List<Vector4> DefaultColorPalette(int swatchCount = 32)
+    public static unsafe List<Vector4> DefaultColorPalette(int swatchCount = 32)
     {
         var colorPalette = new List<Vector4>();
         for (var i = 0; i < swatchCount; i++)
         {
-            ImGui.ColorConvertHSVtoRGB(i / 31.0f, 0.7f, 0.8f, out var r, out var g, out var b);
+            float r = 0f, g = 0f, b = 0f;
+            ImGui.ColorConvertHSVtoRGB(i / 31.0f, 0.7f, 0.8f, ref r, ref g, ref b);
             colorPalette.Add(new Vector4(r, g, b, 1.0f));
         }
 
@@ -160,7 +292,8 @@ public static class ImGuiHelpers
     /// </summary>
     /// <param name="text">Text in the button.</param>
     /// <returns><see cref="Vector2"/> with the size of the button.</returns>
-    public static Vector2 GetButtonSize(string text) => ImGui.CalcTextSize(text) + (ImGui.GetStyle().FramePadding * 2);
+    public static Vector2 GetButtonSize(ImU8String text)
+        => ImGui.CalcTextSize(text) + (ImGui.GetStyle().FramePadding * 2);
 
     /// <summary>
     /// Print out text that can be copied when clicked.
@@ -168,18 +301,11 @@ public static class ImGuiHelpers
     /// <param name="text">The text to show.</param>
     /// <param name="textCopy">The text to copy when clicked.</param>
     /// <param name="color">The color of the text.</param>
-    public static void ClickToCopyText(string text, string? textCopy = null, Vector4? color = null)
+    public static void ClickToCopyText(ImU8String text, ImU8String textCopy = default, Vector4? color = null)
     {
-        textCopy ??= text;
-
-        using (var col = new ImRaii.Color())
+        using (ImRaii.PushColor(ImGuiCol.Text, color))
         {
-            if (color.HasValue)
-            {
-                col.Push(ImGuiCol.Text, color.Value);
-            }
-
-            ImGui.TextUnformatted($"{text}");
+            ImGui.Text(text.Span);
         }
 
         if (ImGui.IsItemHovered())
@@ -190,18 +316,21 @@ public static class ImGuiHelpers
             {
                 using (ImRaii.PushFont(UiBuilder.IconFont))
                 {
-                    ImGui.TextUnformatted(FontAwesomeIcon.Copy.ToIconString());
+                    ImGui.Text(FontAwesomeIcon.Copy.ToIconString());
                 }
 
                 ImGui.SameLine();
-                ImGui.TextUnformatted(textCopy);
+                ImGui.Text(textCopy.IsNull ? text.Span : textCopy.Span);
             }
         }
 
         if (ImGui.IsItemClicked())
         {
-            ImGui.SetClipboardText(textCopy);
+            ImGui.SetClipboardText(textCopy.IsNull ? text.Span : textCopy.Span);
         }
+
+        text.Recycle();
+        textCopy.Recycle();
     }
 
     /// <summary>Draws a SeString.</summary>
@@ -210,8 +339,6 @@ public static class ImGuiHelpers
     /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
     /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <returns>Interaction result of the rendered text.</returns>
-    /// <remarks>This function is experimental. Report any issues to GitHub issues or to Discord #dalamud-dev channel.
-    /// The function definition is stable; only in the next API version a function may be removed.</remarks>
     public static SeStringDrawResult SeStringWrapped(
         ReadOnlySpan<byte> sss,
         scoped in SeStringDrawParams style = default,
@@ -226,8 +353,6 @@ public static class ImGuiHelpers
     /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
     /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <returns>Interaction result of the rendered text.</returns>
-    /// <remarks>This function is experimental. Report any issues to GitHub issues or to Discord #dalamud-dev channel.
-    /// The function definition is stable; only in the next API version a function may be removed.</remarks>
     public static SeStringDrawResult CompileSeStringWrapped(
         string text,
         scoped in SeStringDrawParams style = default,
@@ -239,18 +364,20 @@ public static class ImGuiHelpers
     /// Write unformatted text wrapped.
     /// </summary>
     /// <param name="text">The text to write.</param>
-    public static void SafeTextWrapped(string text) => ImGui.TextWrapped(text.Replace("%", "%%"));
+    [Obsolete("Use ImGui.TextWrapped. It's safe now.", true)]
+    public static void SafeTextWrapped(ImU8String text) => ImGui.TextWrapped(text);
 
     /// <summary>
-    /// Write unformatted text wrapped.
+    /// Write colored, unformatted text wrapped.
     /// </summary>
     /// <param name="color">The color of the text.</param>
     /// <param name="text">The text to write.</param>
-    public static void SafeTextColoredWrapped(Vector4 color, string text)
+    [Obsolete("Use ImGui.TextColoredWrapped. It's safe.", true)]
+    public static void SafeTextColoredWrapped(Vector4 color, ImU8String text)
     {
         using (ImRaii.PushColor(ImGuiCol.Text, color))
         {
-            ImGui.TextWrapped(text.Replace("%", "%%"));
+            ImGui.TextWrapped(text);
         }
     }
 
@@ -264,7 +391,7 @@ public static class ImGuiHelpers
     {
         Func<float, float> rounder = round > 0 ? x => MathF.Round(x / round) * round : x => x;
 
-        var font = fontPtr.NativePtr;
+        var font = fontPtr.Handle;
         font->FontSize = rounder(font->FontSize * scale);
         font->Ascent = rounder(font->Ascent * scale);
         font->Descent = font->FontSize - font->Ascent;
@@ -290,7 +417,7 @@ public static class ImGuiHelpers
 
         foreach (ref var kp in new Span<ImFontKerningPair>((void*)font->KerningPairs.Data, font->KerningPairs.Size))
             kp.AdvanceXAdjustment = rounder(kp.AdvanceXAdjustment * scale);
-        
+
         foreach (ref var fkp in new Span<float>((void*)font->FrequentKerningPairs.Data, font->FrequentKerningPairs.Size))
             fkp = rounder(fkp * scale);
     }
@@ -357,7 +484,7 @@ public static class ImGuiHelpers
             if (glyph->Codepoint < rangeLow || glyph->Codepoint > rangeHigh)
                 continue;
 
-            var prevGlyphPtr = (ImFontGlyphReal*)target.FindGlyphNoFallback((ushort)glyph->Codepoint).NativePtr;
+            var prevGlyphPtr = (ImFontGlyphReal*)target.FindGlyphNoFallback((ushort)glyph->Codepoint);
             if ((IntPtr)prevGlyphPtr == IntPtr.Zero)
             {
                 addedCodepoints.Add(glyph->Codepoint);
@@ -399,9 +526,9 @@ public static class ImGuiHelpers
         var kernPairs = source.KerningPairs;
         for (int j = 0, k = kernPairs.Size; j < k; j++)
         {
-            if (!addedCodepoints.Contains(kernPairs[j].Left))
+            if (!addedCodepoints.Contains((int)kernPairs[j].Left))
                 continue;
-            if (!addedCodepoints.Contains(kernPairs[j].Right))
+            if (!addedCodepoints.Contains((int)kernPairs[j].Right))
                 continue;
             target.AddKerningPair(kernPairs[j].Left, kernPairs[j].Right, kernPairs[j].AdvanceXAdjustment);
             changed = true;
@@ -416,7 +543,7 @@ public static class ImGuiHelpers
             // On our secondary calls of BuildLookupTable, FallbackGlyph is set to some value that is not null,
             // making ImGui attempt to treat whatever was there as a ' '.
             // This may cause random glyphs to be sized randomly, if not an access violation exception.
-            target.NativePtr->FallbackGlyph = null;
+            target.Handle->FallbackGlyph = null;
 
             target.BuildLookupTable();
         }
@@ -429,7 +556,7 @@ public static class ImGuiHelpers
     /// <returns>The ImGuiKey that corresponds to this VirtualKey, or <c>ImGuiKey.None</c> otherwise.</returns>
     public static ImGuiKey VirtualKeyToImGuiKey(VirtualKey key)
     {
-        return ImGui_Input_Impl_Direct.VirtualKeyToImGuiKey((int)key);
+        return Win32InputHandler.VirtualKeyToImGuiKey((int)key);
     }
 
     /// <summary>
@@ -439,24 +566,68 @@ public static class ImGuiHelpers
     /// <returns>The VirtualKey that corresponds to this ImGuiKey, or <c>VirtualKey.NO_KEY</c> otherwise.</returns>
     public static VirtualKey ImGuiKeyToVirtualKey(ImGuiKey key)
     {
-        return (VirtualKey)ImGui_Input_Impl_Direct.ImGuiKeyToVirtualKey(key);
+        return (VirtualKey)Win32InputHandler.ImGuiKeyToVirtualKey(key);
     }
 
     /// <summary>
     /// Show centered text.
     /// </summary>
     /// <param name="text">Text to show.</param>
-    public static void CenteredText(string text)
+    public static void CenteredText(ImU8String text)
     {
-        CenterCursorForText(text);
-        ImGui.TextUnformatted(text);
+        CenterCursorForText(text.Span);
+        ImGui.Text(text);
+    }
+
+    /// <summary>
+    /// Show a centered SeString.
+    /// </summary>
+    /// <param name="sss">The SeString to show.</param>
+    /// <param name="style">
+    /// The initial draw params to use. If <see cref="SeStringDrawParams.TargetDrawList"/> is set, the text is centered in the box
+    /// starting at <see cref="SeStringDrawParams.ScreenOffset"/>, <see cref="SeStringDrawParams.WrapWidth"/> wide.
+    /// You have to set both.
+    /// </param>
+    /// <returns>Interaction result of the rendered text.</returns>
+    public static SeStringDrawResult CenteredSeString(ReadOnlySpan<byte> sss, scoped in SeStringDrawParams style = default)
+    {
+        var drawParams = style.TargetDrawList is null
+                             ? style with { WrapWidth = style.WrapWidth ?? float.MaxValue }
+                             : style;
+
+        var renderer = Service<SeStringRenderer>.Get();
+        var width = renderer.Draw(
+            sss,
+            drawParams with
+            {
+                TargetDrawList = default(ImDrawListPtr),
+                ScreenOffset = Vector2.Zero,
+                Font = style.Font ?? ImGui.GetFont(),
+                FontSize = style.FontSize ?? ImGui.GetFontSize(),
+            }).Size.X;
+
+        if (style.TargetDrawList is null)
+        {
+            CenterCursorFor(width);
+            return renderer.Draw(sss, drawParams);
+        }
+
+        var offset = style.ScreenOffset ?? throw new ArgumentException(
+                         $"{nameof(style.ScreenOffset)} must be set when specifying a target draw list.",
+                         nameof(style));
+        var boxWidth = style.WrapWidth ?? throw new ArgumentException(
+                           $"{nameof(style.WrapWidth)} must be set when specifying a target draw list.",
+                           nameof(style));
+
+        return renderer.Draw(sss, drawParams with { ScreenOffset = offset with { X = offset.X + ((boxWidth - width) / 2) } });
     }
 
     /// <summary>
     /// Center the ImGui cursor for a certain text.
     /// </summary>
     /// <param name="text">The text to center for.</param>
-    public static void CenterCursorForText(string text) => CenterCursorFor(ImGui.CalcTextSize(text).X);
+    public static void CenterCursorForText(ImU8String text)
+        => CenterCursorFor(ImGui.CalcTextSize(text).X);
 
     /// <summary>
     /// Center the ImGui cursor for an item with a certain width.
@@ -466,37 +637,30 @@ public static class ImGuiHelpers
         ImGui.SetCursorPosX((int)((ImGui.GetWindowWidth() - itemWidth) / 2));
 
     /// <summary>
-    /// Allocates memory on the heap using <see cref="ImGuiNative.igMemAlloc"/><br />
-    /// Memory must be freed using <see cref="ImGuiNative.igMemFree"/>.
+    /// Starts a new horizontal button group.
+    /// </summary>
+    /// <returns>The group.</returns>
+    public static HorizontalButtonGroup BeginHorizontalButtonGroup() => new();
+
+    /// <summary>
+    /// Allocates memory on the heap using <see cref="ImGui.MemAlloc(nuint)"/><br />
+    /// Memory must be freed using <see cref="ImGui.MemFree"/>.
     /// <br />
     /// Note that null is a valid return value when <paramref name="length"/> is 0.
     /// </summary>
     /// <param name="length">The length of allocated memory.</param>
     /// <returns>The allocated memory.</returns>
-    /// <exception cref="OutOfMemoryException">If <see cref="ImGuiNative.igMemAlloc"/> returns null.</exception>
-    public static unsafe void* AllocateMemory(int length)
+    /// <exception cref="OutOfMemoryException">If <see cref="ImGui.MemAlloc(nuint)"/> returns null.</exception>
+    public static unsafe void* AllocateMemory(nuint length)
     {
-        // TODO: igMemAlloc takes size_t, which is nint; ImGui.NET apparently interpreted that as uint.
-        // fix that in ImGui.NET.
-        switch (length)
+        var memory = ImGui.MemAlloc(length);
+        if (memory is null)
         {
-            case 0:
-                return null;
-            case < 0:
-                throw new ArgumentOutOfRangeException(
-                    nameof(length),
-                    length,
-                    $"{nameof(length)} cannot be a negative number.");
-            default:
-                var memory = ImGuiNative.igMemAlloc((uint)length);
-                if (memory is null)
-                {
-                    throw new OutOfMemoryException(
-                        $"Failed to allocate {length} bytes using {nameof(ImGuiNative.igMemAlloc)}");
-                }
-
-                return memory;
+            throw new OutOfMemoryException(
+                $"Failed to allocate {length} bytes using {nameof(ImGui.MemAlloc)}");
         }
+
+        return memory;
     }
 
     /// <summary>
@@ -506,12 +670,12 @@ public static class ImGuiHelpers
     /// <returns>Disposable you can call.</returns>
     public static unsafe IDisposable NewFontGlyphRangeBuilderPtrScoped(out ImFontGlyphRangesBuilderPtr builder)
     {
-        builder = new(ImGuiNative.ImFontGlyphRangesBuilder_ImFontGlyphRangesBuilder());
-        var ptr = builder.NativePtr;
+        builder = new(ImGui.ImFontGlyphRangesBuilder());
+        var ptr = builder.Handle;
         return Disposable.Create(() =>
         {
             if (ptr != null)
-                ImGuiNative.ImFontGlyphRangesBuilder_destroy(ptr);
+                new ImFontGlyphRangesBuilderPtr(ptr).Destroy();
             ptr = null;
         });
     }
@@ -536,10 +700,11 @@ public static class ImGuiHelpers
             builder.AddChar('.');
         }
 
-        builder.BuildRanges(out var vec);
-        return new ReadOnlySpan<ushort>((void*)vec.Data, vec.Size).ToArray();
+        ImVector<ushort> outRanges = default;
+        builder.BuildRanges(&outRanges);
+        return new ReadOnlySpan<ushort>((void*)outRanges.Data, outRanges.Size).ToArray();
     }
-    
+
     /// <inheritdoc cref="CreateImGuiRangesFrom(IEnumerable{UnicodeRange})"/>
     public static ushort[] CreateImGuiRangesFrom(params UnicodeRange[] ranges)
         => CreateImGuiRangesFrom((IEnumerable<UnicodeRange>)ranges);
@@ -564,25 +729,11 @@ public static class ImGuiHelpers
             .ToArray();
 
     /// <summary>
-    /// Determines whether <paramref name="ptr"/> is empty.
+    /// Determines whether <paramref name="ptr"/> is not empty and loaded.
     /// </summary>
     /// <param name="ptr">The pointer.</param>
-    /// <returns>Whether it is empty.</returns>
-    public static unsafe bool IsNull(this ImFontPtr ptr) => ptr.NativePtr == null;
-
-    /// <summary>
-    /// Determines whether <paramref name="ptr"/> is empty.
-    /// </summary>
-    /// <param name="ptr">The pointer.</param>
-    /// <returns>Whether it is empty.</returns>
-    public static unsafe bool IsNotNullAndLoaded(this ImFontPtr ptr) => ptr.NativePtr != null && ptr.IsLoaded();
-
-    /// <summary>
-    /// Determines whether <paramref name="ptr"/> is empty.
-    /// </summary>
-    /// <param name="ptr">The pointer.</param>
-    /// <returns>Whether it is empty.</returns>
-    public static unsafe bool IsNull(this ImFontAtlasPtr ptr) => ptr.NativePtr == null;
+    /// <returns>Whether it is not null and loaded.</returns>
+    public static unsafe bool IsNotNullAndLoaded(this ImFontPtr ptr) => !ptr.IsNull && ptr.IsLoaded();
 
     /// <summary>
     /// If <paramref name="self"/> is default, then returns <paramref name="other"/>.
@@ -591,18 +742,27 @@ public static class ImGuiHelpers
     /// <param name="other">The other.</param>
     /// <returns><paramref name="self"/> if it is not default; otherwise, <paramref name="other"/>.</returns>
     public static unsafe ImFontPtr OrElse(this ImFontPtr self, ImFontPtr other) =>
-        self.NativePtr is null ? other : self;
+        self.IsNull ? other : self;
+
+    /// <summary>Creates a draw data that will draw the given SeString onto it.</summary>
+    /// <param name="sss">SeString to render.</param>
+    /// <param name="style">Initial rendering style.</param>
+    /// <returns>A new self-contained draw data.</returns>
+    internal static BufferBackedImDrawData CreateDrawData(
+        ReadOnlySpan<byte> sss,
+        scoped in SeStringDrawParams style = default) =>
+        Service<SeStringRenderer>.Get().CreateDrawData(sss, style);
 
     /// <summary>
     /// Mark 4K page as used, after adding a codepoint to a font.
     /// </summary>
     /// <param name="font">The font.</param>
     /// <param name="codepoint">The codepoint.</param>
-    internal static unsafe void Mark4KPageUsedAfterGlyphAdd(this ImFontPtr font, ushort codepoint)
+    internal static void Mark4KPageUsedAfterGlyphAdd(this ImFontPtr font, ushort codepoint)
     {
         // Mark 4K page as used
         var pageIndex = unchecked((ushort)(codepoint / 4096));
-        font.NativePtr->Used4kPagesMap[pageIndex >> 3] |= unchecked((byte)(1 << (pageIndex & 7)));
+        font.Used4kPagesMap[pageIndex >> 3] |= unchecked((byte)(1 << (pageIndex & 7)));
     }
 
     /// <summary>
@@ -610,19 +770,15 @@ public static class ImGuiHelpers
     /// </summary>
     /// <param name="data">The callback data.</param>
     /// <param name="s">The new text.</param>
-    internal static unsafe void SetTextFromCallback(ImGuiInputTextCallbackData* data, string s)
+    internal static void SetTextFromCallback(ref ImGuiInputTextCallbackData data, ImU8String s)
     {
-        if (data->BufTextLen != 0)
-            ImGuiNative.ImGuiInputTextCallbackData_DeleteChars(data, 0, data->BufTextLen);
+        if (data.BufTextLen != 0)
+            data.DeleteChars(0, data.BufTextLen);
 
-        var len = Encoding.UTF8.GetByteCount(s);
-        var buf = len < 1024 ? stackalloc byte[len] : new byte[len];
-        Encoding.UTF8.GetBytes(s, buf);
-        fixed (byte* pBuf = buf)
-            ImGuiNative.ImGuiInputTextCallbackData_InsertChars(data, 0, pBuf, pBuf + len);
-        ImGuiNative.ImGuiInputTextCallbackData_SelectAll(data);
+        data.InsertChars(0, s);
+        data.SelectAll();
     }
-    
+
     /// <summary>
     /// Finds the corresponding ImGui viewport ID for the given window handle.
     /// </summary>
@@ -633,10 +789,10 @@ public static class ImGuiHelpers
         if (!IsImGuiInitialized)
             return -1;
 
-        var viewports = new ImVectorWrapper<ImGuiViewportPtr>(&ImGui.GetPlatformIO().NativePtr->Viewports);
+        var viewports = new ImVectorWrapper<ImGuiViewportPtr>((ImVector*)Unsafe.AsPointer(ref ImGui.GetPlatformIO().Handle->Viewports));
         for (var i = 0; i < viewports.LengthUnsafe; i++)
         {
-            if (viewports.DataUnsafe[i].PlatformHandle == hwnd)
+            if (viewports.DataUnsafe[i].PlatformHandle == hwnd.ToPointer())
                 return i;
         }
 
@@ -652,21 +808,21 @@ public static class ImGuiHelpers
     {
         try
         {
-            var font = fontPtr.NativePtr;
+            var font = fontPtr.Handle;
             if (font is null)
                 throw new NullReferenceException("The font is null.");
 
             _ = Marshal.ReadIntPtr((nint)font);
-            if (font->IndexedHotData.Data != 0)
-                _ = Marshal.ReadIntPtr(font->IndexedHotData.Data);
-            if (font->FrequentKerningPairs.Data != 0)
-                _ = Marshal.ReadIntPtr(font->FrequentKerningPairs.Data);
-            if (font->IndexLookup.Data != 0)
-                _ = Marshal.ReadIntPtr(font->IndexLookup.Data);
-            if (font->Glyphs.Data != 0)
-                _ = Marshal.ReadIntPtr(font->Glyphs.Data);
-            if (font->KerningPairs.Data != 0)
-                _ = Marshal.ReadIntPtr(font->KerningPairs.Data);
+            if (font->IndexedHotData.Data != null)
+                _ = *font->IndexedHotData.Front;
+            if (font->FrequentKerningPairs.Data != null)
+                _ = font->FrequentKerningPairs.Data;
+            if (font->IndexLookup.Data != null)
+                _ = *font->IndexLookup.Data;
+            if (font->Glyphs.Data != null)
+                _ = *font->Glyphs.Data;
+            if (font->KerningPairs.Data != null)
+                _ = *font->KerningPairs.Data;
             if (font->ConfigDataCount == 0 && font->ConfigData is not null)
                 throw new InvalidOperationException("ConfigDataCount == 0 but ConfigData is not null?");
             if (font->ConfigDataCount != 0 && font->ConfigData is null)
@@ -674,11 +830,11 @@ public static class ImGuiHelpers
             if (font->ConfigData is not null)
                 _ = Marshal.ReadIntPtr((nint)font->ConfigData);
             if (font->FallbackGlyph is not null
-                && ((nint)font->FallbackGlyph < font->Glyphs.Data || (nint)font->FallbackGlyph >= font->Glyphs.Data))
+                && ((nint)font->FallbackGlyph < (nint)font->Glyphs.Data || (nint)font->FallbackGlyph >= (nint)font->Glyphs.Data))
                 throw new InvalidOperationException("FallbackGlyph is not in range of Glyphs.Data");
             if (font->FallbackHotData is not null
-                && ((nint)font->FallbackHotData < font->IndexedHotData.Data
-                    || (nint)font->FallbackHotData >= font->IndexedHotData.Data))
+                && ((nint)font->FallbackHotData < (nint)font->IndexedHotData.Data
+                    || (nint)font->FallbackHotData >= (nint)font->IndexedHotData.Data))
                 throw new InvalidOperationException("FallbackGlyph is not in range of Glyphs.Data");
             if (font->ContainerAtlas is not null)
                 _ = Marshal.ReadIntPtr((nint)font->ContainerAtlas);
@@ -699,7 +855,7 @@ public static class ImGuiHelpers
     internal static unsafe void UpdateFallbackChar(this ImFontPtr font, char c)
     {
         font.FallbackChar = c;
-        font.NativePtr->FallbackHotData =
+        font.Handle->FallbackHotData =
             (ImFontGlyphHotData*)((ImFontGlyphHotDataReal*)font.IndexedHotData.Data + font.FallbackChar);
     }
 
@@ -724,14 +880,6 @@ public static class ImGuiHelpers
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Get data needed for each new frame.
-    /// </summary>
-    internal static void NewFrame()
-    {
-        GlobalScale = ImGui.GetIO().FontGlobalScale;
     }
 
     /// <summary>
@@ -894,5 +1042,163 @@ public static class ImGuiHelpers
             get => (int)(this.TextureIndexAndGlyphId & GlyphIdMask) >> GlyphIdShift;
             set => this.TextureIndexAndGlyphId = (this.TextureIndexAndGlyphId & ~GlyphIdMask) | ((uint)value << GlyphIdShift);
         }
+    }
+
+    /// <summary>
+    /// Class helper for creating a horizontal button group.
+    /// </summary>
+    public class HorizontalButtonGroup
+    {
+        private readonly List<ButtonDef> buttons = [];
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the buttons should be centered horizontally.
+        /// </summary>
+        public bool IsCentered { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets the height of the buttons. If null, the default frame height is used.
+        /// </summary>
+        public float? Height { get; set; }
+
+        /// <summary>
+        /// Gets or sets the extra margin to add to the inside of each button, before and after the text.
+        /// If null, the default margin is used.
+        /// </summary>
+        public float? ExtraMargin { get; set; }
+
+        /// <summary>
+        /// Gets or sets the padding between buttons. If null, the default item spacing is used.
+        /// </summary>
+        public float? PaddingBetweenButtons { get; set; }
+
+        /// <summary>
+        /// Add a button to the group.
+        /// </summary>
+        /// <param name="text">The text of the button.</param>
+        /// <param name="action">The action to perform when the button is pressed.</param>
+        /// <returns>The group.</returns>
+        public HorizontalButtonGroup Add(string text, Action action)
+        {
+            this.buttons.Add(new ButtonDef(text, action));
+            return this;
+        }
+
+        /// <summary>
+        /// Sets whether the buttons should be centered horizontally.
+        /// </summary>
+        /// <param name="centered">The value.</param>
+        /// <returns>The group.</returns>
+        public HorizontalButtonGroup SetCentered(bool centered)
+        {
+            this.IsCentered = centered;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the height of the buttons.
+        /// </summary>
+        /// <param name="height">The height.</param>
+        /// <returns>The group.</returns>
+        public HorizontalButtonGroup WithHeight(float height)
+        {
+            this.Height = height;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the extra margin to add to the inside of each button, before and after the text.
+        /// </summary>
+        /// <param name="extraMargin">The margin.</param>
+        /// <returns>The group.</returns>
+        public HorizontalButtonGroup WithExtraMargin(float extraMargin)
+        {
+            this.ExtraMargin = extraMargin;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the padding between buttons.
+        /// </summary>
+        /// <param name="padding">The padding.</param>
+        /// <returns>The group.</returns>
+        public HorizontalButtonGroup WithPaddingBetweenButtons(float padding)
+        {
+            this.PaddingBetweenButtons = padding;
+            return this;
+        }
+
+        /// <summary>
+        /// Draw the button group at the current location.
+        /// </summary>
+        public void Draw()
+        {
+            var buttonHeight = this.Height * GlobalScale ?? ImGui.GetFrameHeight();
+            var buttonCount = this.buttons.Count;
+
+            if (buttonCount == 0)
+                return;
+
+            var buttonWidths = new float[buttonCount];
+            var totalContentWidth = 0f;
+            var extraMargin = this.ExtraMargin ?? 0f;
+
+            for (var i = 0; i < buttonCount; i++)
+            {
+                var buttonText = this.buttons[i].Text;
+                buttonWidths[i] = ImGui.CalcTextSize(buttonText).X + (2 * extraMargin) + (2 * ImGui.GetStyle().FramePadding.X);
+                totalContentWidth += buttonWidths[i];
+            }
+
+            var buttonPadding = this.PaddingBetweenButtons ?? ImGui.GetStyle().ItemSpacing.X;
+            if (buttonCount > 1)
+                totalContentWidth += buttonPadding * (buttonCount - 1);
+
+            var startX = ImGui.GetCursorPosX();
+            if (this.IsCentered)
+            {
+                var availWidth = ImGui.GetContentRegionAvail().X;
+                startX += (availWidth - totalContentWidth) * 0.5f;
+                ImGui.SetCursorPosX(startX);
+            }
+
+            var originalSpacing = ImGui.GetStyle().ItemSpacing;
+            if (this.PaddingBetweenButtons.HasValue)
+            {
+                var spacing = originalSpacing;
+                spacing.X = this.PaddingBetweenButtons.Value;
+                ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, spacing);
+            }
+
+            for (var i = 0; i < buttonCount; i++)
+            {
+                var buttonDef = this.buttons[i];
+
+                if (this.ExtraMargin.HasValue)
+                    ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(ImGui.GetStyle().FramePadding.X + extraMargin, ImGui.GetStyle().FramePadding.Y));
+
+                if (this.Height.HasValue)
+                {
+                    if (ImGui.Button(buttonDef.Text, new Vector2(buttonWidths[i], buttonHeight)))
+                        buttonDef.Action?.Invoke();
+                }
+                else
+                {
+                    if (ImGui.Button(buttonDef.Text, new Vector2(buttonWidths[i], -1)))
+                        buttonDef.Action?.Invoke();
+                }
+
+                if (this.ExtraMargin.HasValue)
+                    ImGui.PopStyleVar();
+
+                if (i < buttonCount - 1)
+                    ImGui.SameLine();
+            }
+
+            if (this.PaddingBetweenButtons.HasValue)
+                ImGui.PopStyleVar();
+        }
+
+        private record ButtonDef(string Text, Action Action);
     }
 }

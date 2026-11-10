@@ -1,17 +1,21 @@
-﻿using FFXIVClientStructs.FFXIV.Component.GUI;
+using System.Collections.Generic;
+
+using Dalamud.Game.NativeWrapper;
+
+using FFXIVClientStructs.FFXIV.Component.GUI;
+using FFXIVClientStructs.Interop;
 
 namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 /// <summary>
 /// Addon argument data for Setup events.
 /// </summary>
-public class AddonSetupArgs : AddonArgs, ICloneable
+public class AddonSetupArgs : AddonArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonSetupArgs"/> class.
     /// </summary>
-    [Obsolete("Not intended for public construction.", false)]
-    public AddonSetupArgs()
+    internal AddonSetupArgs()
     {
     }
 
@@ -29,13 +33,32 @@ public class AddonSetupArgs : AddonArgs, ICloneable
     public nint AtkValues { get; set; }
 
     /// <summary>
+    /// Gets an enumerable collection of <see cref="AtkValuePtr"/> of the event's AtkValues.
+    /// </summary>
+    /// <returns>
+    /// An <see cref="IEnumerable{T}"/> of <see cref="AtkValuePtr"/> corresponding to the event's AtkValues.
+    /// </returns>
+    public IEnumerable<AtkValuePtr> AtkValueEnumerable
+    {
+        get
+        {
+            for (var i = 0; i < this.AtkValueCount; i++)
+            {
+                AtkValuePtr ptr;
+                unsafe
+                {
+#pragma warning disable CS0618 // Type or member is obsolete
+                    ptr = new AtkValuePtr((nint)this.AtkValueSpan.GetPointer(i));
+#pragma warning restore CS0618 // Type or member is obsolete
+                }
+
+                yield return ptr;
+            }
+        }
+    }
+
+    /// <summary>
     /// Gets the AtkValues in the form of a span.
     /// </summary>
-    public unsafe Span<AtkValue> AtkValueSpan => new(this.AtkValues.ToPointer(), (int)this.AtkValueCount);
-
-    /// <inheritdoc cref="ICloneable.Clone"/>
-    public AddonSetupArgs Clone() => (AddonSetupArgs)this.MemberwiseClone();
-
-    /// <inheritdoc cref="Clone"/>
-    object ICloneable.Clone() => this.Clone();
+    internal unsafe Span<AtkValue> AtkValueSpan => new(this.AtkValues.ToPointer(), (int)this.AtkValueCount);
 }

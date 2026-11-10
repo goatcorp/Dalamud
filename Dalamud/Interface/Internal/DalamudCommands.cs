@@ -1,9 +1,9 @@
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
 using CheapLoc;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.Command;
@@ -11,7 +11,6 @@ using Dalamud.Game.Gui;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
-using Serilog;
 
 namespace Dalamud.Interface.Internal;
 
@@ -140,24 +139,23 @@ internal class DalamudCommands : IServiceType
                 "Open Dalamud's startup timing profiler."),
         });
 
-        commandManager.AddHandler("/imdebug", new CommandInfo(this.OnDebugImInfoCommand)
-        {
-            HelpMessage = "ImGui DEBUG",
-            ShowInHelp = false,
-        });
-
         commandManager.AddHandler("/xlcopylog", new CommandInfo(this.OnCopyLogCommand)
         {
             HelpMessage = Loc.Localize(
                 "DalamudCopyLogHelp",
                 "Copy the dalamud.log file to your clipboard."),
         });
+        // Add the new command handler for toggling multi-monitor option
+        commandManager.AddHandler("/xltogglemultimonitor", new CommandInfo(this.OnToggleMultiMonitorCommand)
+        {
+            HelpMessage = Loc.Localize("DalamudToggleMultiMonitorHelp", "Toggle multi-monitor windows."),
+        });
     }
 
     private void OnUnloadCommand(string command, string arguments)
     {
         Service<ChatGui>.Get().Print("Unloading...");
-        Service<Dalamud>.Get().Unload();
+        Service<Framework>.Get().UnloadDalamud();
     }
 
     private void OnKillCommand(string command, string arguments)
@@ -209,7 +207,7 @@ internal class DalamudCommands : IServiceType
         var chatGui = Service<ChatGui>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
 
-        configuration.BadWords ??= new List<string>();
+        configuration.BadWords ??= [];
 
         if (configuration.BadWords.Count == 0)
         {
@@ -228,7 +226,7 @@ internal class DalamudCommands : IServiceType
         var chatGui = Service<ChatGui>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
 
-        configuration.BadWords ??= new List<string>();
+        configuration.BadWords ??= [];
 
         configuration.BadWords.RemoveAll(x => x == arguments);
 
@@ -273,6 +271,7 @@ internal class DalamudCommands : IServiceType
     private void OnDebugDrawDevMenu(string command, string arguments)
     {
         Service<DalamudInterface>.Get().ToggleDevMenu();
+        Service<DalamudConfiguration>.Get().DevMode = true;
     }
 
     private void OnTogglePluginStats(string command, string arguments)
@@ -300,41 +299,18 @@ internal class DalamudCommands : IServiceType
         Service<DalamudInterface>.Get().ToggleLogWindow();
     }
 
-    private void OnDebugImInfoCommand(string command, string arguments)
-    {
-        var io = Service<InterfaceManager>.Get().LastImGuiIoPtr;
-        var info = $"WantCaptureKeyboard: {io.WantCaptureKeyboard}\n";
-        info += $"WantCaptureMouse: {io.WantCaptureMouse}\n";
-        info += $"WantSetMousePos: {io.WantSetMousePos}\n";
-        info += $"WantTextInput: {io.WantTextInput}\n";
-        info += $"WantSaveIniSettings: {io.WantSaveIniSettings}\n";
-        info += $"BackendFlags: {(int)io.BackendFlags}\n";
-        info += $"DeltaTime: {io.DeltaTime}\n";
-        info += $"DisplaySize: {io.DisplaySize.X} {io.DisplaySize.Y}\n";
-        info += $"Framerate: {io.Framerate}\n";
-        info += $"MetricsActiveWindows: {io.MetricsActiveWindows}\n";
-        info += $"MetricsRenderWindows: {io.MetricsRenderWindows}\n";
-        info += $"MousePos: {io.MousePos.X} {io.MousePos.Y}\n";
-        info += $"MouseClicked: {io.MouseClicked}\n";
-        info += $"MouseDown: {io.MouseDown}\n";
-        info += $"NavActive: {io.NavActive}\n";
-        info += $"NavVisible: {io.NavVisible}\n";
-
-        Log.Information(info);
-    }
-
     private void OnVersionInfoCommand(string command, string arguments)
     {
         var chatGui = Service<ChatGui>.Get();
 
         chatGui.Print(new SeStringBuilder()
                       .AddItalics("Dalamud:")
-                      .AddText($" {Util.GetScmVersion()}")
+                      .AddText($" {Versioning.GetScmVersion()}")
                       .Build());
 
         chatGui.Print(new SeStringBuilder()
                       .AddItalics("FFXIVCS:")
-                      .AddText($" {Util.GetGitHashClientStructs()}")
+                      .AddText($" {Versioning.GetGitHashClientStructs()}")
                       .Build());
     }
 
@@ -350,7 +326,7 @@ internal class DalamudCommands : IServiceType
         var configuration = Service<DalamudConfiguration>.Get();
         var localization = Service<Localization>.Get();
 
-        if (Localization.ApplicableLangCodes.Contains(arguments.ToLowerInvariant()) || arguments.ToLowerInvariant() == "en")
+        if (Localization.ApplicableLangCodes.Contains(arguments.ToLowerInvariant()) || arguments.Equals("en", StringComparison.InvariantCultureIgnoreCase))
         {
             localization.SetupWithLangCode(arguments.ToLowerInvariant());
             configuration.LanguageOverride = arguments.ToLowerInvariant();
@@ -414,6 +390,21 @@ internal class DalamudCommands : IServiceType
         var message = Util.CopyFilesToClipboard([logPath])
                           ? Loc.Localize("DalamudLogCopySuccess", "Log file copied to clipboard.")
                           : Loc.Localize("DalamudLogCopyFailure", "Could not copy log file to clipboard.");
+        chatGui.Print(message);
+    }
+
+    private void OnToggleMultiMonitorCommand(string command, string arguments)
+    {
+        var configuration = Service<DalamudConfiguration>.Get();
+        var chatGui = Service<ChatGui>.Get();
+
+        configuration.IsDisableViewport = !configuration.IsDisableViewport;
+        configuration.QueueSave();
+
+        var message = configuration.IsDisableViewport
+            ? Loc.Localize("DalamudMultiMonitorDisabled", "Multi-monitor windows disabled.")
+            : Loc.Localize("DalamudMultiMonitorEnabled", "Multi-monitor windows enabled.");
+
         chatGui.Print(message);
     }
 }

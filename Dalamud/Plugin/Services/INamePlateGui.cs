@@ -7,14 +7,14 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// Class used to modify the data used when rendering nameplates.
 /// </summary>
-public interface INamePlateGui
+public interface INamePlateGui : IDalamudService
 {
     /// <summary>
     /// The delegate used for receiving nameplate update events.
     /// </summary>
     /// <param name="context">An object containing information about the pending data update.</param>
     /// <param name="handlers>">A list of handlers used for updating nameplate data.</param>
-    public delegate void OnPlateUpdateDelegate(
+    delegate void OnPlateUpdateDelegate(
         INamePlateUpdateContext context, IReadOnlyList<INamePlateUpdateHandler> handlers);
 
     /// <summary>

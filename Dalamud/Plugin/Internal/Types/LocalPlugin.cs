@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,6 +16,7 @@ using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Loader;
 using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Plugin.Internal.Types.Manifest;
+using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Internal.Types;
 
@@ -31,7 +33,7 @@ internal class LocalPlugin : IAsyncDisposable
     protected LocalPluginManifest manifest;
 #pragma warning restore SA1401
 
-    private static readonly ModuleLog Log = new("LOCALPLUGIN");
+    private static readonly ModuleLog Log = ModuleLog.Create<LocalPlugin>();
 
     private readonly FileInfo manifestFile;
     private readonly FileInfo disabledFile;
@@ -39,10 +41,10 @@ internal class LocalPlugin : IAsyncDisposable
 
     private readonly SemaphoreSlim pluginLoadStateLock = new(1);
 
+    private bool disposed = false;
     private PluginLoader? loader;
-    private Assembly? pluginAssembly;
     private Type? pluginType;
-    private IDalamudPlugin? instance;
+    private object? instance;
     private IServiceScope? serviceScope;
     private DalamudPluginInterface? dalamudInterface;
 
@@ -62,11 +64,12 @@ internal class LocalPlugin : IAsyncDisposable
         }
 
         this.DllFile = dllFile;
-        this.State = PluginState.Unloaded;
 
         // Although it is conditionally used here, we need to set the initial value regardless.
         this.manifestFile = LocalPluginManifest.GetManifestFile(this.DllFile);
         this.manifest = manifest;
+
+        this.State = PluginState.Unloaded;
 
         var needsSaveDueToLegacyFiles = false;
 
@@ -129,10 +132,9 @@ internal class LocalPlugin : IAsyncDisposable
     public PluginState State { get; protected set; }
 
     /// <summary>
-    /// Gets the AssemblyName plugin, populated during <see cref="LoadAsync"/>.
+    /// Gets the plugin's Assembly, populated during <see cref="LoadAsync"/>.
     /// </summary>
-    /// <returns>Plugin type.</returns>
-    public AssemblyName? AssemblyName { get; private set; }
+    public Assembly? Assembly { get; private set; }
 
     /// <summary>
     /// Gets the plugin name from the manifest.
@@ -160,6 +162,12 @@ internal class LocalPlugin : IAsyncDisposable
     public bool IsLoaded => this.State == PluginState.Loaded;
 
     /// <summary>
+    /// Gets a value indicating whether this plugin is in the default profile.
+    /// </summary>
+    public bool IsInDefaultProfile =>
+        Service<ProfileManager>.Get().IsInDefaultProfile(this.EffectiveWorkingPluginId);
+
+    /// <summary>
     /// Gets a value indicating whether this plugin is wanted active by any profile.
     /// INCLUDES the default profile.
     /// </summary>
@@ -169,21 +177,21 @@ internal class LocalPlugin : IAsyncDisposable
     /// <summary>
     /// Gets a value indicating whether this plugin's API level is out of date.
     /// </summary>
-    public bool IsOutdated => this.manifest.EffectiveApiLevel < PluginManager.DalamudApiLevel;
+    public bool IsOutdated => this.manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
 
     /// <summary>
     /// Gets a value indicating whether the plugin is for testing use only.
     /// </summary>
-    public bool IsTesting => this.manifest.IsTestingExclusive || this.manifest.Testing;
+    public bool IsTesting => this.manifest.Testing;
 
     /// <summary>
-    /// Gets a value indicating whether or not this plugin is orphaned(belongs to a repo) or not.
+    /// Gets a value indicating whether this plugin is orphaned(belongs to a repo) or not.
     /// </summary>
     public bool IsOrphaned => !this.IsDev &&
                               this.GetSourceRepository() == null;
 
     /// <summary>
-    /// Gets a value indicating whether or not this plugin is serviced(repo still exists, but plugin no longer does).
+    /// Gets a value indicating whether this plugin is serviced(repo still exists, but plugin no longer does).
     /// </summary>
     public bool IsDecommissioned => !this.IsDev &&
                                     this.GetSourceRepository()?.State == PluginRepositoryState.Success &&
@@ -206,15 +214,19 @@ internal class LocalPlugin : IAsyncDisposable
     public bool IsThirdParty => this.manifest.IsThirdParty;
 
     /// <summary>
-    /// Gets a value indicating whether this plugin should be allowed to load.
+    /// Gets a value indicating whether this plugin should be allowed to load automatically, for example when
+    /// profile want states are applied.
+    /// Plugins whose last load attempt faulted are excluded here so that automatic load paths don't retry
+    /// over and over. User can still reload/retry explicitly through the installer's enable toggle.
     /// </summary>
-    public bool ApplicableForLoad => !this.IsBanned && !this.IsDecommissioned && !this.IsOrphaned && !this.IsOutdated
-                                     && !(!this.IsDev && this.State == PluginState.UnloadError) && this.CheckPolicy();
+    public bool ApplicableForAutomaticLoads => !this.IsBanned && !this.IsDecommissioned && !this.IsOrphaned && !this.IsOutdated
+                                     && !(!this.IsDev && this.State is PluginState.UnloadError or PluginState.LoadError)
+                                     && this.CheckPolicy();
 
     /// <summary>
     /// Gets the effective version of this plugin.
     /// </summary>
-    public Version EffectiveVersion => this.manifest.EffectiveVersion;
+    public Version EffectiveVersion => this.manifest.AssemblyVersion;
 
     /// <summary>
     /// Gets the effective working plugin ID for this plugin.
@@ -227,17 +239,31 @@ internal class LocalPlugin : IAsyncDisposable
     public IServiceScope? ServiceScope => this.serviceScope;
 
     /// <inheritdoc/>
-    public virtual async ValueTask DisposeAsync() =>
+    public virtual async ValueTask DisposeAsync()
+    {
+        this.disposed = true;
         await this.ClearAndDisposeAllResources(PluginLoaderDisposalMode.ImmediateDispose);
+    }
 
     /// <summary>
     /// Load this plugin.
     /// </summary>
     /// <param name="reason">The reason why this plugin is being loaded.</param>
     /// <param name="reloading">Load while reloading.</param>
+    /// <param name="cancellationToken">Token that may be used to cancel the load.</param>
     /// <returns>A task.</returns>
-    public async Task LoadAsync(PluginLoadReason reason, bool reloading = false)
+    public async Task LoadAsync(PluginLoadReason reason, bool reloading = false, CancellationToken cancellationToken = default)
     {
+        ObjectDisposedException.ThrowIf(this.disposed, nameof(LocalPlugin));
+
+        // Default timeout, if none is passed
+        if (cancellationToken == CancellationToken.None)
+        {
+            var cts = new CancellationTokenSource();
+            cancellationToken = cts.Token;
+            cts.CancelAfter(TimeSpan.FromSeconds(60));
+        }
+
         var ioc = await Service<ServiceContainer>.GetAsync();
         var pluginManager = await Service<PluginManager>.GetAsync();
         var dalamud = await Service<Dalamud>.GetAsync();
@@ -245,7 +271,7 @@ internal class LocalPlugin : IAsyncDisposable
         if (this.manifest.LoadRequiredState == 0)
             _ = await Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync();
 
-        await this.pluginLoadStateLock.WaitAsync();
+        await this.pluginLoadStateLock.WaitAsync(cancellationToken);
         try
         {
             if (reloading)
@@ -263,10 +289,14 @@ internal class LocalPlugin : IAsyncDisposable
                 case PluginState.Loaded:
                     throw new InvalidPluginOperationException($"Unable to load {this.Name}, already loaded");
                 case PluginState.LoadError:
-                    if (!this.IsDev)
+                    // A previous load attempt has failed. The failure will have cleaned up all of
+                    // the plugin's resources, so we can simply try loading again.
+                    // Automatic load paths skip plugins in this state via ApplicableForAutomaticLoads,
+                    // so the retry must have come from user interaction in that case.
+                    if (this.instance is not null)
                     {
-                        throw new InvalidPluginOperationException(
-                            $"Unable to load {this.Name}, load previously faulted, unload first");
+                        throw new InternalPluginStateException(
+                            "Plugin load faulted but instance was not cleared");
                     }
 
                     break;
@@ -299,8 +329,8 @@ internal class LocalPlugin : IAsyncDisposable
                 throw new PluginPreconditionFailedException($"Unable to load {this.Name}, game is newer than applicable version {this.manifest.ApplicableVersion}");
 
             // We want to allow loading dev plugins with a lower API level than the current Dalamud API level, for ease of development
-            if (this.manifest.EffectiveApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels && !this.IsDev)
-                throw new PluginPreconditionFailedException($"Unable to load {this.Name}, incompatible API level {this.manifest.EffectiveApiLevel}");
+            if (!this.IsDev && this.manifest.DalamudApiLevel < PluginManager.DalamudApiLevel)
+                throw new PluginPreconditionFailedException($"Unable to load {this.Name}, incompatible API level {this.manifest.DalamudApiLevel}");
 
             // We might want to throw here?
             if (!this.IsWantedByAnyProfile)
@@ -311,6 +341,9 @@ internal class LocalPlugin : IAsyncDisposable
 
             if (!this.CheckPolicy())
                 throw new PluginPreconditionFailedException($"Unable to load {this.Name} as a load policy forbids it");
+
+            if (this.Manifest.MinimumDalamudVersion != null && this.Manifest.MinimumDalamudVersion > Versioning.GetAssemblyVersionParsed())
+                throw new PluginPreconditionFailedException($"Unable to load {this.Name}, Dalamud version is lower than minimum required version {this.Manifest.MinimumDalamudVersion}");
 
             this.State = PluginState.Loading;
             Log.Information($"Loading {this.DllFile.Name}");
@@ -347,24 +380,18 @@ internal class LocalPlugin : IAsyncDisposable
                     // time, we need to essentially "Unload" the plugin, but we can't call plugin.Unload because of the
                     // load state checks. Null any references to the assembly and types, then proceed with regular reload
                     // operations.
-                    this.pluginAssembly = null;
+                    this.Assembly = null;
                     this.pluginType = null;
                 }
 
                 this.loader.Reload();
+                this.RefreshAssemblyInformation();
             }
 
-            // Load the assembly
-            this.pluginAssembly ??= this.loader.LoadDefaultAssembly();
-
-            this.AssemblyName = this.pluginAssembly.GetName();
-
-            // Find the plugin interface implementation. It is guaranteed to exist after checking in the ctor.
-            this.pluginType ??= this.pluginAssembly.GetTypes()
-                                    .First(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
+            Log.Verbose("{Name} ({Guid}): Have type", this.InternalName, this.EffectiveWorkingPluginId);
 
             // Check for any loaded plugins with the same assembly name
-            var assemblyName = this.pluginAssembly.GetName().Name;
+            var assemblyName = this.Assembly!.GetName().Name;
             foreach (var otherPlugin in pluginManager.InstalledPlugins)
             {
                 // During hot-reloading, this plugin will be in the plugin list, and the instance will have been disposed
@@ -375,10 +402,10 @@ internal class LocalPlugin : IAsyncDisposable
                     otherPlugin.instance.GetType().Assembly.GetName().Name;
                 if (otherPluginAssemblyName == assemblyName && otherPluginAssemblyName != null)
                 {
-                    this.State = PluginState.Unloaded;
-                    Log.Debug($"Duplicate assembly: {this.Name}");
-
-                    throw new DuplicatePluginException(assemblyName);
+                    Log.Warning("Loading {Name}, but another plugin with the same assembly name was already loaded (thisGuid={ThisGuid}, otherGuid={OtherGuid})",
+                                this.InternalName,
+                                this.EffectiveWorkingPluginId,
+                                otherPlugin.EffectiveWorkingPluginId);
                 }
             }
 
@@ -387,31 +414,30 @@ internal class LocalPlugin : IAsyncDisposable
             this.serviceScope = ioc.GetScope();
             this.serviceScope.RegisterPrivateScopes(this); // Add this LocalPlugin as a private scope, so services can get it
 
-            try
-            {
-                this.instance = await CreatePluginInstance(
-                                    this.manifest,
-                                    this.serviceScope,
-                                    this.pluginType,
-                                    this.dalamudInterface);
-                this.State = PluginState.Loaded;
-                Log.Information("Finished loading {PluginName}", this.InternalName);
-            }
-            catch (Exception ex)
-            {
-                this.State = PluginState.LoadError;
-                Log.Error(
-                    ex,
-                    "Error while loading {PluginName}, failed to bind and call the plugin constructor",
-                    this.InternalName);
-                await this.ClearAndDisposeAllResources(PluginLoaderDisposalMode.ImmediateDispose);
-            }
+            Log.Information("Creating plugin instance for {PluginName} (async={IsAsync})", this.InternalName, this.pluginType!.IsAssignableTo(typeof(IAsyncDalamudPlugin)));
+            this.instance = await CreatePluginInstance(
+                                this.manifest,
+                                this.serviceScope,
+                                this.pluginType!,
+                                this.dalamudInterface,
+                                cancellationToken);
+            this.State = PluginState.Loaded;
+            Log.Information("Finished loading {PluginName}", this.InternalName);
+
+            var manager = Service<PluginManager>.Get();
+            manager.NotifyPluginsForStateChange(PluginListInvalidationKind.Loaded, [new ActivePluginsChangedEventArgs.AffectedPlugin(this, null)]);
         }
         catch (Exception ex)
         {
             // These are "user errors", we don't want to mark the plugin as failed
             if (ex is not InvalidPluginOperationException)
+            {
                 this.State = PluginState.LoadError;
+
+                // Immediately clean up whatever the failed load attempt left behind. This guarantees that a
+                // plugin in the LoadError state holds no resources and may be loaded again.
+                await this.ClearAndDisposeAllResources(PluginLoaderDisposalMode.ImmediateDispose);
+            }
 
             // If a precondition fails, don't record it as an error, as it isn't really.
             if (ex is PluginPreconditionFailedException)
@@ -435,6 +461,8 @@ internal class LocalPlugin : IAsyncDisposable
     /// <returns>The task.</returns>
     public async Task UnloadAsync(PluginLoaderDisposalMode disposalMode = PluginLoaderDisposalMode.WaitBeforeDispose)
     {
+        ObjectDisposedException.ThrowIf(this.disposed, nameof(LocalPlugin));
+
         await this.pluginLoadStateLock.WaitAsync();
         try
         {
@@ -471,6 +499,9 @@ internal class LocalPlugin : IAsyncDisposable
 
             this.State = PluginState.Unloaded;
             Log.Information("Finished unloading {PluginName}", this.InternalName);
+
+            var manager = Service<PluginManager>.Get();
+            manager.NotifyPluginsForStateChange(PluginListInvalidationKind.Unloaded, [new ActivePluginsChangedEventArgs.AffectedPlugin(this, null)]);
         }
         catch (Exception ex)
         {
@@ -494,8 +525,12 @@ internal class LocalPlugin : IAsyncDisposable
     /// <returns>A task.</returns>
     public async Task ReloadAsync()
     {
-        // Don't unload if we're a dev plugin and have an unload error, this is a bad idea but whatever
-        if (this.IsDev && this.State != PluginState.UnloadError)
+        ObjectDisposedException.ThrowIf(this.disposed, nameof(LocalPlugin));
+
+        // Only unload if the plugin is actually loaded. A plugin that faulted while loading or that
+        // was never loaded holds no resources and can be loaded again directly.
+        // Plugins with unload errors are not unloaded again either, LoadAsync will throw an error for them.
+        if (this.State == PluginState.Loaded)
             await this.UnloadAsync(PluginLoaderDisposalMode.None);
 
         await this.LoadAsync(PluginLoadReason.Reload, true);
@@ -504,9 +539,11 @@ internal class LocalPlugin : IAsyncDisposable
     /// <summary>
     /// Check if anything forbids this plugin from loading.
     /// </summary>
-    /// <returns>Whether or not this plugin shouldn't load.</returns>
+    /// <returns>Whether this plugin shouldn't load.</returns>
     public bool CheckPolicy()
     {
+        ObjectDisposedException.ThrowIf(this.disposed, nameof(LocalPlugin));
+
         var startInfo = Service<Dalamud>.Get().StartInfo;
         var manager = Service<PluginManager>.Get();
 
@@ -525,6 +562,8 @@ internal class LocalPlugin : IAsyncDisposable
     /// <param name="status">Schedule or cancel the deletion.</param>
     public void ScheduleDeletion(bool status = true)
     {
+        ObjectDisposedException.ThrowIf(this.disposed, nameof(LocalPlugin));
+
         this.manifest.ScheduledForDeletion = status;
         this.SaveManifest("scheduling for deletion");
     }
@@ -535,6 +574,8 @@ internal class LocalPlugin : IAsyncDisposable
     /// <returns>The plugin repository this plugin was installed from, or null if it is no longer there or if the plugin is a dev plugin.</returns>
     public PluginRepository? GetSourceRepository()
     {
+        ObjectDisposedException.ThrowIf(this.disposed, nameof(LocalPlugin));
+
         if (this.IsDev)
             return null;
 
@@ -546,6 +587,17 @@ internal class LocalPlugin : IAsyncDisposable
 
             return x.PluginMasterUrl == this.manifest.InstalledFromUrl;
         });
+    }
+
+    /// <summary>
+    /// Checks whether this plugin loads in the given load context.
+    /// </summary>
+    /// <param name="context">The load context to check.</param>
+    /// <returns>Whether this plugin loads in the given load context.</returns>
+    public bool LoadsIn(AssemblyLoadContext context)
+    {
+        ObjectDisposedException.ThrowIf(this.disposed, nameof(LocalPlugin));
+        return this.loader?.LoadContext == context;
     }
 
     /// <summary>
@@ -561,24 +613,52 @@ internal class LocalPlugin : IAsyncDisposable
     {
     }
 
+    private static Type? FindPluginImpl(Assembly assembly)
+    {
+        return assembly.GetTypes().FirstOrDefault(
+            type => type.IsAssignableTo(typeof(IDalamudPlugin)) ||
+                    type.IsAssignableTo(typeof(IAsyncDalamudPlugin)));
+    }
+
     /// <summary>Creates a new instance of the plugin.</summary>
     /// <param name="manifest">Plugin manifest.</param>
     /// <param name="scope">Service scope.</param>
     /// <param name="type">Type of the plugin main class.</param>
     /// <param name="dalamudInterface">Instance of <see cref="IDalamudPluginInterface"/>.</param>
+    /// <param name="cancellationToken">Token that may be used to cancel the load.</param>
     /// <returns>A new instance of the plugin.</returns>
-    private static async Task<IDalamudPlugin> CreatePluginInstance(
+    private static async Task<object> CreatePluginInstance(
         LocalPluginManifest manifest,
         IServiceScope scope,
         Type type,
-        DalamudPluginInterface dalamudInterface)
+        DalamudPluginInterface dalamudInterface,
+        CancellationToken cancellationToken = default)
     {
-        var framework = await Service<Framework>.GetAsync();
-        var forceFrameworkThread = manifest.LoadSync && manifest.LoadRequiredState is 0 or 1;
-        var newInstanceTask = forceFrameworkThread ? framework.RunOnFrameworkThread(Create) : Create();
-        return await newInstanceTask.ConfigureAwait(false);
+        if (type.IsAssignableTo(typeof(IDalamudPlugin)))
+        {
+            // Legacy load
+            var framework = await Service<Framework>.GetAsync();
+            var forceFrameworkThread = manifest.LoadSync && manifest.LoadRequiredState is 0 or 1;
+            var newInstanceTask = forceFrameworkThread ? framework.RunOnFrameworkThread(Create) : Create();
+            return await newInstanceTask.ConfigureAwait(false);
 
-        async Task<IDalamudPlugin> Create() => (IDalamudPlugin)await scope.CreateAsync(type, dalamudInterface);
+            async Task<IDalamudPlugin> Create() => (IDalamudPlugin)await scope.CreateAsync(type, ObjectInstanceVisibility.ExposedToPlugins, dalamudInterface);
+        }
+
+        if (type.IsAssignableTo(typeof(IAsyncDalamudPlugin)))
+        {
+            var plugin = (IAsyncDalamudPlugin)await scope.CreateAsync(type, ObjectInstanceVisibility.ExposedToPlugins, dalamudInterface).ConfigureAwait(false);
+
+            // TODO: Unlike plugin ctors, which ServiceContainer.CreateAsync invokes on a dedicated LongRunning thread,
+            // LoadAsync runs on regular thread pool threads. A plugin that blocks synchronously in LoadAsync (which it
+            // should't since it can await) occupies a pool thread for the duration of the load, and plugins can load
+            // in parallel. If this is ever a problem (probably will be), we should wrap this call in a similar
+            // LongRunning + Unwrap task to protect ourselves from deadlocks.
+            await plugin.LoadAsync(cancellationToken).ConfigureAwait(false);
+            return plugin;
+        }
+
+        throw new Exception($"Unknown plugin type: {type}");
     }
 
     private static void SetupLoaderConfig(LoaderConfig config)
@@ -605,6 +685,10 @@ internal class LocalPlugin : IAsyncDisposable
         if (this.loader != null)
             return;
 
+        this.DllFile.Refresh();
+        if (!this.DllFile.Exists)
+            throw new Exception($"Plugin DLL file at '{this.DllFile.FullName}' did not exist, cannot load.");
+
         try
         {
             this.loader = PluginLoader.CreateFromAssemblyFile(this.DllFile.FullName, SetupLoaderConfig);
@@ -616,40 +700,57 @@ internal class LocalPlugin : IAsyncDisposable
             throw;
         }
 
+        this.RefreshAssemblyInformation();
+    }
+
+    private void RefreshAssemblyInformation()
+    {
+        if (this.loader == null)
+            throw new InvalidOperationException("No loader available");
+
         try
         {
-            this.pluginAssembly = this.loader.LoadDefaultAssembly();
+            this.Assembly = this.loader.LoadDefaultAssembly();
         }
         catch (Exception ex)
         {
-            this.pluginAssembly = null;
-            this.pluginType = null;
-            this.loader.Dispose();
-
+            this.ResetLoader();
             Log.Error(ex, $"Not a plugin: {this.DllFile.FullName}");
             throw new InvalidPluginException(this.DllFile);
         }
 
+        if (this.Assembly == null)
+        {
+            this.ResetLoader();
+            Log.Error("Plugin assembly is null: {DllFileFullName}", this.DllFile.FullName);
+            throw new InvalidPluginException(this.DllFile);
+        }
+
         try
         {
-            this.pluginType = this.pluginAssembly.GetTypes().FirstOrDefault(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
+            this.pluginType = FindPluginImpl(this.Assembly);
         }
         catch (ReflectionTypeLoadException ex)
         {
-            Log.Error(ex, $"Could not load one or more types when searching for IDalamudPlugin: {this.DllFile.FullName}");
-            // Something blew up when parsing types, but we still want to look for IDalamudPlugin. Let Load() handle the error.
-            this.pluginType = ex.Types.FirstOrDefault(type => type != null && type.IsAssignableTo(typeof(IDalamudPlugin)));
+            this.ResetLoader();
+            Log.Error(ex, "Could not load one or more types when searching for IDalamudPlugin: {DllFileFullName}", this.DllFile.FullName);
+            throw;
         }
 
-        if (this.pluginType == default)
+        if (this.pluginType == null)
         {
-            this.pluginAssembly = null;
-            this.pluginType = null;
-            this.loader.Dispose();
-
-            Log.Error($"Nothing inherits from IDalamudPlugin: {this.DllFile.FullName}");
+            this.ResetLoader();
+            Log.Error("Nothing inherits from IDalamudPlugin or IAsyncDalamudPlugin: {DllFileFullName}", this.DllFile.FullName);
             throw new InvalidPluginException(this.DllFile);
         }
+    }
+
+    private void ResetLoader()
+    {
+        this.Assembly = null;
+        this.pluginType = null;
+        this.loader?.Dispose();
+        this.loader = null;
     }
 
     /// <summary>Clears and disposes all resources associated with the plugin instance.</summary>
@@ -659,11 +760,12 @@ internal class LocalPlugin : IAsyncDisposable
     {
         List<Exception>? exceptions = null;
         Log.Verbose(
-            "{name}({id}): {fn}(disposalMode={disposalMode})",
+            "{name}({id}): {fn}(disposalMode={disposalMode}) async={isAsync}",
             this.InternalName,
             this.EffectiveWorkingPluginId,
             nameof(this.ClearAndDisposeAllResources),
-            disposalMode);
+            disposalMode,
+            this.pluginType == typeof(IAsyncDalamudPlugin));
 
         // Clear the plugin instance first.
         if (!await AttemptCleanup(
@@ -673,10 +775,23 @@ internal class LocalPlugin : IAsyncDisposable
             static async (inst, manifest) =>
             {
                 var framework = Service<Framework>.GetNullable();
-                if (manifest.CanUnloadAsync || framework is null)
-                    inst.Dispose();
-                else
-                    await framework.RunOnFrameworkThread(inst.Dispose).ConfigureAwait(false);
+
+                switch (inst)
+                {
+                    // Sync plugins that can unload async will unload async, if we are in off the main thread.
+                    case IDalamudPlugin syncInstance when manifest.CanUnloadAsync || framework is null:
+                        syncInstance.Dispose();
+                        break;
+
+                    case IDalamudPlugin syncInstance:
+                        await framework.RunOnFrameworkThread(syncInstance.Dispose).ConfigureAwait(false);
+                        break;
+
+                    // Async plugins always unload async.
+                    case IAsyncDalamudPlugin asyncDalamudPlugin:
+                        await asyncDalamudPlugin.DisposeAsync().ConfigureAwait(false);
+                        break;
+                }
             }))
         {
             // Plugin was not loaded; loader is not referenced anyway, so no need to wait.
@@ -686,7 +801,7 @@ internal class LocalPlugin : IAsyncDisposable
         // Fields below are expected to be alive until the plugin is (attempted) disposed.
         // Clear them after this point.
         this.pluginType = null;
-        this.pluginAssembly = null;
+        this.Assembly = null;
 
         await AttemptCleanup(
             nameof(this.serviceScope),

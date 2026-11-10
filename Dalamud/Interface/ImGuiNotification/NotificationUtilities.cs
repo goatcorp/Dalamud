@@ -1,18 +1,16 @@
 using System.IO;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Text;
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.ManagedFontAtlas;
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Storage.Assets;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.ImGuiNotification;
 
@@ -55,7 +53,7 @@ public static class NotificationUtilities
         using (fontHandle.Push())
         {
             var font = ImGui.GetFont();
-            var glyphPtr = (ImGuiHelpers.ImFontGlyphReal*)font.FindGlyphNoFallback(c).NativePtr;
+            var glyphPtr = (ImGuiHelpers.ImFontGlyphReal*)font.FindGlyphNoFallback(c);
             if (glyphPtr is null)
                 return false;
 
@@ -78,6 +76,19 @@ public static class NotificationUtilities
         return true;
     }
 
+    /// <summary>Draws an icon from an instance of <see cref="ISharedImmediateTexture"/>.</summary>
+    /// <param name="minCoord">The coordinates of the top left of the icon area.</param>
+    /// <param name="maxCoord">The coordinates of the bottom right of the icon area.</param>
+    /// <param name="texture">The texture.</param>
+    /// <returns><c>true</c> if anything has been drawn.</returns>
+    internal static bool DrawIconFrom(Vector2 minCoord, Vector2 maxCoord, ISharedImmediateTexture? texture)
+    {
+        if (texture is null)
+            return false;
+
+        return DrawIconFrom(minCoord, maxCoord, texture.GetWrapOrEmpty());
+    }
+
     /// <summary>Draws an icon from an instance of <see cref="IDalamudTextureWrap"/>.</summary>
     /// <param name="minCoord">The coordinates of the top left of the icon area.</param>
     /// <param name="maxCoord">The coordinates of the bottom right of the icon area.</param>
@@ -89,7 +100,7 @@ public static class NotificationUtilities
             return false;
         try
         {
-            var handle = texture.ImGuiHandle;
+            var handle = texture.Handle;
             var size = texture.Size;
             if (size.X > maxCoord.X - minCoord.X)
                 size *= (maxCoord.X - minCoord.X) / size.X;
@@ -104,16 +115,6 @@ public static class NotificationUtilities
             return false;
         }
     }
-
-    /// <summary>Draws an icon from an instance of <see cref="Task{TResult}"/> that results in an
-    /// <see cref="IDalamudTextureWrap"/>.</summary>
-    /// <param name="minCoord">The coordinates of the top left of the icon area.</param>
-    /// <param name="maxCoord">The coordinates of the bottom right of the icon area.</param>
-    /// <param name="textureTask">The task that results in a texture.</param>
-    /// <returns><c>true</c> if anything has been drawn.</returns>
-    /// <remarks>Exceptions from the task will be treated as if no texture is provided.</remarks>
-    internal static bool DrawIconFrom(Vector2 minCoord, Vector2 maxCoord, Task<IDalamudTextureWrap?>? textureTask) =>
-        textureTask?.IsCompletedSuccessfully is true && DrawIconFrom(minCoord, maxCoord, textureTask.Result);
 
     /// <summary>Draws an icon from an instance of <see cref="LocalPlugin"/>.</summary>
     /// <param name="minCoord">The coordinates of the top left of the icon area.</param>

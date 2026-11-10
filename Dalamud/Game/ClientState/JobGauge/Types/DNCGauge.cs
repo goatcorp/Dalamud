@@ -47,7 +47,7 @@ public unsafe class DNCGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     /// Gets the next step in the current dance.
     /// </summary>
     /// <returns>The next dance step action ID.</returns>
-    public uint NextStep => 15999u + this.Struct->DanceSteps[this.Struct->StepIndex] - 1;
+    public uint NextStep => this.Struct->StepIndex >= 4 ? 0 : 15999u + this.Struct->DanceSteps[this.Struct->StepIndex] - 1;
 
     /// <summary>
     /// Gets a value indicating whether the player is dancing or not.

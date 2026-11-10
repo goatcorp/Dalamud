@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using Dalamud.Configuration.Internal;
 
 namespace Dalamud.Interface.Windowing.Persistence;
@@ -31,7 +33,7 @@ internal class WindowSystemPersistence : IServiceType
     /// <returns>The preset window instance, or null if the preset does not contain this window.</returns>
     public PresetModel.PresetWindow? GetWindow(uint id)
     {
-        return this.ActivePreset.Windows.TryGetValue(id, out var window) ? window : null;
+        return this.ActivePreset.Windows.GetValueOrDefault(id);
     }
 
     /// <summary>

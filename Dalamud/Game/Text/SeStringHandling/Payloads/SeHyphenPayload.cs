@@ -7,7 +7,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 /// </summary>
 public class SeHyphenPayload : Payload, ITextProvider
 {
-    private readonly byte[] bytes = { START_BYTE, (byte)SeStringChunkType.SeHyphen, 0x01, END_BYTE };
+    private readonly byte[] bytes = [START_BYTE, (byte)SeStringChunkType.SeHyphen, 0x01, END_BYTE];
 
     /// <summary>
     /// Gets an instance of SeHyphenPayload.

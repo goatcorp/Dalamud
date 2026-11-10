@@ -1,4 +1,4 @@
-﻿using Dalamud.Memory;
+using Dalamud.Memory;
 using Dalamud.Utility;
 
 namespace Dalamud.Hooking.Internal;

@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Interface;
+namespace Dalamud.Interface;
 
 /// <summary>
 /// Set categories associated with a font awesome icon.

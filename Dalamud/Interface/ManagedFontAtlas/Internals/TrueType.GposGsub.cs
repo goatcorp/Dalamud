@@ -242,12 +242,12 @@ internal static partial class TrueTypeUtils
             this.Memory[6..].As<ushort>(this.SubtableCount),
             BinaryPrimitives.ReverseEndianness);
 
-        public PointerSpan<byte> this[int index] => this.Memory[this.SubtableOffsets[this.EnsureIndex(index)] ..];
+        public PointerSpan<byte> this[int index] => this.Memory[this.SubtableOffsets[this.EnsureIndex(index)]..];
 
         public IEnumerator<PointerSpan<byte>> GetEnumerator()
         {
             foreach (var i in Enumerable.Range(0, this.SubtableCount))
-                yield return this.Memory[this.SubtableOffsets[i] ..];
+                yield return this.Memory[this.SubtableOffsets[i]..];
         }
 
         IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();

@@ -31,8 +31,8 @@ internal unsafe class BattleNpc : BattleChara, IBattleNpc
     /// <summary>
     /// Gets the BattleNpc <see cref="BattleNpcSubKind" /> of this BattleNpc.
     /// </summary>
-    public BattleNpcSubKind BattleNpcKind => (BattleNpcSubKind)this.Struct->Character.GameObject.SubKind;
+    public BattleNpcSubKind BattleNpcKind => (BattleNpcSubKind)this.Struct->SubKind;
 
     /// <inheritdoc/>
-    public override ulong TargetObjectId => this.Struct->Character.TargetId;
+    public override ulong TargetObjectId => this.Struct->TargetId;
 }

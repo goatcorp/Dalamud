@@ -1,14 +1,12 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
-
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-
-using ImGuiNET;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
@@ -18,22 +16,25 @@ internal sealed class SettingsEntry<T> : SettingsEntry
     private readonly LoadSettingDelegate load;
     private readonly SaveSettingDelegate save;
     private readonly Action<T?>? change;
+    private readonly Func<bool>? enabled;
 
     private object? valueBacking;
 
     public SettingsEntry(
-        string name,
-        string description,
+        LazyLoc name,
+        LazyLoc description,
         LoadSettingDelegate load,
         SaveSettingDelegate save,
         Action<T?>? change = null,
         Func<T?, string?>? warning = null,
         Func<T?, string?>? validity = null,
-        Func<bool>? visibility = null)
+        Func<bool>? visibility = null,
+        Func<bool>? enabled = null)
     {
         this.load = load;
         this.save = save;
         this.change = change;
+        this.enabled = enabled;
         this.Name = name;
         this.Description = description;
         this.CheckWarning = warning;
@@ -57,7 +58,7 @@ internal sealed class SettingsEntry<T> : SettingsEntry
         }
     }
 
-    public string Description { get; }
+    public LazyLoc Description { get; }
 
     public Action<SettingsEntry<T>>? CustomDraw { get; init; }
 
@@ -71,7 +72,12 @@ internal sealed class SettingsEntry<T> : SettingsEntry
 
     public override void Draw()
     {
-        Debug.Assert(this.Name != null, "this.Name != null");
+        var name = this.Name.ToString();
+        var description = this.Description.ToString();
+
+        Debug.Assert(!string.IsNullOrWhiteSpace(name), "Name is empty");
+
+        using var disabled = ImRaii.Disabled(!(this.enabled?.Invoke() ?? true));
 
         var type = typeof(T);
 
@@ -81,7 +87,7 @@ internal sealed class SettingsEntry<T> : SettingsEntry
         }
         else if (type == typeof(DirectoryInfo))
         {
-            ImGuiHelpers.SafeTextWrapped(this.Name);
+            ImGui.TextWrapped(name);
 
             var value = this.Value as DirectoryInfo;
             var nativeBuffer = value?.FullName ?? string.Empty;
@@ -93,7 +99,7 @@ internal sealed class SettingsEntry<T> : SettingsEntry
         }
         else if (type == typeof(string))
         {
-            ImGuiHelpers.SafeTextWrapped(this.Name);
+            ImGui.TextWrapped(name);
 
             var nativeBuffer = this.Value as string ?? string.Empty;
 
@@ -106,16 +112,19 @@ internal sealed class SettingsEntry<T> : SettingsEntry
         {
             var nativeValue = this.Value as bool? ?? false;
 
-            if (ImGui.Checkbox($"{this.Name}###{this.Id.ToString()}", ref nativeValue))
+            if (ImGui.Checkbox($"{name}###{this.Id.ToString()}", ref nativeValue))
             {
                 this.valueBacking = nativeValue;
                 this.change?.Invoke(this.Value);
             }
         }
 
-        using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
+        if (!string.IsNullOrWhiteSpace(description))
         {
-            ImGuiHelpers.SafeTextWrapped(this.Description);
+            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
+            {
+                ImGui.TextWrapped(this.Description);
+            }
         }
 
         if (this.CheckValidity != null)
@@ -125,7 +134,7 @@ internal sealed class SettingsEntry<T> : SettingsEntry
 
             if (!this.IsValid)
             {
-                using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
+                using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.ErrorForeground))
                 {
                     ImGui.Text(validityMsg);
                 }
@@ -140,7 +149,7 @@ internal sealed class SettingsEntry<T> : SettingsEntry
 
         if (warningMessage != null)
         {
-            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
+            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.ErrorForeground))
             {
                 ImGui.Text(warningMessage);
             }

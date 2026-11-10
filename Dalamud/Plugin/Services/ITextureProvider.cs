@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
@@ -31,7 +33,7 @@ namespace Dalamud.Plugin.Services;
 /// <see cref="TexWidget"/>.
 /// </para>
 /// </remarks>
-public interface ITextureProvider
+public interface ITextureProvider : IDalamudService
 {
     /// <summary>Creates an empty texture.</summary>
     /// <param name="specs">Texture specifications.</param>
@@ -44,6 +46,14 @@ public interface ITextureProvider
         bool cpuRead,
         bool cpuWrite,
         string? debugName = null);
+
+    /// <summary>Creates a texture that can be drawn from an <see cref="ImDrawList"/> or an <see cref="ImDrawData"/>.
+    /// </summary>
+    /// <param name="debugName">Name for debug display purposes.</param>
+    /// <returns>A new draw list texture.</returns>
+    /// <remarks>No new resource is allocated upfront; it will be done when <see cref="IDrawListTextureWrap.Size"/> is
+    /// set with positive values for both components.</remarks>
+    IDrawListTextureWrap CreateDrawListTexture(string? debugName = null);
 
     /// <summary>Creates a texture from the given existing texture, cropping and converting pixel format as needed.
     /// </summary>
@@ -169,6 +179,25 @@ public interface ITextureProvider
         string? debugName = null,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Creates a texture from clipboard.</summary>
+    /// <param name="debugName">Name for debug display purposes.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A <see cref="Task"/> representing the status of the operation.</returns>
+    Task<IDalamudTextureWrap> CreateFromClipboardAsync(
+        string? debugName = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Creates a texture by drawing a SeString onto it.</summary>
+    /// <param name="text">SeString to render.</param>
+    /// <param name="drawParams">Parameters for drawing.</param>
+    /// <param name="debugName">Name for debug display purposes.</param>
+    /// <returns>The new texture.</returns>
+    /// <remarks>Can be only be used from the main thread.</remarks>
+    IDalamudTextureWrap CreateTextureFromSeString(
+        ReadOnlySpan<byte> text,
+        scoped in SeStringDrawParams drawParams = default,
+        string? debugName = null);
+
     /// <summary>Gets the supported bitmap decoders.</summary>
     /// <returns>The supported bitmap decoders.</returns>
     /// <remarks>
@@ -191,7 +220,12 @@ public interface ITextureProvider
     /// <para>Caching the returned object is not recommended. Performance benefit will be minimal.</para>
     /// </remarks>
     ISharedImmediateTexture GetFromGameIcon(in GameIconLookup lookup);
-    
+
+    /// <summary>Gets a value indicating whether the current desktop clipboard contains an image that can be attempted
+    /// to read using <see cref="CreateFromClipboardAsync"/>.</summary>
+    /// <returns><c>true</c> if it is the case.</returns>
+    bool HasClipboardImage();
+
     /// <summary>Gets a shared texture corresponding to the given game resource icon specifier.</summary>
     /// <remarks>
     /// <para>This function does not throw exceptions.</para>
@@ -200,7 +234,7 @@ public interface ITextureProvider
     /// </remarks>
     /// <param name="lookup">A game icon specifier.</param>
     /// <param name="texture">The resulting <see cref="ISharedImmediateTexture"/>.</param>
-    /// <returns>Whether or not the lookup succeeded.</returns>
+    /// <returns>Whether the lookup succeeded.</returns>
     bool TryGetFromGameIcon(in GameIconLookup lookup, [NotNullWhen(true)] out ISharedImmediateTexture? texture);
 
     /// <summary>Gets a shared texture corresponding to the given path to a game resource.</summary>
@@ -221,7 +255,7 @@ public interface ITextureProvider
     /// <para>Caching the returned object is not recommended. Performance benefit will be minimal.</para>
     /// </remarks>
     ISharedImmediateTexture GetFromFile(string path);
-    
+
     /// <summary>Gets a shared texture corresponding to the given file on the filesystem.</summary>
     /// <param name="file">The file on the filesystem to load.</param>
     /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
@@ -288,7 +322,7 @@ public interface ITextureProvider
     /// <param name="leaveWrapOpen">Whether to leave <paramref name="wrap"/> non-disposed when the returned
     /// <see cref="Task{TResult}"/> completes.</param>
     /// <returns>Address of the new <see cref="FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Texture"/>.</returns>
-    /// <example>See <c>PrintTextureInfo</c> in <see cref="Interface.Internal.UiDebug.PrintSimpleNode"/> for an example
+    /// <example>See <c>PrintTextureInfo</c> in <see cref="Interface.Internal.UiDebug.Browsing.ImageNodeTree"/> for an example
     /// of replacing the texture of an image node.</example>
     /// <remarks>
     /// <para>If the returned kernel texture is to be destroyed, call the fourth function in its vtable, by calling

@@ -1,11 +1,10 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.Gui.Dtr;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -22,7 +21,7 @@ internal class DtrBarWidget : IDataWindowWidget, IDisposable
     private CancellationTokenSource? loadTestThreadCt;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "dtr", "dtrbar" };
+    public string[]? CommandShortcuts { get; init; } = ["dtr", "dtrbar"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "DTR Bar";
@@ -45,98 +44,74 @@ internal class DtrBarWidget : IDataWindowWidget, IDisposable
     {
         if (this.loadTestThread?.IsAlive is not true)
         {
-            if (ImGui.Button("Do multithreaded add/remove operation"))
+            if (ImGui.Button("Do multithreaded add/remove operation"u8))
             {
                 var ct = this.loadTestThreadCt = new();
                 var dbar = Service<DtrBar>.Get();
                 var fw = Service<Framework>.Get();
-                var rng = new Random();
+
+                Action[] tests =
+                [
+                    () =>
+                    {
+                        var n = $"DtrBarWidgetTest{Random.Shared.NextInt64(8)}";
+                        dbar.Get(n, n[^5..]);
+                        fw.DelayTicks(1, ct.Token).Wait(ct.Token);
+                    },
+                    () =>
+                    {
+                        dbar.Remove($"DtrBarWidgetTest{Random.Shared.NextInt64(8)}");
+                        fw.DelayTicks(1, ct.Token).Wait(ct.Token);
+                    },
+                    () =>
+                    {
+                        var n = $"DtrBarWidgetTest{Random.Shared.NextInt64(8)}_";
+                        dbar.Get(n, n[^6..]);
+                    },
+                    () =>
+                    {
+                        dbar.Remove($"DtrBarWidgetTest{Random.Shared.NextInt64(8)}_");
+                    },
+                ];
+
+                ThreadStart RunLoop(Action work)
+                {
+                    return () =>
+                    {
+                        try
+                        {
+                            while (true)
+                            {
+                                work();
+                                ct.Token.ThrowIfCancellationRequested();
+                            }
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // ignore
+                        }
+                    };
+                }
+
                 this.loadTestThread = new(
                     () =>
                     {
                         var threads = Enumerable
                                       .Range(0, Environment.ProcessorCount)
-                                      .Select(
-                                          i => new Thread(
-                                              (i % 4) switch
-                                              {
-                                                  0 => () =>
-                                                  {
-                                                      try
-                                                      {
-                                                          while (true)
-                                                          {
-                                                              var n = $"DtrBarWidgetTest{rng.NextInt64(8)}";
-                                                              dbar.Get(n, n[^5..]);
-                                                              fw.DelayTicks(1, ct.Token).Wait(ct.Token);
-                                                              ct.Token.ThrowIfCancellationRequested();
-                                                          }
-                                                      }
-                                                      catch (OperationCanceledException)
-                                                      {
-                                                          // ignore
-                                                      }
-                                                  },
-                                                  1 => () =>
-                                                  {
-                                                      try
-                                                      {
-                                                          while (true)
-                                                          {
-                                                              dbar.Remove($"DtrBarWidgetTest{rng.NextInt64(8)}");
-                                                              fw.DelayTicks(1, ct.Token).Wait(ct.Token);
-                                                              ct.Token.ThrowIfCancellationRequested();
-                                                          }
-                                                      }
-                                                      catch (OperationCanceledException)
-                                                      {
-                                                          // ignore
-                                                      }
-                                                  },
-                                                  2 => () =>
-                                                  {
-                                                      try
-                                                      {
-                                                          while (true)
-                                                          {
-                                                              var n = $"DtrBarWidgetTest{rng.NextInt64(8)}_";
-                                                              dbar.Get(n, n[^6..]);
-                                                              ct.Token.ThrowIfCancellationRequested();
-                                                          }
-                                                      }
-                                                      catch (OperationCanceledException)
-                                                      {
-                                                          // ignore
-                                                      }
-                                                  },
-                                                  _ => () =>
-                                                  {
-                                                      try
-                                                      {
-                                                          while (true)
-                                                          {
-                                                              dbar.Remove($"DtrBarWidgetTest{rng.NextInt64(8)}_");
-                                                              ct.Token.ThrowIfCancellationRequested();
-                                                          }
-                                                      }
-                                                      catch (OperationCanceledException)
-                                                      {
-                                                          // ignore
-                                                      }
-                                                  },
-                                              }))
+                                      .Select(i => new Thread(RunLoop(tests[i % 4])))
                                       .ToArray();
                         foreach (var t in threads) t.Start();
                         foreach (var t in threads) t.Join();
                         for (var i = 0; i < 8; i++) dbar.Remove($"DtrBarWidgetTest{i % 8}");
                         for (var i = 0; i < 8; i++) dbar.Remove($"DtrBarWidgetTest{i % 8}_");
                     });
+
                 this.loadTestThread.Start();
             }
         }
         else
         {
-            if (ImGui.Button("Stop multithreaded add/remove operation"))
+            if (ImGui.Button("Stop multithreaded add/remove operation"u8))
                 this.ClearState();
         }
 
@@ -150,7 +125,7 @@ internal class DtrBarWidget : IDataWindowWidget, IDisposable
         this.DrawDtrTestEntry(ref this.dtrTest3, "DTR Test #3");
 
         ImGui.Separator();
-        ImGui.Text("IDtrBar.Entries:");
+        ImGui.Text("IDtrBar.Entries:"u8);
         foreach (var e in Service<DtrBar>.Get().Entries)
             ImGui.Text(e.Title);
 
@@ -158,7 +133,7 @@ internal class DtrBarWidget : IDataWindowWidget, IDisposable
         if (configuration.DtrOrder != null)
         {
             ImGui.Separator();
-            ImGui.Text("DtrOrder:");
+            ImGui.Text("DtrOrder:"u8);
             foreach (var order in configuration.DtrOrder)
                 ImGui.Text(order);
         }

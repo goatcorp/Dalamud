@@ -1,16 +1,17 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading;
 
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Hooking;
-using Dalamud.Hooking.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 
-using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Addon.Lifecycle;
@@ -21,75 +22,84 @@ namespace Dalamud.Game.Addon.Lifecycle;
 [ServiceManager.EarlyLoadedService]
 internal unsafe class AddonLifecycle : IInternalDisposableService
 {
-    private static readonly ModuleLog Log = new("AddonLifecycle");
+    /// <summary>
+    /// Gets a list of all allocated addon virtual tables.
+    /// </summary>
+    public static readonly List<AddonVirtualTable> AllocatedTables = [];
+
+    private static readonly ModuleLog Log = ModuleLog.Create<AddonLifecycle>();
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
 
-    [ServiceManager.ServiceDependency]
-    private readonly AddonLifecyclePooledArgs argsPool = Service<AddonLifecyclePooledArgs>.Get();
-
-    private readonly nint disallowedReceiveEventAddress;
-    
-    private readonly AddonLifecycleAddressResolver address;
-    private readonly AddonSetupHook<AtkUnitBase.Delegates.OnSetup> onAddonSetupHook;
-    private readonly Hook<AddonFinalizeDelegate> onAddonFinalizeHook;
-    private readonly CallHook<AtkUnitBase.Delegates.Draw> onAddonDrawHook;
-    private readonly CallHook<AtkUnitBase.Delegates.Update> onAddonUpdateHook;
-    private readonly Hook<AtkUnitManager.Delegates.RefreshAddon> onAddonRefreshHook;
-    private readonly CallHook<AtkUnitBase.Delegates.OnRequestedUpdate> onAddonRequestedUpdateHook;
+    private Hook<AtkUnitBase.Delegates.Initialize>? onInitializeAddonHook;
+    private bool isInvokingListeners;
 
     [ServiceManager.ServiceConstructor]
-    private AddonLifecycle(TargetSigScanner sigScanner)
+    private AddonLifecycle()
     {
-        this.address = new AddonLifecycleAddressResolver();
-        this.address.Setup(sigScanner);
-
-        this.disallowedReceiveEventAddress = (nint)AtkUnitBase.StaticVirtualTablePointer->ReceiveEvent;
-
-        var refreshAddonAddress = (nint)RaptureAtkUnitManager.StaticVirtualTablePointer->RefreshAddon;
-
-        this.onAddonSetupHook = new AddonSetupHook<AtkUnitBase.Delegates.OnSetup>(this.address.AddonSetup, this.OnAddonSetup);
-        this.onAddonFinalizeHook = Hook<AddonFinalizeDelegate>.FromAddress(this.address.AddonFinalize, this.OnAddonFinalize);
-        this.onAddonDrawHook = new CallHook<AtkUnitBase.Delegates.Draw>(this.address.AddonDraw, this.OnAddonDraw);
-        this.onAddonUpdateHook = new CallHook<AtkUnitBase.Delegates.Update>(this.address.AddonUpdate, this.OnAddonUpdate);
-        this.onAddonRefreshHook = Hook<AtkUnitManager.Delegates.RefreshAddon>.FromAddress(refreshAddonAddress, this.OnAddonRefresh);
-        this.onAddonRequestedUpdateHook = new CallHook<AtkUnitBase.Delegates.OnRequestedUpdate>(this.address.AddonOnRequestedUpdate, this.OnRequestedUpdate);
-
-        this.onAddonSetupHook.Enable();
-        this.onAddonFinalizeHook.Enable();
-        this.onAddonDrawHook.Enable();
-        this.onAddonUpdateHook.Enable();
-        this.onAddonRefreshHook.Enable();
-        this.onAddonRequestedUpdateHook.Enable();
+        this.InitializeAddonLifecycle();
     }
 
-    private delegate void AddonFinalizeDelegate(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase);
+    /// <summary>
+    /// Gets a value indicating whether AddonLifecycle is Enabled.
+    /// </summary>
+    internal bool IsEnabled { get; private set; }
 
     /// <summary>
-    /// Gets a list of all AddonLifecycle ReceiveEvent Listener Hooks.
-    /// </summary>
-    internal List<AddonLifecycleReceiveEventListener> ReceiveEventListeners { get; } = new();
-    
-    /// <summary>
     /// Gets a list of all AddonLifecycle Event Listeners.
-    /// </summary>
-    internal List<AddonLifecycleEventListener> EventListeners { get; } = new();
+    /// </summary> <br/>
+    /// Mapping is: EventType -> AddonName -> ListenerList
+    internal Dictionary<AddonEvent, Dictionary<string, HashSet<AddonLifecycleEventListener>>> EventListeners { get; } = [];
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        this.onAddonSetupHook.Dispose();
-        this.onAddonFinalizeHook.Dispose();
-        this.onAddonDrawHook.Dispose();
-        this.onAddonUpdateHook.Dispose();
-        this.onAddonRefreshHook.Dispose();
-        this.onAddonRequestedUpdateHook.Dispose();
+        this.UnloadAddonLifecycle();
+    }
 
-        foreach (var receiveEventListener in this.ReceiveEventListeners)
+    /// <summary>
+    /// Resolves a virtual table address to the original virtual table address.
+    /// </summary>
+    /// <param name="tableAddress">The modified address to resolve.</param>
+    /// <returns>The original address.</returns>
+    internal static AtkUnitBase.AtkUnitBaseVirtualTable* GetOriginalVirtualTable(AtkUnitBase.AtkUnitBaseVirtualTable* tableAddress)
+    {
+        var matchedTable = AllocatedTables.FirstOrDefault(table => table.ModifiedVirtualTable == tableAddress);
+        if (matchedTable == null)
         {
-            receiveEventListener.Dispose();
+            return null;
         }
+
+        return matchedTable.OriginalVirtualTable;
+    }
+
+    /// <summary>
+    /// Enables AddonLifecycle to replace addon virtual tables for relaying addon events.
+    /// </summary>
+    internal void InitializeAddonLifecycle()
+    {
+        this.IsEnabled = true;
+
+        this.onInitializeAddonHook ??= Hook<AtkUnitBase.Delegates.Initialize>.FromAddress((nint)AtkUnitBase.StaticVirtualTablePointer->Initialize, this.OnAddonInitialize);
+        this.onInitializeAddonHook.Enable();
+    }
+
+    /// <summary>
+    /// Restores all modified addon virtual tables, and disables AddonLifecycle.
+    /// </summary>
+    internal void UnloadAddonLifecycle()
+    {
+        this.IsEnabled = false;
+
+        this.onInitializeAddonHook?.Dispose();
+        this.onInitializeAddonHook = null;
+
+        this.framework.RunOnFrameworkThread(() =>
+        {
+            AllocatedTables.ForEach(entry => entry.Dispose());
+            AllocatedTables.Clear();
+        });
     }
 
     /// <summary>
@@ -98,20 +108,14 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to register.</param>
     internal void RegisterListener(AddonLifecycleEventListener listener)
     {
-        this.framework.RunOnTick(() =>
+        if (this.isInvokingListeners)
         {
-            this.EventListeners.Add(listener);
-            
-            // If we want receive event messages have an already active addon, enable the receive event hook.
-            // If the addon isn't active yet, we'll grab the hook when it sets up.
-            if (listener is { EventType: AddonEvent.PreReceiveEvent or AddonEvent.PostReceiveEvent })
-            {
-                if (this.ReceiveEventListeners.FirstOrDefault(listeners => listeners.AddonNames.Contains(listener.AddonName)) is { } receiveEventListener)
-                {
-                    receiveEventListener.TryEnable();
-                }
-            }
-        });
+            this.framework.RunOnTick(() => this.RegisterListenerMethod(listener));
+        }
+        else
+        {
+            this.framework.RunOnFrameworkThread(() => this.RegisterListenerMethod(listener));
+        }
     }
 
     /// <summary>
@@ -120,27 +124,16 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to unregister.</param>
     internal void UnregisterListener(AddonLifecycleEventListener listener)
     {
-        // Set removed state to true immediately, then lazily remove it from the EventListeners list on next Framework Update.
-        listener.Removed = true;
-        
-        this.framework.RunOnTick(() =>
+        listener.IsRequestedToClear = true;
+
+        if (this.isInvokingListeners)
         {
-            this.EventListeners.Remove(listener);
-            
-            // If we are disabling an ReceiveEvent listener, check if we should disable the hook.
-            if (listener is { EventType: AddonEvent.PreReceiveEvent or AddonEvent.PostReceiveEvent })
-            {
-                // Get the ReceiveEvent Listener for this addon
-                if (this.ReceiveEventListeners.FirstOrDefault(listeners => listeners.AddonNames.Contains(listener.AddonName)) is { } receiveEventListener)
-                {
-                    // If there are no other listeners listening for this event, disable the hook.
-                    if (!this.EventListeners.Any(listeners => listeners.AddonName.Contains(listener.AddonName) && listener.EventType is AddonEvent.PreReceiveEvent or AddonEvent.PostReceiveEvent))
-                    {
-                        receiveEventListener.Disable();
-                    }
-                }
-            }
-        });
+            this.framework.RunOnTick(() => this.UnregisterListenerMethod(listener));
+        }
+        else
+        {
+            this.framework.RunOnFrameworkThread(() => this.UnregisterListenerMethod(listener));
+        }
     }
 
     /// <summary>
@@ -151,220 +144,106 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="blame">What to blame on errors.</param>
     internal void InvokeListenersSafely(AddonEvent eventType, AddonArgs args, [CallerMemberName] string blame = "")
     {
-        // Do not use linq; this is a high-traffic function, and more heap allocations avoided, the better.
-        foreach (var listener in this.EventListeners)
+        this.isInvokingListeners = true;
+
+        // Early return if we don't have any listeners of this type
+        if (!this.EventListeners.TryGetValue(eventType, out var addonListeners)) return;
+
+        // Handle listeners for this event type that don't care which addon is triggering it
+        if (addonListeners.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(default, out var globalListeners))
         {
-            if (listener.EventType != eventType)
-                continue;
-
-            // If the listener is pending removal, and is waiting until the next Framework Update, don't invoke listener.
-            if (listener.Removed)
-                continue;
-            
-            // Match on string.empty for listeners that want events for all addons.
-            if (!string.IsNullOrWhiteSpace(listener.AddonName) && !args.IsAddon(listener.AddonName))
-                continue;
-
-            try
+            foreach (var listener in globalListeners)
             {
-                listener.FunctionDelegate.Invoke(eventType, args);
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, $"Exception in {blame} during {eventType} invoke.");
-            }
-        }
-    }
+                if (listener.IsRequestedToClear) continue;
 
-    private void RegisterReceiveEventHook(AtkUnitBase* addon)
-    {
-        // Hook the addon's ReceiveEvent function here, but only enable the hook if we have an active listener.
-        // Disallows hooking the core internal event handler.
-        var addonName = addon->NameString;
-        var receiveEventAddress = (nint)addon->VirtualTable->ReceiveEvent;
-        if (receiveEventAddress != this.disallowedReceiveEventAddress)
-        {
-            // If we have a ReceiveEvent listener already made for this hook address, add this addon's name to that handler.
-            if (this.ReceiveEventListeners.FirstOrDefault(listener => listener.FunctionAddress == receiveEventAddress) is { } existingListener)
-            {
-                if (!existingListener.AddonNames.Contains(addonName))
+                try
                 {
-                    existingListener.AddonNames.Add(addonName);
+                    listener.FunctionDelegate.Invoke(eventType, args);
                 }
-            }
-
-            // Else, we have an addon that we don't have the ReceiveEvent for yet, make it.
-            else
-            {
-                this.ReceiveEventListeners.Add(new AddonLifecycleReceiveEventListener(this, addonName, receiveEventAddress));
-            }
-
-            // If we have an active listener for this addon already, we need to activate this hook.
-            if (this.EventListeners.Any(listener => (listener.EventType is AddonEvent.PostReceiveEvent or AddonEvent.PreReceiveEvent) && listener.AddonName == addonName))
-            {
-                if (this.ReceiveEventListeners.FirstOrDefault(listener => listener.AddonNames.Contains(addonName)) is { } receiveEventListener)
+                catch (Exception e)
                 {
-                    receiveEventListener.TryEnable();
+                    Log.Error(e, $"Exception in {blame} during {eventType} invoke, for global addon event listener.");
                 }
             }
         }
+
+        // Handle listeners that are listening for this addon and event type specifically
+        Span<char> nameBuffer = stackalloc char[32];
+        var nameLength = Encoding.UTF8.GetChars(args.AddonNameSpan, nameBuffer);
+        if (addonListeners.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(nameBuffer[..nameLength], out var addonListener))
+        {
+            foreach (var listener in addonListener)
+            {
+                if (listener.IsRequestedToClear) continue;
+
+                try
+                {
+                    listener.FunctionDelegate.Invoke(eventType, args);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, $"Exception in {blame} during {eventType} invoke, for specific addon {args.AddonName}.");
+                }
+            }
+        }
+
+        this.isInvokingListeners = false;
     }
 
-    private void UnregisterReceiveEventHook(string addonName)
+    private void RegisterListenerMethod(AddonLifecycleEventListener listener)
     {
-        // Remove this addons ReceiveEvent Registration
-        if (this.ReceiveEventListeners.FirstOrDefault(listener => listener.AddonNames.Contains(addonName)) is { } eventListener)
+        if (!this.EventListeners.ContainsKey(listener.EventType))
         {
-            eventListener.AddonNames.Remove(addonName);
-
-            // If there are no more listeners let's remove and dispose.
-            if (eventListener.AddonNames.Count is 0)
+            if (!this.EventListeners.TryAdd(listener.EventType, []))
             {
-                this.ReceiveEventListeners.Remove(eventListener);
-                eventListener.Dispose();
+                return;
+            }
+        }
+
+        // Note: string.Empty is a valid addon name, as that will trigger on any addon for this event type
+        if (!this.EventListeners[listener.EventType].ContainsKey(listener.AddonName))
+        {
+            if (!this.EventListeners[listener.EventType].TryAdd(listener.AddonName, []))
+            {
+                return;
+            }
+        }
+
+        this.EventListeners[listener.EventType][listener.AddonName].Add(listener);
+    }
+
+    private void UnregisterListenerMethod(AddonLifecycleEventListener listener)
+    {
+        if (this.EventListeners.TryGetValue(listener.EventType, out var addonListeners))
+        {
+            if (addonListeners.TryGetValue(listener.AddonName, out var addonListener))
+            {
+                addonListener.Remove(listener);
             }
         }
     }
 
-    private void OnAddonSetup(AtkUnitBase* addon, uint valueCount, AtkValue* values)
+    private void OnAddonInitialize(AtkUnitBase* addon)
     {
         try
         {
-            this.RegisterReceiveEventHook(addon);
+            this.LogInitialize(addon->NameString);
+
+            // AddonVirtualTable class handles creating the virtual table, and overriding each of the tracked virtual functions
+            AllocatedTables.Add(new AddonVirtualTable(addon, this));
         }
         catch (Exception e)
         {
-            Log.Error(e, "Exception in OnAddonSetup ReceiveEvent Registration.");
+            Log.Error(e, "Exception in AddonLifecycle during OnAddonInitialize.");
         }
 
-        using var returner = this.argsPool.Rent(out AddonSetupArgs arg);
-        arg.AddonInternal = (nint)addon;
-        arg.AtkValueCount = valueCount;
-        arg.AtkValues = (nint)values;
-        this.InvokeListenersSafely(AddonEvent.PreSetup, arg);
-        valueCount = arg.AtkValueCount;
-        values = (AtkValue*)arg.AtkValues;
-
-        try
-        {
-            addon->OnSetup(valueCount, values);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Caught exception when calling original AddonSetup. This may be a bug in the game or another plugin hooking this method.");
-        }
-
-        this.InvokeListenersSafely(AddonEvent.PostSetup, arg);
+        this.onInitializeAddonHook!.Original(addon);
     }
 
-    private void OnAddonFinalize(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase)
+    [Conditional("DEBUG")]
+    private void LogInitialize(string addonName)
     {
-        try
-        {
-            var addonName = atkUnitBase[0]->NameString;
-            this.UnregisterReceiveEventHook(addonName);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Exception in OnAddonFinalize ReceiveEvent Removal.");
-        }
-
-        using var returner = this.argsPool.Rent(out AddonFinalizeArgs arg);
-        arg.AddonInternal = (nint)atkUnitBase[0];
-        this.InvokeListenersSafely(AddonEvent.PreFinalize, arg);
-
-        try
-        {
-            this.onAddonFinalizeHook.Original(unitManager, atkUnitBase);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Caught exception when calling original AddonFinalize. This may be a bug in the game or another plugin hooking this method.");
-        }
-    }
-
-    private void OnAddonDraw(AtkUnitBase* addon)
-    {
-        using var returner = this.argsPool.Rent(out AddonDrawArgs arg);
-        arg.AddonInternal = (nint)addon;
-        this.InvokeListenersSafely(AddonEvent.PreDraw, arg);
-
-        try
-        {
-            addon->Draw();
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Caught exception when calling original AddonDraw. This may be a bug in the game or another plugin hooking this method.");
-        }
-
-        this.InvokeListenersSafely(AddonEvent.PostDraw, arg);
-    }
-
-    private void OnAddonUpdate(AtkUnitBase* addon, float delta)
-    {
-        using var returner = this.argsPool.Rent(out AddonUpdateArgs arg);
-        arg.AddonInternal = (nint)addon;
-        arg.TimeDeltaInternal = delta;
-        this.InvokeListenersSafely(AddonEvent.PreUpdate, arg);
-
-        try
-        {
-            addon->Update(delta);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Caught exception when calling original AddonUpdate. This may be a bug in the game or another plugin hooking this method.");
-        }
-
-        this.InvokeListenersSafely(AddonEvent.PostUpdate, arg);
-    }
-
-    private bool OnAddonRefresh(AtkUnitManager* thisPtr, AtkUnitBase* addon, uint valueCount, AtkValue* values)
-    {
-        var result = false;
-
-        using var returner = this.argsPool.Rent(out AddonRefreshArgs arg);
-        arg.AddonInternal = (nint)addon;
-        arg.AtkValueCount = valueCount;
-        arg.AtkValues = (nint)values;
-        this.InvokeListenersSafely(AddonEvent.PreRefresh, arg);
-        valueCount = arg.AtkValueCount;
-        values = (AtkValue*)arg.AtkValues;
-
-        try
-        {
-            result = this.onAddonRefreshHook.Original(thisPtr, addon, valueCount, values);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Caught exception when calling original AddonRefresh. This may be a bug in the game or another plugin hooking this method.");
-        }
-
-        this.InvokeListenersSafely(AddonEvent.PostRefresh, arg);
-        return result;
-    }
-
-    private void OnRequestedUpdate(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData)
-    {
-        using var returner = this.argsPool.Rent(out AddonRequestedUpdateArgs arg);
-        arg.AddonInternal = (nint)addon;
-        arg.NumberArrayData = (nint)numberArrayData;
-        arg.StringArrayData = (nint)stringArrayData;
-        this.InvokeListenersSafely(AddonEvent.PreRequestedUpdate, arg);
-        numberArrayData = (NumberArrayData**)arg.NumberArrayData;
-        stringArrayData = (StringArrayData**)arg.StringArrayData;
-
-        try
-        {
-            addon->OnRequestedUpdate(numberArrayData, stringArrayData);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Caught exception when calling original AddonRequestedUpdate. This may be a bug in the game or another plugin hooking this method.");
-        }
-
-        this.InvokeListenersSafely(AddonEvent.PostRequestedUpdate, arg);
+        Log.Debug($"Initializing {addonName}");
     }
 }
 
@@ -381,11 +260,14 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycleService = Service<AddonLifecycle>.Get();
 
-    private readonly List<AddonLifecycleEventListener> eventListeners = new();
+    private readonly List<AddonLifecycleEventListener> eventListeners = [];
+    private readonly Lock listenerLock = new();
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        using var scope = this.listenerLock.EnterScope();
+
         foreach (var listener in this.eventListeners)
         {
             this.addonLifecycleService.UnregisterListener(listener);
@@ -405,6 +287,9 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
     public void RegisterListener(AddonEvent eventType, string addonName, IAddonLifecycle.AddonEventDelegate handler)
     {
         var listener = new AddonLifecycleEventListener(eventType, addonName, handler);
+
+        using var scope = this.listenerLock.EnterScope();
+
         this.eventListeners.Add(listener);
         this.addonLifecycleService.RegisterListener(listener);
     }
@@ -427,6 +312,8 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
     /// <inheritdoc/>
     public void UnregisterListener(AddonEvent eventType, string addonName, IAddonLifecycle.AddonEventDelegate? handler = null)
     {
+        using var scope = this.listenerLock.EnterScope();
+
         this.eventListeners.RemoveAll(entry =>
         {
             if (entry.EventType != eventType) return false;
@@ -447,15 +334,21 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
     /// <inheritdoc/>
     public void UnregisterListener(params IAddonLifecycle.AddonEventDelegate[] handlers)
     {
+        using var scope = this.listenerLock.EnterScope();
+
         foreach (var handler in handlers)
         {
             this.eventListeners.RemoveAll(entry =>
             {
                 if (entry.FunctionDelegate != handler) return false;
-            
+
                 this.addonLifecycleService.UnregisterListener(entry);
                 return true;
             });
         }
     }
+
+    /// <inheritdoc/>
+    public unsafe nint GetOriginalVirtualTable(nint virtualTableAddress)
+        => (nint)AddonLifecycle.GetOriginalVirtualTable((AtkUnitBase.AtkUnitBaseVirtualTable*)virtualTableAddress);
 }

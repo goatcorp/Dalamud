@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 
 namespace Dalamud.Utility;
 
@@ -22,7 +22,7 @@ internal static class CultureFixes
         // This glyph is not present in any game fonts and not in the range for our Noto
         // so it will be rendered as a geta (=) instead. That's a hack, but it works and
         // doesn't look as weird.
-        CultureInfo PatchCulture(CultureInfo info)
+        static CultureInfo PatchCulture(CultureInfo info)
         {
             var newCulture = (CultureInfo)info.Clone();
 

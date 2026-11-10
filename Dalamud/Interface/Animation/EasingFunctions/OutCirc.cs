@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Interface.Animation.EasingFunctions;
+namespace Dalamud.Interface.Animation.EasingFunctions;
 
 /// <summary>
 /// Class providing an "OutCirc" easing animation.
@@ -19,6 +19,6 @@ public class OutCirc : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.Value = Math.Sqrt(1 - Math.Pow(p - 1, 2));
+        this.ValueUnclamped = Math.Sqrt(1 - Math.Pow(p - 1, 2));
     }
 }

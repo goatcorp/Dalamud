@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Dalamud.Common.Game;
 using Newtonsoft.Json;
 
@@ -15,7 +16,7 @@ public record DalamudStartInfo
     /// </summary>
     public DalamudStartInfo()
     {
-        // ignored
+        this.Platform = OSPlatform.Create("UNKNOWN");
     }
 
     /// <summary>
@@ -32,6 +33,12 @@ public record DalamudStartInfo
     /// Gets or sets the path to the configuration file.
     /// </summary>
     public string? ConfigurationPath { get; set; }
+
+    /// <summary>
+    /// Gets or sets the directory for temporary files. This directory needs to exist and be writable to the user.
+    /// It should also be predictable and easy for launchers to find.
+    /// </summary>
+    public string? TempDirectory { get; set; }
 
     /// <summary>
     /// Gets or sets the path of the log files.
@@ -57,6 +64,12 @@ public record DalamudStartInfo
     /// Gets or sets the language of the game client.
     /// </summary>
     public ClientLanguage Language { get; set; } = ClientLanguage.English;
+
+    /// <summary>
+    /// Gets or sets the underlying platform Dalamud runs on.
+    /// </summary>
+    [JsonConverter(typeof(OSPlatformConverter))]
+    public OSPlatform Platform { get; set; }
 
     /// <summary>
     /// Gets or sets the current game version code.
@@ -95,6 +108,11 @@ public record DalamudStartInfo
     public bool BootShowConsole { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether to enable D3D11 and DXGI debugging if possible.
+    /// </summary>
+    public bool BootDebugDirectX { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether the fallback console should be shown, if needed.
     /// </summary>
     public bool BootDisableFallbackConsole { get; set; }
@@ -120,7 +138,7 @@ public record DalamudStartInfo
     public bool BootVehFull { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not ETW should be enabled.
+    /// Gets or sets a value indicating whether ETW should be enabled.
     /// </summary>
     public bool BootEnableEtw { get; set; }
 

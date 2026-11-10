@@ -5,6 +5,7 @@ using Dalamud.Data;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -174,7 +175,7 @@ public class MapLinkPayload : Payload
         bytes.AddRange(yBytes);
 
         // unk
-        bytes.AddRange(new byte[] { 0xFF, 0x01, END_BYTE });
+        bytes.AddRange([0xFF, 0x01, END_BYTE]);
 
         return bytes.ToArray();
     }

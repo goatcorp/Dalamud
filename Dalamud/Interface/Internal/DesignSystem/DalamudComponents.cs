@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Interface.Internal.DesignSystem;
+namespace Dalamud.Interface.Internal.DesignSystem;
 
 /// <summary>
 /// Private ImGui widgets for use inside Dalamud.

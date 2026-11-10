@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Utility.Signatures;
+namespace Dalamud.Utility.Signatures;
 
 /// <summary>
 /// An exception for signatures.

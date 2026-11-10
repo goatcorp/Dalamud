@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Utility.Table;
 
@@ -143,7 +143,7 @@ public class Table<T>
 
     private void DrawTableInternal()
     {
-        using var table = ImRaii.Table("Table", this.Headers.Length, this.Flags,
+        using var table = ImRaii.Table("Table"u8, this.Headers.Length, this.Flags,
             ImGui.GetContentRegionAvail() - this.ExtraHeight * Vector2.UnitY * ImGuiHelpers.GlobalScale);
         if (!table)
             return;

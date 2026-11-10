@@ -51,44 +51,28 @@ internal static unsafe partial class TerraFxComInterfaceExtensions
                 throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
         }
 
-        switch (access)
+        grfMode |= access switch
         {
-            case FileAccess.Read:
-                grfMode |= STGM.STGM_READ;
-                break;
-            case FileAccess.Write:
-                grfMode |= STGM.STGM_WRITE;
-                break;
-            case FileAccess.ReadWrite:
-                grfMode |= STGM.STGM_READWRITE;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(access), access, null);
-        }
+            FileAccess.Read => STGM.STGM_READ,
+            FileAccess.Write => STGM.STGM_WRITE,
+            FileAccess.ReadWrite => (uint)STGM.STGM_READWRITE,
+            _ => throw new ArgumentOutOfRangeException(nameof(access), access, null),
+        };
 
-        switch (share)
+        grfMode |= share switch
         {
-            case FileShare.None:
-                grfMode |= STGM.STGM_SHARE_EXCLUSIVE;
-                break;
-            case FileShare.Read:
-                grfMode |= STGM.STGM_SHARE_DENY_WRITE;
-                break;
-            case FileShare.Write:
-                grfMode |= STGM.STGM_SHARE_DENY_READ;
-                break;
-            case FileShare.ReadWrite:
-                grfMode |= STGM.STGM_SHARE_DENY_NONE;
-                break;
-            default:
-                throw new NotSupportedException($"Only ${FileShare.Read} and ${FileShare.Write} are supported.");
-        }
+            FileShare.None => STGM.STGM_SHARE_EXCLUSIVE,
+            FileShare.Read => STGM.STGM_SHARE_DENY_WRITE,
+            FileShare.Write => STGM.STGM_SHARE_DENY_READ,
+            FileShare.ReadWrite => (uint)STGM.STGM_SHARE_DENY_NONE,
+            _ => throw new NotSupportedException($"Only ${FileShare.Read} and ${FileShare.Write} are supported."),
+        };
 
         using var stream = default(ComPtr<IStream>);
         fixed (char* pPath = path)
         {
             SHCreateStreamOnFileEx(
-                (ushort*)pPath,
+                pPath,
                 grfMode,
                 (uint)attributes,
                 fCreate,
@@ -115,7 +99,7 @@ internal static unsafe partial class TerraFxComInterfaceExtensions
         {
             fixed (char* pName = name)
             {
-                var option = new PROPBAG2 { pstrName = (ushort*)pName };
+                var option = new PROPBAG2 { pstrName = pName };
                 return obj.Write(1, &option, &varValue);
             }
         }
@@ -145,7 +129,7 @@ internal static unsafe partial class TerraFxComInterfaceExtensions
             try
             {
                 fixed (char* pName = name)
-                    return obj.SetMetadataByName((ushort*)pName, &propVarValue);
+                    return obj.SetMetadataByName(pName, &propVarValue);
             }
             finally
             {
@@ -165,7 +149,7 @@ internal static unsafe partial class TerraFxComInterfaceExtensions
     public static HRESULT RemoveMetadataByName(ref this IWICMetadataQueryWriter obj, string name)
     {
         fixed (char* pName = name)
-            return obj.RemoveMetadataByName((ushort*)pName);
+            return obj.RemoveMetadataByName(pName);
     }
 
     [LibraryImport("propsys.dll")]

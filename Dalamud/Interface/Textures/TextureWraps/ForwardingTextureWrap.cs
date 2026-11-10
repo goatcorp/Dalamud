@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
-using Dalamud.Interface.Internal;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Textures.TextureWraps.Internal;
 
 using TerraFX.Interop.Windows;
@@ -13,10 +13,10 @@ namespace Dalamud.Interface.Textures.TextureWraps;
 public abstract class ForwardingTextureWrap : IDalamudTextureWrap
 {
     /// <inheritdoc/>
-    public IntPtr ImGuiHandle
+    public ImTextureID Handle
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => this.GetWrap().ImGuiHandle;
+        get => this.GetWrap().Handle;
     }
 
     /// <inheritdoc/>
@@ -55,7 +55,7 @@ public abstract class ForwardingTextureWrap : IDalamudTextureWrap
     public virtual unsafe IDalamudTextureWrap CreateWrapSharingLowLevelResource()
     {
         // Dalamud specific: IDalamudTextureWrap always points to an ID3D11ShaderResourceView.
-        var handle = (IUnknown*)this.ImGuiHandle;
+        var handle = (IUnknown*)this.Handle.Handle;
         return new UnknownTextureWrap(handle, this.Width, this.Height, true);
     }
 

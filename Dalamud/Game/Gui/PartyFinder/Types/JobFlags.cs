@@ -127,7 +127,7 @@ public enum JobFlags : ulong
     RedMage = 1ul << 24,
 
     /// <summary>
-    /// Blue mage (BLM).
+    /// Blue mage (BLU).
     /// </summary>
     BlueMage = 1ul << 25,
 
@@ -160,4 +160,9 @@ public enum JobFlags : ulong
     /// Pictomancer (PCT).
     /// </summary>
     Pictomancer = 1ul << 31,
+
+    /// <summary>
+    /// Beastmaster (BST).
+    /// </summary>
+    Beastmaster = 1ul << 32,
 }

@@ -35,34 +35,34 @@ public interface IFontFamilyId : IObjectWithLocalizableName
     /// Gets the list of Dalamud-provided fonts.
     /// </summary>
     /// <returns>The list of fonts.</returns>
-    public static List<IFontFamilyId> ListDalamudFonts() =>
-        new()
-        {
-            new DalamudAssetFontAndFamilyId(DalamudAsset.NotoSansJpMedium),
+    static List<IFontFamilyId> ListDalamudFonts() =>
+        [
+            new DalamudAssetFontAndFamilyId(DalamudAsset.NotoSansCjkMedium),
+            new DalamudAssetFontAndFamilyId(DalamudAsset.NotoSansCjkRegular),
             new DalamudAssetFontAndFamilyId(DalamudAsset.InconsolataRegular),
             new DalamudAssetFontAndFamilyId(DalamudAsset.FontAwesomeFreeSolid),
-        };
+        ];
 
     /// <summary>
     /// Gets the list of Game-provided fonts.
     /// </summary>
     /// <returns>The list of fonts.</returns>
-    public static List<IFontFamilyId> ListGameFonts() => new()
-    {
+    static List<IFontFamilyId> ListGameFonts() =>
+    [
         new GameFontAndFamilyId(GameFontFamily.Axis),
         new GameFontAndFamilyId(GameFontFamily.Jupiter),
         new GameFontAndFamilyId(GameFontFamily.JupiterNumeric),
         new GameFontAndFamilyId(GameFontFamily.Meidinger),
         new GameFontAndFamilyId(GameFontFamily.MiedingerMid),
         new GameFontAndFamilyId(GameFontFamily.TrumpGothic),
-    };
+    ];
 
     /// <summary>
     /// Gets the list of System-provided fonts.
     /// </summary>
     /// <param name="refresh">If <c>true</c>, try to refresh the list.</param>
     /// <returns>The list of fonts.</returns>
-    public static unsafe List<IFontFamilyId> ListSystemFonts(bool refresh)
+    static unsafe List<IFontFamilyId> ListSystemFonts(bool refresh)
     {
         using var dwf = default(ComPtr<IDWriteFactory>);
         fixed (Guid* piid = &IID.IID_IDWriteFactory)

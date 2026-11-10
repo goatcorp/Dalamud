@@ -1,0 +1,1154 @@
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+
+using Dalamud.Data;
+using Dalamud.Game.Gui;
+using Dalamud.Hooking;
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Services;
+using Dalamud.Utility;
+
+using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.FFXIV.Component.Exd;
+
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
+
+using AchievementSheet = Lumina.Excel.Sheets.Achievement;
+using ActionSheet = Lumina.Excel.Sheets.Action;
+using CSAchievement = FFXIVClientStructs.FFXIV.Client.Game.UI.Achievement;
+using CSPlayerState = FFXIVClientStructs.FFXIV.Client.Game.UI.PlayerState;
+using InstanceContentSheet = Lumina.Excel.Sheets.InstanceContent;
+using PublicContentSheet = Lumina.Excel.Sheets.PublicContent;
+
+namespace Dalamud.Game.UnlockState;
+
+/// <summary>
+/// This class provides unlock state of various content in the game.
+/// </summary>
+[ServiceManager.EarlyLoadedService]
+internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
+{
+    private static readonly ModuleLog Log = new(nameof(UnlockState));
+
+    [ServiceManager.ServiceDependency]
+    private readonly DataManager dataManager = Service<DataManager>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly ClientState.ClientState clientState = Service<ClientState.ClientState>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly Framework framework = Service<Framework>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly GameGui gameGui = Service<GameGui>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly RecipeData recipeData = Service<RecipeData>.Get();
+
+    private readonly IDebouncer updateDebouncer;
+    private readonly ConcurrentDictionary<Type, HashSet<uint>> cachedUnlockedRowIds = [];
+    private readonly Hook<CSAchievement.Delegates.SetAchievementCompleted> setAchievementCompletedHook;
+    private readonly Hook<TitleList.Delegates.SetTitleUnlocked> setTitleUnlockedHook;
+    private readonly Hook<CSPlayerState.Delegates.SetOrnamentUnlocked> setOrnamentUnlockedHook;
+    private readonly Hook<CSPlayerState.Delegates.SetGlassesStyleUnlocked> setGlassesStyleUnlockedHook;
+    private readonly Hook<XBMManager.Delegates.SetPetUnlocked> setPetUnlockedHook;
+
+    [ServiceManager.ServiceConstructor]
+    private UnlockState()
+    {
+        this.updateDebouncer = this.framework.CreateDebouncer(TimeSpan.FromMilliseconds(500), this.Update);
+
+        this.clientState.Login += this.OnLogin;
+        this.clientState.Logout += this.OnLogout;
+        this.gameGui.AgentUpdate += this.OnAgentUpdate;
+
+        this.setAchievementCompletedHook = Hook<CSAchievement.Delegates.SetAchievementCompleted>.FromAddress(
+            (nint)CSAchievement.MemberFunctionPointers.SetAchievementCompleted,
+            this.SetAchievementCompletedDetour);
+
+        this.setTitleUnlockedHook = Hook<TitleList.Delegates.SetTitleUnlocked>.FromAddress(
+            (nint)TitleList.MemberFunctionPointers.SetTitleUnlocked,
+            this.SetTitleUnlockedDetour);
+
+        this.setOrnamentUnlockedHook = Hook<CSPlayerState.Delegates.SetOrnamentUnlocked>.FromAddress(
+            (nint)CSPlayerState.MemberFunctionPointers.SetOrnamentUnlocked,
+            this.SetOrnamentUnlockedDetour);
+
+        this.setGlassesStyleUnlockedHook = Hook<CSPlayerState.Delegates.SetGlassesStyleUnlocked>.FromAddress(
+            (nint)CSPlayerState.MemberFunctionPointers.SetGlassesStyleUnlocked,
+            this.SetGlassesStyleUnlockedDetour);
+
+        this.setPetUnlockedHook = Hook<XBMManager.Delegates.SetPetUnlocked>.FromAddress(
+            (nint)XBMManager.MemberFunctionPointers.SetPetUnlocked,
+            this.SetPetUnlockedDetour);
+
+        this.setAchievementCompletedHook.Enable();
+        this.setTitleUnlockedHook.Enable();
+        this.setOrnamentUnlockedHook.Enable();
+        this.setGlassesStyleUnlockedHook.Enable();
+        this.setPetUnlockedHook.Enable();
+    }
+
+    /// <inheritdoc/>
+    public event IUnlockState.UnlockDelegate Unlock;
+
+    /// <inheritdoc/>
+    public bool IsAchievementListLoaded => CSAchievement.Instance()->IsLoaded();
+
+    /// <inheritdoc/>
+    public bool IsTitleListLoaded => UIState.Instance()->TitleList.DataReceived;
+
+    /// <inheritdoc/>
+    public bool IsXBMPetListLoaded
+    {
+        get
+        {
+            var manager = XBMManager.Instance();
+            return manager != null && manager->State == XBMManager.DataState.Received;
+        }
+    }
+
+    private bool IsLoaded => CSPlayerState.Instance()->IsLoaded;
+
+    /// <inheritdoc/>
+    void IInternalDisposableService.DisposeService()
+    {
+        this.clientState.Login -= this.OnLogin;
+        this.clientState.Logout -= this.OnLogout;
+        this.gameGui.AgentUpdate -= this.OnAgentUpdate;
+
+        this.setAchievementCompletedHook.Dispose();
+        this.setTitleUnlockedHook.Dispose();
+        this.setOrnamentUnlockedHook.Dispose();
+        this.setGlassesStyleUnlockedHook.Dispose();
+        this.setPetUnlockedHook.Dispose();
+
+        this.updateDebouncer.Dispose();
+    }
+
+    /// <inheritdoc/>
+    public bool IsAchievementComplete(AchievementSheet row)
+    {
+        // Only check for login state here as individual Achievements
+        // may be flagged as complete when you unlock them, regardless
+        // of whether the full Achievements list was loaded or not.
+
+        if (!this.IsLoaded)
+            return false;
+
+        return CSAchievement.Instance()->IsComplete((int)row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsActionUnlocked(ActionSheet row)
+    {
+        return this.IsUnlockLinkUnlocked(row.UnlockLink.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsAdventureComplete(Adventure row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return CSPlayerState.Instance()->IsAdventureComplete(row.RowId - 0x210000);
+    }
+
+    /// <inheritdoc/>
+    public bool IsAetherCurrentUnlocked(AetherCurrent row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return CSPlayerState.Instance()->IsAetherCurrentUnlocked(row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsAetherCurrentCompFlgSetUnlocked(AetherCurrentCompFlgSet row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return CSPlayerState.Instance()->IsAetherCurrentZoneComplete(row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsAozActionUnlocked(AozAction row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        if (row.RowId == 0 || !row.Action.IsValid)
+            return false;
+
+        return UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(row.Action.Value.UnlockLink.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsBannerBgUnlocked(BannerBg row)
+    {
+        return row.UnlockCondition.IsValid && this.IsBannerConditionUnlocked(row.UnlockCondition.Value);
+    }
+
+    /// <inheritdoc/>
+    public bool IsBannerConditionUnlocked(BannerCondition row)
+    {
+        if (row.RowId == 0)
+            return false;
+
+        if (!this.IsLoaded)
+            return false;
+
+        var rowPtr = ExdModule.GetBannerConditionByIndex(row.RowId);
+        if (rowPtr == null)
+            return false;
+
+        return ExdModule.GetBannerConditionUnlockState(rowPtr) == 0;
+    }
+
+    /// <inheritdoc/>
+    public bool IsBannerDecorationUnlocked(BannerDecoration row)
+    {
+        return row.UnlockCondition.IsValid && this.IsBannerConditionUnlocked(row.UnlockCondition.Value);
+    }
+
+    /// <inheritdoc/>
+    public bool IsBannerFacialUnlocked(BannerFacial row)
+    {
+        return row.UnlockCondition.IsValid && this.IsBannerConditionUnlocked(row.UnlockCondition.Value);
+    }
+
+    /// <inheritdoc/>
+    public bool IsBannerFrameUnlocked(BannerFrame row)
+    {
+        return row.UnlockCondition.IsValid && this.IsBannerConditionUnlocked(row.UnlockCondition.Value);
+    }
+
+    /// <inheritdoc/>
+    public bool IsBannerTimelineUnlocked(BannerTimeline row)
+    {
+        return row.UnlockCondition.IsValid && this.IsBannerConditionUnlocked(row.UnlockCondition.Value);
+    }
+
+    /// <inheritdoc/>
+    public bool IsBuddyActionUnlocked(BuddyAction row)
+    {
+        return this.IsUnlockLinkUnlocked(row.UnlockLink);
+    }
+
+    /// <inheritdoc/>
+    public bool IsBuddyEquipUnlocked(BuddyEquip row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return UIState.Instance()->Buddy.CompanionInfo.IsBuddyEquipUnlocked(row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsCharaMakeCustomizeUnlocked(CharaMakeCustomize row)
+    {
+        return row.IsPurchasable && this.IsUnlockLinkUnlocked(row.UnlockLink);
+    }
+
+    /// <inheritdoc/>
+    public bool IsChocoboTaxiStandUnlocked(ChocoboTaxiStand row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return UIState.Instance()->IsChocoboTaxiStandUnlocked(row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsClassJobUnlocked(ClassJob row)
+    {
+        if (!this.IsLoaded || row.RowId == 0 || row.ClassJobCategory.RowId == 0 || row.ExpArrayIndex < 0)
+            return false;
+
+        var playerState = CSPlayerState.Instance();
+        return playerState->ClassJobLevels.Length > row.ExpArrayIndex && playerState->ClassJobLevels[row.ExpArrayIndex] != 0;
+    }
+
+    /// <inheritdoc/>
+    public bool IsCompanionUnlocked(Companion row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return UIState.Instance()->IsCompanionUnlocked(row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsCraftActionUnlocked(CraftAction row)
+    {
+        return this.IsUnlockLinkUnlocked(row.QuestRequirement.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsCSBonusContentTypeUnlocked(CSBonusContentType row)
+    {
+        return this.IsUnlockLinkUnlocked(row.UnlockLink);
+    }
+
+    /// <inheritdoc/>
+    public bool IsEmoteUnlocked(Emote row)
+    {
+        if (row.EmoteCategory.RowId == 0 || !row.EmoteCategory.IsValid)
+            return false;
+
+        if (row.UnlockLink == 0)
+            return true;
+
+        return this.IsUnlockLinkUnlocked(row.UnlockLink);
+    }
+
+    /// <inheritdoc/>
+    public bool IsEmjVoiceNpcUnlocked(EmjVoiceNpc row)
+    {
+        return this.IsUnlockLinkUnlocked(row.UnlockLink);
+    }
+
+    /// <inheritdoc/>
+    public bool IsEmjCostumeUnlocked(EmjCostume row)
+    {
+        return this.dataManager.GetExcelSheet<EmjVoiceNpc>().TryGetRow(row.RowId, out var emjVoiceNpcRow)
+            && this.IsEmjVoiceNpcUnlocked(emjVoiceNpcRow)
+            && QuestManager.IsQuestComplete(row.UnlockQuest.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsGeneralActionUnlocked(GeneralAction row)
+    {
+        return this.IsUnlockLinkUnlocked(row.UnlockLink);
+    }
+
+    /// <inheritdoc/>
+    public bool IsGlassesUnlocked(Glasses row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return row.Style.IsValid && this.IsGlassesStyleUnlocked(row.Style.Value);
+    }
+
+    /// <inheritdoc/>
+    public bool IsGlassesStyleUnlocked(GlassesStyle row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return CSPlayerState.Instance()->UnlockedGlassesStylesBitArray.TryGet((int)row.RowId, out var isUnlocked)
+            && isUnlocked;
+    }
+
+    /// <inheritdoc/>
+    public bool IsHowToUnlocked(HowTo row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return UIState.Instance()->IsHowToUnlocked(row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsInstanceContentUnlocked(InstanceContentSheet row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return UIState.IsInstanceContentUnlocked(row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public unsafe bool IsItemUnlocked(Item row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        if (!this.IsItemUnlockable(row))
+            return false;
+
+        // To avoid the ExdModule.GetItemRowById call, which can take quite long and might return null
+        // if the excel page is not loaded, we're going to imitate the IsItemActionUnlocked call first:
+        switch ((ItemActionAction)row.ItemAction.Value.Action.RowId)
+        {
+            case ItemActionAction.Companion:
+                return UIState.Instance()->IsCompanionUnlocked(row.ItemAction.Value.Data[0]);
+
+            case ItemActionAction.BuddyEquip:
+                return UIState.Instance()->Buddy.CompanionInfo.IsBuddyEquipUnlocked(row.ItemAction.Value.Data[0]);
+
+            case ItemActionAction.Mount:
+                return CSPlayerState.Instance()->IsMountUnlocked(row.ItemAction.Value.Data[0]);
+
+            case ItemActionAction.SecretRecipeBook:
+                return CSPlayerState.Instance()->IsSecretRecipeBookUnlocked(row.ItemAction.Value.Data[0]);
+
+            case ItemActionAction.UnlockLink:
+            case ItemActionAction.OccultRecords:
+                return UIState.Instance()->IsUnlockLinkUnlocked(row.ItemAction.Value.Data[0]);
+
+            case ItemActionAction.TripleTriadCard when row.AdditionalData.Is<TripleTriadCard>():
+                return UIState.Instance()->IsTripleTriadCardUnlocked((ushort)row.AdditionalData.RowId);
+
+            case ItemActionAction.FolkloreTome:
+                return CSPlayerState.Instance()->IsFolkloreBookUnlocked(row.ItemAction.Value.Data[0]);
+
+            case ItemActionAction.OrchestrionRoll when row.AdditionalData.Is<Orchestrion>():
+                return CSPlayerState.Instance()->IsOrchestrionRollUnlocked(row.AdditionalData.RowId);
+
+            case ItemActionAction.FramersKit:
+                return CSPlayerState.Instance()->IsFramersKitUnlocked(row.AdditionalData.RowId);
+
+            case ItemActionAction.Ornament:
+                return CSPlayerState.Instance()->IsOrnamentUnlocked(row.ItemAction.Value.Data[0]);
+
+            case ItemActionAction.Glasses:
+                return CSPlayerState.Instance()->IsGlassesUnlocked((ushort)row.AdditionalData.RowId);
+
+            case ItemActionAction.SoulShards:
+                var occultCrescentState = PublicContentOccultCrescent.GetState();
+                if (occultCrescentState == null)
+                    return false;
+
+                var supportJobId = (byte)row.ItemAction.Value.Data[0];
+                return supportJobId < occultCrescentState->SupportJobLevels.Length && occultCrescentState->SupportJobLevels[supportJobId] != 0;
+
+            case ItemActionAction.CompanySealVouchers:
+                return false;
+        }
+
+        var nativeRow = ExdModule.GetItemRowById(row.RowId);
+        return nativeRow != null && UIState.Instance()->IsItemActionUnlocked(nativeRow) == 1;
+    }
+
+    /// <inheritdoc/>
+    public bool IsLeveCompleted(Leve row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return QuestManager.Instance()->IsLevequestComplete((ushort)row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsMJILandmarkUnlocked(MJILandmark row)
+    {
+        return this.IsUnlockLinkUnlocked(row.UnlockLink);
+    }
+
+    /// <inheritdoc/>
+    public bool IsMKDLoreUnlocked(MKDLore row)
+    {
+        return this.IsUnlockLinkUnlocked(row.UnlockLink);
+    }
+
+    /// <inheritdoc/>
+    public bool IsMcGuffinUnlocked(McGuffin row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return CSPlayerState.Instance()->IsMcGuffinUnlocked(row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsMountUnlocked(Mount row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return CSPlayerState.Instance()->IsMountUnlocked(row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsNotebookDivisionUnlocked(NotebookDivision row)
+    {
+        if (row.QuestUnlock.RowId == 0)
+            return true;
+
+        return this.IsUnlockLinkUnlocked(row.QuestUnlock.RowId, row.Unknown1); // Unknown1 was renamed to MinimumQuestSequence
+    }
+
+    /// <inheritdoc/>
+    public bool IsOrchestrionUnlocked(Orchestrion row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return CSPlayerState.Instance()->IsOrchestrionRollUnlocked(row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsOrnamentUnlocked(Ornament row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return CSPlayerState.Instance()->IsOrnamentUnlocked(row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsPerformUnlocked(Perform row)
+    {
+        return this.IsUnlockLinkUnlocked((uint)row.UnlockLink);
+    }
+
+    /// <inheritdoc/>
+    public bool IsPublicContentUnlocked(PublicContentSheet row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return UIState.IsPublicContentUnlocked(row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsQuestCompleted(Quest row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return QuestManager.IsQuestComplete(row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsRecipeUnlocked(Recipe row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return this.recipeData.IsRecipeUnlocked(row);
+    }
+
+    /// <inheritdoc/>
+    public bool IsSecretRecipeBookUnlocked(SecretRecipeBook row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return CSPlayerState.Instance()->IsSecretRecipeBookUnlocked(row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsTitleUnlocked(Title row)
+    {
+        // Only check for login state here as individual Titles
+        // may be flagged as complete when you unlock them, regardless
+        // of whether the full Titles list was loaded or not.
+
+        if (!this.IsLoaded)
+            return false;
+
+        return UIState.Instance()->TitleList.IsTitleUnlocked((ushort)row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsTraitUnlocked(Trait row)
+    {
+        return this.IsUnlockLinkUnlocked(row.Quest.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsTripleTriadCardUnlocked(TripleTriadCard row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return UIState.Instance()->IsTripleTriadCardUnlocked((ushort)row.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsItemUnlockable(Item row)
+    {
+        if (row.ItemAction.RowId == 0)
+            return false;
+
+        return (ItemActionAction)row.ItemAction.Value.Action.RowId
+            is ItemActionAction.Companion
+            or ItemActionAction.BuddyEquip
+            or ItemActionAction.Mount
+            or ItemActionAction.SecretRecipeBook
+            or ItemActionAction.UnlockLink
+            or ItemActionAction.TripleTriadCard
+            or ItemActionAction.FolkloreTome
+            or ItemActionAction.OrchestrionRoll
+            or ItemActionAction.FramersKit
+            or ItemActionAction.Ornament
+            or ItemActionAction.Glasses
+            or ItemActionAction.OccultRecords
+            or ItemActionAction.SoulShards;
+    }
+
+    /// <inheritdoc/>
+    public bool IsRowRefUnlocked<T>(RowRef<T> rowRef) where T : struct, IExcelRow<T>
+    {
+        return this.IsRowRefUnlocked((RowRef)rowRef);
+    }
+
+    /// <inheritdoc/>
+    public bool IsRowRefUnlocked(RowRef rowRef)
+    {
+        if (!this.IsLoaded || rowRef.IsUntyped)
+            return false;
+
+        if (rowRef.TryGetValue<AchievementSheet>(out var achievementRow))
+            return this.IsAchievementComplete(achievementRow);
+
+        if (rowRef.TryGetValue<ActionSheet>(out var actionRow))
+            return this.IsActionUnlocked(actionRow);
+
+        if (rowRef.TryGetValue<Adventure>(out var adventureRow))
+            return this.IsAdventureComplete(adventureRow);
+
+        if (rowRef.TryGetValue<AetherCurrent>(out var aetherCurrentRow))
+            return this.IsAetherCurrentUnlocked(aetherCurrentRow);
+
+        if (rowRef.TryGetValue<AetherCurrentCompFlgSet>(out var aetherCurrentCompFlgSetRow))
+            return this.IsAetherCurrentCompFlgSetUnlocked(aetherCurrentCompFlgSetRow);
+
+        if (rowRef.TryGetValue<AozAction>(out var aozActionRow))
+            return this.IsAozActionUnlocked(aozActionRow);
+
+        if (rowRef.TryGetValue<BannerBg>(out var bannerBgRow))
+            return this.IsBannerBgUnlocked(bannerBgRow);
+
+        if (rowRef.TryGetValue<BannerCondition>(out var bannerConditionRow))
+            return this.IsBannerConditionUnlocked(bannerConditionRow);
+
+        if (rowRef.TryGetValue<BannerDecoration>(out var bannerDecorationRow))
+            return this.IsBannerDecorationUnlocked(bannerDecorationRow);
+
+        if (rowRef.TryGetValue<BannerFacial>(out var bannerFacialRow))
+            return this.IsBannerFacialUnlocked(bannerFacialRow);
+
+        if (rowRef.TryGetValue<BannerFrame>(out var bannerFrameRow))
+            return this.IsBannerFrameUnlocked(bannerFrameRow);
+
+        if (rowRef.TryGetValue<BannerTimeline>(out var bannerTimelineRow))
+            return this.IsBannerTimelineUnlocked(bannerTimelineRow);
+
+        if (rowRef.TryGetValue<BuddyAction>(out var buddyActionRow))
+            return this.IsBuddyActionUnlocked(buddyActionRow);
+
+        if (rowRef.TryGetValue<BuddyEquip>(out var buddyEquipRow))
+            return this.IsBuddyEquipUnlocked(buddyEquipRow);
+
+        if (rowRef.TryGetValue<CSBonusContentType>(out var csBonusContentTypeRow))
+            return this.IsCSBonusContentTypeUnlocked(csBonusContentTypeRow);
+
+        if (rowRef.TryGetValue<CharaMakeCustomize>(out var charaMakeCustomizeRow))
+            return this.IsCharaMakeCustomizeUnlocked(charaMakeCustomizeRow);
+
+        if (rowRef.TryGetValue<ChocoboTaxiStand>(out var chocoboTaxiStandRow))
+            return this.IsChocoboTaxiStandUnlocked(chocoboTaxiStandRow);
+
+        if (rowRef.TryGetValue<ClassJob>(out var classJobRow))
+            return this.IsClassJobUnlocked(classJobRow);
+
+        if (rowRef.TryGetValue<Companion>(out var companionRow))
+            return this.IsCompanionUnlocked(companionRow);
+
+        if (rowRef.TryGetValue<CraftAction>(out var craftActionRow))
+            return this.IsCraftActionUnlocked(craftActionRow);
+
+        if (rowRef.TryGetValue<Emote>(out var emoteRow))
+            return this.IsEmoteUnlocked(emoteRow);
+
+        if (rowRef.TryGetValue<GeneralAction>(out var generalActionRow))
+            return this.IsGeneralActionUnlocked(generalActionRow);
+
+        if (rowRef.TryGetValue<Glasses>(out var glassesRow))
+            return this.IsGlassesUnlocked(glassesRow);
+
+        if (rowRef.TryGetValue<GlassesStyle>(out var glassesStyleRow))
+            return this.IsGlassesStyleUnlocked(glassesStyleRow);
+
+        if (rowRef.TryGetValue<HowTo>(out var howToRow))
+            return this.IsHowToUnlocked(howToRow);
+
+        if (rowRef.TryGetValue<InstanceContentSheet>(out var instanceContentRow))
+            return this.IsInstanceContentUnlocked(instanceContentRow);
+
+        if (rowRef.TryGetValue<Item>(out var itemRow))
+            return this.IsItemUnlocked(itemRow);
+
+        if (rowRef.TryGetValue<Leve>(out var leveRow))
+            return this.IsLeveCompleted(leveRow);
+
+        if (rowRef.TryGetValue<MJILandmark>(out var mjiLandmarkRow))
+            return this.IsMJILandmarkUnlocked(mjiLandmarkRow);
+
+        if (rowRef.TryGetValue<MKDLore>(out var mkdLoreRow))
+            return this.IsMKDLoreUnlocked(mkdLoreRow);
+
+        if (rowRef.TryGetValue<McGuffin>(out var mcGuffinRow))
+            return this.IsMcGuffinUnlocked(mcGuffinRow);
+
+        if (rowRef.TryGetValue<Mount>(out var mountRow))
+            return this.IsMountUnlocked(mountRow);
+
+        if (rowRef.TryGetValue<NotebookDivision>(out var notebookDivisionRow))
+            return this.IsNotebookDivisionUnlocked(notebookDivisionRow);
+
+        if (rowRef.TryGetValue<Orchestrion>(out var orchestrionRow))
+            return this.IsOrchestrionUnlocked(orchestrionRow);
+
+        if (rowRef.TryGetValue<Ornament>(out var ornamentRow))
+            return this.IsOrnamentUnlocked(ornamentRow);
+
+        if (rowRef.TryGetValue<Perform>(out var performRow))
+            return this.IsPerformUnlocked(performRow);
+
+        if (rowRef.TryGetValue<PublicContentSheet>(out var publicContentRow))
+            return this.IsPublicContentUnlocked(publicContentRow);
+
+        if (rowRef.TryGetValue<Quest>(out var questRow))
+            return this.IsQuestCompleted(questRow);
+
+        if (rowRef.TryGetValue<Recipe>(out var recipeRow))
+            return this.IsRecipeUnlocked(recipeRow);
+
+        if (rowRef.TryGetValue<SecretRecipeBook>(out var secretRecipeBookRow))
+            return this.IsSecretRecipeBookUnlocked(secretRecipeBookRow);
+
+        if (rowRef.TryGetValue<Title>(out var titleRow))
+            return this.IsTitleUnlocked(titleRow);
+
+        if (rowRef.TryGetValue<Trait>(out var traitRow))
+            return this.IsTraitUnlocked(traitRow);
+
+        if (rowRef.TryGetValue<TripleTriadCard>(out var tripleTriadCardRow))
+            return this.IsTripleTriadCardUnlocked(tripleTriadCardRow);
+
+        return false;
+    }
+
+    /// <inheritdoc/>
+    public bool IsUnlockLinkUnlocked(ushort unlockLink)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        if (unlockLink == 0)
+            return false;
+
+        return UIState.Instance()->IsUnlockLinkUnlocked(unlockLink);
+    }
+
+    /// <inheritdoc/>
+    public bool IsUnlockLinkUnlocked(uint unlockLink)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        if (unlockLink == 0)
+            return false;
+
+        return UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(unlockLink);
+    }
+
+    /// <inheritdoc/>
+    public bool IsUnlockLinkUnlocked(uint unlockLink, byte minimumQuestSequence)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        if (unlockLink == 0)
+            return false;
+
+        return UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(unlockLink, minimumQuestSequence);
+    }
+
+    /// <inheritdoc/>
+    public bool IsXBMPetUnlocked(XBMPet row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        var manager = XBMManager.Instance();
+        return manager != null && manager->IsPetUnlocked(row.RowId);
+    }
+
+    private void OnLogin()
+    {
+        this.updateDebouncer.Debounce();
+    }
+
+    private void OnLogout(int type, int code)
+    {
+        this.cachedUnlockedRowIds.Clear();
+    }
+
+    private void OnAgentUpdate(AgentUpdateFlag agentUpdateFlag)
+    {
+        if (agentUpdateFlag.HasFlag(AgentUpdateFlag.UnlocksUpdate))
+            this.updateDebouncer.Debounce();
+    }
+
+    private void SetAchievementCompletedDetour(CSAchievement* thisPtr, uint id)
+    {
+        this.setAchievementCompletedHook.Original(thisPtr, id);
+
+        if (!this.IsLoaded)
+            return;
+
+        this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<AchievementSheet>(id));
+    }
+
+    private void SetTitleUnlockedDetour(TitleList* thisPtr, ushort id)
+    {
+        this.setTitleUnlockedHook.Original(thisPtr, id);
+
+        if (!this.IsLoaded)
+            return;
+
+        this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<Title>(id));
+    }
+
+    private void SetOrnamentUnlockedDetour(CSPlayerState* thisPtr, uint ornamentId, bool isUnlocked)
+    {
+        this.setOrnamentUnlockedHook.Original(thisPtr, ornamentId, isUnlocked);
+
+        if (!isUnlocked || !this.IsLoaded)
+            return;
+
+        this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<Ornament>(ornamentId));
+    }
+
+    private void SetGlassesStyleUnlockedDetour(CSPlayerState* thisPtr, ushort glassesStyleId, bool isUnlocked)
+    {
+        this.setGlassesStyleUnlockedHook.Original(thisPtr, glassesStyleId, isUnlocked);
+
+        if (!isUnlocked || !this.IsLoaded)
+            return;
+
+        this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<GlassesStyle>(glassesStyleId));
+    }
+
+    private void SetPetUnlockedDetour(XBMManager* thisPtr, ushort petId)
+    {
+        this.setPetUnlockedHook.Original(thisPtr, petId);
+
+        if (!thisPtr->HasNewUnlockedPets)
+            return;
+
+        this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<XBMPet>(petId));
+    }
+
+    private void Update()
+    {
+        if (!this.IsLoaded)
+            return;
+
+        Log.Verbose("Checking for new unlocks...");
+
+        // Do not check for Achievements, Titles or XBMPets here!
+
+        this.UpdateUnlocksForSheet<ActionSheet>();
+        this.UpdateUnlocksForSheet<Adventure>();
+        this.UpdateUnlocksForSheet<AetherCurrent>();
+        this.UpdateUnlocksForSheet<AetherCurrentCompFlgSet>();
+        this.UpdateUnlocksForSheet<AozAction>();
+        this.UpdateUnlocksForSheet<BannerBg>();
+        this.UpdateUnlocksForSheet<BannerCondition>();
+        this.UpdateUnlocksForSheet<BannerDecoration>();
+        this.UpdateUnlocksForSheet<BannerFacial>();
+        this.UpdateUnlocksForSheet<BannerFrame>();
+        this.UpdateUnlocksForSheet<BannerTimeline>();
+        this.UpdateUnlocksForSheet<BuddyAction>();
+        this.UpdateUnlocksForSheet<BuddyEquip>();
+        this.UpdateUnlocksForSheet<CSBonusContentType>();
+        this.UpdateUnlocksForSheet<CharaMakeCustomize>();
+        this.UpdateUnlocksForSheet<ChocoboTaxi>();
+        this.UpdateUnlocksForSheet<ClassJob>();
+        this.UpdateUnlocksForSheet<Companion>();
+        this.UpdateUnlocksForSheet<CraftAction>();
+        this.UpdateUnlocksForSheet<EmjVoiceNpc>();
+        this.UpdateUnlocksForSheet<Emote>();
+        this.UpdateUnlocksForSheet<GeneralAction>();
+        this.UpdateUnlocksForSheet<Glasses>();
+        this.UpdateUnlocksForSheet<GlassesStyle>();
+        this.UpdateUnlocksForSheet<HowTo>();
+        this.UpdateUnlocksForSheet<InstanceContentSheet>();
+        this.UpdateUnlocksForSheet<Item>();
+        this.UpdateUnlocksForSheet<MJILandmark>();
+        this.UpdateUnlocksForSheet<MKDLore>();
+        this.UpdateUnlocksForSheet<McGuffin>();
+        this.UpdateUnlocksForSheet<Mount>();
+        this.UpdateUnlocksForSheet<NotebookDivision>();
+        this.UpdateUnlocksForSheet<Orchestrion>();
+        this.UpdateUnlocksForSheet<Ornament>();
+        this.UpdateUnlocksForSheet<Perform>();
+        this.UpdateUnlocksForSheet<PublicContentSheet>();
+        this.UpdateUnlocksForSheet<Quest>();
+        this.UpdateUnlocksForSheet<Recipe>();
+        this.UpdateUnlocksForSheet<SecretRecipeBook>();
+        this.UpdateUnlocksForSheet<Trait>();
+        this.UpdateUnlocksForSheet<TripleTriadCard>();
+
+        // Not implemented:
+        // - DescriptionPage: quite complex
+        // - QuestAcceptAdditionCondition: ignored
+        // - Leve: AgentUpdateFlag.UnlocksUpdate is not set and the completed status can be unset again!
+
+        // For some other day:
+        // - FishingSpot
+        // - Spearfishing
+        // - MinerFolkloreTome
+        // - BotanistFolkloreTome
+        // - FishingFolkloreTome
+        // - VVD or is that unlocked via quest?
+        // - VVDNotebookContents?
+        // - FramersKit (is that just an Item?)
+        // - ... more?
+
+        // Subrow sheets, which are incompatible with the current Unlock event, since RowRef doesn't carry the SubrowId:
+        // - EmjCostume
+
+        // Probably not happening, because it requires fetching data from server:
+        // - Bozjan Field Notes
+        // - Support/Phantom Jobs, which require to be in Occult Crescent, because it checks the jobs level for != 0
+    }
+
+    private void UpdateUnlocksForSheet<T>() where T : struct, IExcelRow<T>
+    {
+        var unlockedRowIds = this.cachedUnlockedRowIds.GetOrAdd(typeof(T), _ => []);
+
+        foreach (var row in this.dataManager.GetExcelSheet<T>())
+        {
+            if (unlockedRowIds.Contains(row.RowId))
+                continue;
+
+            var rowRef = LuminaUtils.CreateRef<T>(row.RowId);
+
+            if (!this.IsRowRefUnlocked(rowRef))
+                continue;
+
+            unlockedRowIds.Add(row.RowId);
+
+            // Log.Verbose($"Unlock detected: {typeof(T).Name}#{row.RowId}");
+
+            this.RaiseUnlockSafely((RowRef)rowRef);
+        }
+    }
+
+    private void RaiseUnlockSafely(RowRef rowRef)
+    {
+        foreach (var action in Delegate.EnumerateInvocationList(this.Unlock))
+        {
+            try
+            {
+                action(rowRef);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during raise of {handler}", action.Method);
+            }
+        }
+    }
+}
+
+/// <summary>
+/// Plugin-scoped version of a <see cref="UnlockState"/> service.
+/// </summary>
+[PluginInterface]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<IUnlockState>]
+#pragma warning restore SA1015
+internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockState
+{
+    [ServiceManager.ServiceDependency]
+    private readonly UnlockState unlockStateService = Service<UnlockState>.Get();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UnlockStatePluginScoped"/> class.
+    /// </summary>
+    internal UnlockStatePluginScoped()
+    {
+        this.unlockStateService.Unlock += this.UnlockForward;
+    }
+
+    /// <inheritdoc/>
+    public event IUnlockState.UnlockDelegate? Unlock;
+
+    /// <inheritdoc/>
+    public bool IsAchievementListLoaded => this.unlockStateService.IsAchievementListLoaded;
+
+    /// <inheritdoc/>
+    public bool IsTitleListLoaded => this.unlockStateService.IsTitleListLoaded;
+
+    /// <inheritdoc/>
+    public bool IsXBMPetListLoaded => this.unlockStateService.IsXBMPetListLoaded;
+
+    /// <inheritdoc/>
+    public bool IsAchievementComplete(AchievementSheet row) => this.unlockStateService.IsAchievementComplete(row);
+
+    /// <inheritdoc/>
+    public bool IsActionUnlocked(ActionSheet row) => this.unlockStateService.IsActionUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsAdventureComplete(Adventure row) => this.unlockStateService.IsAdventureComplete(row);
+
+    /// <inheritdoc/>
+    public bool IsAetherCurrentCompFlgSetUnlocked(AetherCurrentCompFlgSet row) => this.unlockStateService.IsAetherCurrentCompFlgSetUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsAetherCurrentUnlocked(AetherCurrent row) => this.unlockStateService.IsAetherCurrentUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsAozActionUnlocked(AozAction row) => this.unlockStateService.IsAozActionUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsBannerBgUnlocked(BannerBg row) => this.unlockStateService.IsBannerBgUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsBannerConditionUnlocked(BannerCondition row) => this.unlockStateService.IsBannerConditionUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsBannerDecorationUnlocked(BannerDecoration row) => this.unlockStateService.IsBannerDecorationUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsBannerFacialUnlocked(BannerFacial row) => this.unlockStateService.IsBannerFacialUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsBannerFrameUnlocked(BannerFrame row) => this.unlockStateService.IsBannerFrameUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsBannerTimelineUnlocked(BannerTimeline row) => this.unlockStateService.IsBannerTimelineUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsBuddyActionUnlocked(BuddyAction row) => this.unlockStateService.IsBuddyActionUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsBuddyEquipUnlocked(BuddyEquip row) => this.unlockStateService.IsBuddyEquipUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsCharaMakeCustomizeUnlocked(CharaMakeCustomize row) => this.unlockStateService.IsCharaMakeCustomizeUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsChocoboTaxiStandUnlocked(ChocoboTaxiStand row) => this.unlockStateService.IsChocoboTaxiStandUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsClassJobUnlocked(ClassJob row) => this.unlockStateService.IsClassJobUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsCompanionUnlocked(Companion row) => this.unlockStateService.IsCompanionUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsCraftActionUnlocked(CraftAction row) => this.unlockStateService.IsCraftActionUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsCSBonusContentTypeUnlocked(CSBonusContentType row) => this.unlockStateService.IsCSBonusContentTypeUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsEmoteUnlocked(Emote row) => this.unlockStateService.IsEmoteUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsEmjVoiceNpcUnlocked(EmjVoiceNpc row) => this.unlockStateService.IsEmjVoiceNpcUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsEmjCostumeUnlocked(EmjCostume row) => this.unlockStateService.IsEmjCostumeUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsGeneralActionUnlocked(GeneralAction row) => this.unlockStateService.IsGeneralActionUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsGlassesUnlocked(Glasses row) => this.unlockStateService.IsGlassesUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsGlassesStyleUnlocked(GlassesStyle row) => this.unlockStateService.IsGlassesStyleUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsHowToUnlocked(HowTo row) => this.unlockStateService.IsHowToUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsInstanceContentUnlocked(InstanceContentSheet row) => this.unlockStateService.IsInstanceContentUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsItemUnlockable(Item row) => this.unlockStateService.IsItemUnlockable(row);
+
+    /// <inheritdoc/>
+    public bool IsItemUnlocked(Item row) => this.unlockStateService.IsItemUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsLeveCompleted(Leve row) => this.unlockStateService.IsLeveCompleted(row);
+
+    /// <inheritdoc/>
+    public bool IsMJILandmarkUnlocked(MJILandmark row) => this.unlockStateService.IsMJILandmarkUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsMKDLoreUnlocked(MKDLore row) => this.unlockStateService.IsMKDLoreUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsMcGuffinUnlocked(McGuffin row) => this.unlockStateService.IsMcGuffinUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsMountUnlocked(Mount row) => this.unlockStateService.IsMountUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsNotebookDivisionUnlocked(NotebookDivision row) => this.unlockStateService.IsNotebookDivisionUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsOrchestrionUnlocked(Orchestrion row) => this.unlockStateService.IsOrchestrionUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsOrnamentUnlocked(Ornament row) => this.unlockStateService.IsOrnamentUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsPerformUnlocked(Perform row) => this.unlockStateService.IsPerformUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsPublicContentUnlocked(PublicContentSheet row) => this.unlockStateService.IsPublicContentUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsQuestCompleted(Quest row) => this.unlockStateService.IsQuestCompleted(row);
+
+    /// <inheritdoc/>
+    public bool IsRecipeUnlocked(Recipe row) => this.unlockStateService.IsRecipeUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsRowRefUnlocked(RowRef rowRef) => this.unlockStateService.IsRowRefUnlocked(rowRef);
+
+    /// <inheritdoc/>
+    public bool IsRowRefUnlocked<T>(RowRef<T> rowRef) where T : struct, IExcelRow<T> => this.unlockStateService.IsRowRefUnlocked(rowRef);
+
+    /// <inheritdoc/>
+    public bool IsSecretRecipeBookUnlocked(SecretRecipeBook row) => this.unlockStateService.IsSecretRecipeBookUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsTitleUnlocked(Title row) => this.unlockStateService.IsTitleUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsTraitUnlocked(Trait row) => this.unlockStateService.IsTraitUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsTripleTriadCardUnlocked(TripleTriadCard row) => this.unlockStateService.IsTripleTriadCardUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsUnlockLinkUnlocked(uint unlockLink) => this.unlockStateService.IsUnlockLinkUnlocked(unlockLink);
+
+    /// <inheritdoc/>
+    public bool IsUnlockLinkUnlocked(uint unlockLink, byte minimumQuestSequence) => this.unlockStateService.IsUnlockLinkUnlocked(unlockLink, minimumQuestSequence);
+
+    /// <inheritdoc/>
+    public bool IsUnlockLinkUnlocked(ushort unlockLink) => this.unlockStateService.IsUnlockLinkUnlocked(unlockLink);
+
+    /// <inheritdoc/>
+    public bool IsXBMPetUnlocked(XBMPet row) => this.unlockStateService.IsXBMPetUnlocked(row);
+
+    /// <inheritdoc/>
+    void IInternalDisposableService.DisposeService()
+    {
+        this.unlockStateService.Unlock -= this.UnlockForward;
+    }
+
+    private void UnlockForward(RowRef rowRef) => this.Unlock?.Invoke(rowRef);
+}

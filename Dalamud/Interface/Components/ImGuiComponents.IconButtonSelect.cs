@@ -2,9 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Components;
 
@@ -13,7 +12,7 @@ namespace Dalamud.Interface.Components;
 /// </summary>
 public static partial class ImGuiComponents
 {
-   /// <summary>
+    /// <summary>
     /// A radio-like input that uses icon buttons.
     /// </summary>
     /// <typeparam name="T">The type of the value being set.</typeparam>

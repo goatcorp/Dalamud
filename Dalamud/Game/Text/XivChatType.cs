@@ -159,20 +159,75 @@ public enum XivChatType : ushort
     CrossLinkShell1 = 37,
 
     /// <summary>
+    /// The action damage chat type.
+    /// </summary>
+    Damage = 41,
+
+    /// <summary>
+    /// The action miss chat type.
+    /// </summary>
+    Miss = 42,
+
+    /// <summary>
+    /// The action chat type.
+    /// </summary>
+    Action = 43,
+
+    /// <summary>
+    /// The item chat type.
+    /// </summary>
+    Item = 44,
+
+    /// <summary>
+    /// The action healing chat type.
+    /// </summary>
+    Healing = 45,
+
+    /// <summary>
+    /// The gain buff chat type.
+    /// </summary>
+    GainBuff = 46,
+
+    /// <summary>
+    /// The gain debuff chat type.
+    /// </summary>
+    GainDebuff = 47,
+
+    /// <summary>
+    /// The lose buff chat type.
+    /// </summary>
+    LoseBuff = 48,
+
+    /// <summary>
+    /// The lose debuff chat type.
+    /// </summary>
+    LoseDebuff = 49,
+
+    /// <summary>
+    /// The glamourer notification chat type.
+    /// </summary>
+    GlamourNotifications = 54,
+
+    /// <summary>
+    /// The alarm chat type.
+    /// </summary>
+    Alarm = 55,
+
+    /// <summary>
     /// The echo chat type.
     /// </summary>
     [XivChatTypeInfo("Echo", "echo", 0xFF808080)]
     Echo = 56,
 
     /// <summary>
-    /// The system error chat type.
-    /// </summary>
-    SystemError = 58,
-
-    /// <summary>
     /// The system message chat type.
     /// </summary>
     SystemMessage = 57,
+
+    /// <summary>
+    /// The system error chat type.
+    /// </summary>
+    SystemError = 58,
 
     /// <summary>
     /// The system message (gathering) chat type.
@@ -190,9 +245,44 @@ public enum XivChatType : ushort
     NPCDialogue = 61,
 
     /// <summary>
+    /// The loot notice chat type.
+    /// </summary>
+    LootNotice = 62,
+
+    /// <summary>
+    /// The progress chat type.
+    /// </summary>
+    Progress = 64,
+
+    /// <summary>
+    /// The loot roll chat type.
+    /// </summary>
+    LootRoll = 65,
+
+    /// <summary>
+    /// The crafting chat type.
+    /// </summary>
+    Crafting = 66,
+
+    /// <summary>
+    /// The gathering chat type.
+    /// </summary>
+    Gathering = 67,
+
+    /// <summary>
     /// The NPC Dialogue (Announcements) chat type.
     /// </summary>
     NPCDialogueAnnouncements = 68,
+
+    /// <summary>
+    /// The fc announcement chat type.
+    /// </summary>
+    FreeCompanyAnnouncement = 69,
+
+    /// <summary>
+    /// The fc login and logout chat type.
+    /// </summary>
+    FreeCompanyLoginLogout = 70,
 
     /// <summary>
     /// The retainer sale chat type.
@@ -201,6 +291,121 @@ public enum XivChatType : ushort
     /// This might be used for other purposes.
     /// </remarks>
     RetainerSale = 71,
+
+    /// <summary>
+    /// The periodic recruitment notification chat type.
+    /// </summary>
+    PeriodicRecruitmentNotification = 72,
+
+    /// <summary>
+    /// The sign chat type.
+    /// </summary>
+    Sign = 73,
+
+    /// <summary>
+    /// The random number chat type.
+    /// </summary>
+    RandomNumber = 74,
+
+    /// <summary>
+    /// The NN system chat type.
+    /// </summary>
+    NoviceNetworkSystem = 75,
+
+    /// <summary>
+    /// The orchestrion chat type.
+    /// </summary>
+    Orchestrion = 76,
+
+    /// <summary>
+    /// The pvp team announcement chat type.
+    /// </summary>
+    PvpTeamAnnouncement = 77,
+
+    /// <summary>
+    /// The pvp team login and logout chat type.
+    /// </summary>
+    PvpTeamLoginLogout = 78,
+
+    /// <summary>
+    /// The message book chat type.
+    /// </summary>
+    MessageBook = 79,
+
+    /// <summary>
+    /// The GM tell chat type.
+    /// </summary>
+    GmTell = 80,
+
+    /// <summary>
+    /// The GM say chat type.
+    /// </summary>
+    GmSay = 81,
+
+    /// <summary>
+    /// The GM shout chat type.
+    /// </summary>
+    GmShout = 82,
+
+    /// <summary>
+    /// The GM yell chat type.
+    /// </summary>
+    GmYell = 83,
+
+    /// <summary>
+    /// The GM party chat type.
+    /// </summary>
+    GmParty = 84,
+
+    /// <summary>
+    /// The GM fc chat type.
+    /// </summary>
+    GmFreeCompany = 85,
+
+    /// <summary>
+    /// The GM ls1 chat type.
+    /// </summary>
+    GmLinkshell1 = 86,
+
+    /// <summary>
+    /// The GM ls2 chat type.
+    /// </summary>
+    GmLinkshell2 = 87,
+
+    /// <summary>
+    /// The GM ls3 chat type.
+    /// </summary>
+    GmLinkshell3 = 88,
+
+    /// <summary>
+    /// The GM ls4 chat type.
+    /// </summary>
+    GmLinkshell4 = 89,
+
+    /// <summary>
+    /// The GM ls5 chat type.
+    /// </summary>
+    GmLinkshell5 = 90,
+
+    /// <summary>
+    /// The GM ls6 chat type.
+    /// </summary>
+    GmLinkshell6 = 91,
+
+    /// <summary>
+    /// The GM ls7 chat type.
+    /// </summary>
+    GmLinkshell7 = 92,
+
+    /// <summary>
+    /// The GM ls8 chat type.
+    /// </summary>
+    GmLinkshell8 = 93,
+
+    /// <summary>
+    /// The GM NN chat type.
+    /// </summary>
+    GmNoviceNetwork = 94,
 
     /// <summary>
     /// The cross-world linkshell 2 chat type.

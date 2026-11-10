@@ -1,5 +1,10 @@
 #pragma once
 
+#include <set>
+#include <string>
+
+#include <nlohmann/json.hpp>
+
 struct DalamudStartInfo {
     enum class WaitMessageboxFlags : int {
         None = 0,
@@ -17,7 +22,7 @@ struct DalamudStartInfo {
         DirectHook = 1,
     };
     friend void from_json(const nlohmann::json&, DotNetOpenProcessHookMode&);
-    
+
     enum class ClientLanguage : int {
         Japanese,
         English,
@@ -44,9 +49,11 @@ struct DalamudStartInfo {
     std::string ConfigurationPath;
     std::string LogPath;
     std::string LogName;
+    std::string TempDirectory;
     std::string PluginDirectory;
     std::string AssetDirectory;
     ClientLanguage Language = ClientLanguage::English;
+    std::string Platform;
     std::string GameVersion;
     std::string TroubleshootingPackData;
     int DelayInitializeMs = 0;
@@ -54,6 +61,7 @@ struct DalamudStartInfo {
     bool NoLoadThirdPartyPlugins;
 
     std::string BootLogPath;
+    bool BootDebugDirectX = false;
     bool BootShowConsole = false;
     bool BootDisableFallbackConsole = false;
     WaitMessageboxFlags BootWaitMessageBox = WaitMessageboxFlags::None;

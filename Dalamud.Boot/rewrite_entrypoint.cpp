@@ -1,7 +1,17 @@
-#include "pch.h"
+#include <filesystem>
+#include <fstream>
+#include <span>
 
+#include <Windows.h>
+#include <comdef.h>
+#include <CommCtrl.h>
+#include <PathCch.h>
+#include <shellapi.h>
+
+#include "globals.h"
 #include "logging.h"
 #include "utils.h"
+#include "resource.h"
 
 HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue);
 
@@ -13,7 +23,7 @@ struct RewrittenEntryPointParameters {
 namespace thunks {
     constexpr uint64_t Terminator = 0xCCCCCCCCCCCCCCCCu;
     constexpr uint64_t Placeholder = 0x0606060606060606u;
-    
+
     extern "C" void EntryPointReplacement();
     extern "C" void RewrittenEntryPoint_Standalone();
 
@@ -151,7 +161,7 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
 
     SYSTEM_INFO sysinfo;
     GetSystemInfo(&sysinfo);
-    
+
     for (MEMORY_BASIC_INFORMATION mbi{};
         VirtualQueryEx(hProcess, mbi.BaseAddress, &mbi, sizeof mbi);
         mbi.BaseAddress = static_cast<char*>(mbi.BaseAddress) + mbi.RegionSize) {
@@ -191,25 +201,27 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
                 read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + offsetof(IMAGE_NT_HEADERS32, OptionalHeader), compare_nt_header32.OptionalHeader);
                 if (compare_nt_header32.OptionalHeader.SizeOfImage != exe_nt_header32.OptionalHeader.SizeOfImage)
                     continue;
-                if (compare_nt_header32.OptionalHeader.CheckSum != exe_nt_header32.OptionalHeader.CheckSum)
-                    continue;
 
                 std::vector<IMAGE_SECTION_HEADER> compare_section_headers(exe_nt_header32.FileHeader.NumberOfSections);
                 read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof compare_nt_header32, &compare_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size());
                 if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size()) != 0)
                     continue;
 
+                if (compare_nt_header32.OptionalHeader.CheckSum != exe_nt_header32.OptionalHeader.CheckSum)
+                    logging::W("IMAGE_OPTIONAL_HEADER32 checksums mismatched, is another tool injecting? got 0x{:X}, wanted 0x{:X}", compare_nt_header32.OptionalHeader.CheckSum, exe_nt_header32.OptionalHeader.CheckSum);
+
             } else if (compare_nt_header32.FileHeader.SizeOfOptionalHeader == sizeof IMAGE_OPTIONAL_HEADER64) {
                 read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + offsetof(IMAGE_NT_HEADERS64, OptionalHeader), compare_nt_header64.OptionalHeader);
                 if (compare_nt_header64.OptionalHeader.SizeOfImage != exe_nt_header64.OptionalHeader.SizeOfImage)
-                    continue;
-                if (compare_nt_header64.OptionalHeader.CheckSum != exe_nt_header64.OptionalHeader.CheckSum)
                     continue;
 
                 std::vector<IMAGE_SECTION_HEADER> compare_section_headers(exe_nt_header64.FileHeader.NumberOfSections);
                 read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof compare_nt_header64, &compare_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size());
                 if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size()) != 0)
                     continue;
+
+                if (compare_nt_header64.OptionalHeader.CheckSum != exe_nt_header64.OptionalHeader.CheckSum)
+                    logging::W("IMAGE_OPTIONAL_HEADER64 checksums mismatched, is another tool injecting? got 0x{:X}, wanted 0x{:X}", compare_nt_header64.OptionalHeader.CheckSum, exe_nt_header64.OptionalHeader.CheckSum);
 
             } else
                 continue;
@@ -231,11 +243,11 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
 /// @param pcwzPath Path to target process.
 /// @param pcwzLoadInfo JSON string to be passed to Initialize.
 /// @return null if successful; memory containing wide string allocated via GlobalAlloc if unsuccessful
-/// 
+///
 /// When the process has just been started up via CreateProcess (CREATE_SUSPENDED), GetModuleFileName and alikes result in an error.
 /// Instead, we have to enumerate through all the files mapped into target process' virtual address space and find the base address
 /// of memory region corresponding to the path given.
-/// 
+///
 extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_t* pcwzPath, const wchar_t* pcwzLoadInfo) {
     std::wstring last_operation;
     SetLastError(ERROR_SUCCESS);
@@ -260,7 +272,7 @@ extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_
 
         last_operation = L"get_path_from_local_module(g_hModule)";
         auto local_module_path = get_path_from_local_module(g_hModule);
-        
+
         last_operation = L"thunks::create_standalone_rewrittenentrypoint(local_module_path)";
         auto standalone_rewrittenentrypoint = thunks::create_standalone_rewrittenentrypoint(local_module_path);
 
@@ -278,7 +290,7 @@ extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_
         // Allocate buffer in remote process, which will be used to fill addresses in the local buffer.
         last_operation = std::format(L"VirtualAllocEx({}b)", bufferSize);
         const auto remote_buffer = static_cast<char*>(VirtualAllocEx(hProcess, nullptr, buffer.size(), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE));
-        
+
         auto& params = *reinterpret_cast<RewrittenEntryPointParameters*>(buffer.data());
         params.entrypointLength = entrypoint_replacement.size();
         params.pEntrypoint = entrypoint;
@@ -337,7 +349,7 @@ extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_
 /// @param params Parameters set up from RewriteRemoteEntryPoint.
 extern "C" void WINAPI RewrittenEntryPoint_AdjustedStack(RewrittenEntryPointParameters & params) {
     HANDLE hMainThreadContinue = nullptr;
-    auto hr = S_OK;
+    HRESULT hr = S_OK;
     std::wstring last_operation;
     std::wstring exc_msg;
     SetLastError(ERROR_SUCCESS);
@@ -379,12 +391,86 @@ extern "C" void WINAPI RewrittenEntryPoint_AdjustedStack(RewrittenEntryPointPara
         auto desc = err.Description();
         if (desc.length() == 0)
             desc = err.ErrorMessage();
-        if (MessageBoxW(nullptr, std::format(
-            L"Failed to load Dalamud. Load game without Dalamud(yes) or abort(no)?\n\n{}\n{}",
-            last_operation,
-            desc.GetBSTR()).c_str(),
-            L"Dalamud.Boot", MB_OK | MB_YESNO) == IDNO)
+
+        enum IdTaskDialogAction {
+            IdTaskDialogActionAbort = 101,
+            IdTaskDialogActionContinue,
+        };
+
+        const TASKDIALOG_BUTTON buttons[]{
+            {IdTaskDialogActionAbort, MAKEINTRESOURCEW(IDS_INITIALIZEFAIL_ACTION_ABORT)},
+            {IdTaskDialogActionContinue, MAKEINTRESOURCEW(IDS_INITIALIZEFAIL_ACTION_CONTINUE)},
+        };
+
+        const auto hru32 = static_cast<uint32_t>(hr);
+        const auto footer = std::vformat(
+            utils::get_string_resource(IDS_INITIALIZEFAIL_DIALOG_FOOTER),
+            std::make_wformat_args(
+                last_operation,
+                hru32,
+                desc.GetBSTR()));
+
+        // ERROR_SYSTEM_INTEGRITY_POLICY_VIOLATION
+        const bool is_sac_failure = hr == static_cast<HRESULT>(0x800711C7);
+        if (is_sac_failure) {
+            enum IdSACAction {
+                IdSACActionOpenGuide = 201,
+            };
+
+            const TASKDIALOG_BUTTON sacButtons[] = {
+                { IdSACActionOpenGuide, MAKEINTRESOURCEW(IDS_SAC_ACTION_OPENGUIDE) },
+            };
+
+            const TASKDIALOGCONFIG sacConfig{
+                .cbSize = sizeof sacConfig,
+                .hInstance = g_hModule,
+                .dwFlags = TDF_CAN_BE_MINIMIZED | TDF_ALLOW_DIALOG_CANCELLATION | TDF_USE_COMMAND_LINKS,
+                .pszWindowTitle = MAKEINTRESOURCEW(IDS_APPNAME),
+                .pszMainIcon = MAKEINTRESOURCEW(IDI_ICON1),
+                .pszMainInstruction = MAKEINTRESOURCEW(IDS_SAC_DIALOG_MAININSTRUCTION),
+                .pszContent = MAKEINTRESOURCEW(IDS_SAC_DIALOG_CONTENT),
+                .cButtons = _countof(sacButtons),
+                .pButtons = sacButtons,
+                .nDefaultButton = IdSACActionOpenGuide,
+            };
+
+            int sacButtonPressed = 0;
+            if (utils::scoped_dpi_awareness_context ctx;
+                FAILED(TaskDialogIndirect(&sacConfig, &sacButtonPressed, nullptr, nullptr))) {
+            }
+
+            if (sacButtonPressed == IdSACActionOpenGuide) {
+                ShellExecuteW(nullptr, L"open", utils::get_string_resource(IDS_SAC_GUIDE_URL).c_str(), nullptr, nullptr, SW_SHOW);
+            }
+
             ExitProcess(-1);
+        }
+
+        const TASKDIALOGCONFIG config{
+            .cbSize = sizeof config,
+            .hInstance = g_hModule,
+            .dwFlags = TDF_CAN_BE_MINIMIZED | TDF_ALLOW_DIALOG_CANCELLATION | TDF_USE_COMMAND_LINKS | TDF_EXPAND_FOOTER_AREA,
+            .pszWindowTitle = MAKEINTRESOURCEW(IDS_APPNAME),
+            .pszMainIcon = MAKEINTRESOURCEW(IDI_ICON1),
+            .pszMainInstruction = MAKEINTRESOURCEW(IDS_INITIALIZEFAIL_DIALOG_MAININSTRUCTION),
+            .pszContent = MAKEINTRESOURCEW(IDS_INITIALIZEFAIL_DIALOG_CONTENT),
+            .cButtons = _countof(buttons),
+            .pButtons = buttons,
+            .nDefaultButton = IdTaskDialogActionAbort,
+            .pszFooter = footer.c_str(),
+        };
+
+        int buttonPressed;
+        if (utils::scoped_dpi_awareness_context ctx;
+            FAILED(TaskDialogIndirect(&config, &buttonPressed, nullptr, nullptr)))
+            buttonPressed = IdTaskDialogActionAbort;
+
+        switch (buttonPressed) {
+            case IdTaskDialogActionAbort:
+                ExitProcess(-1);
+                break;
+        }
+
         if (hMainThreadContinue) {
             CloseHandle(hMainThreadContinue);
             hMainThreadContinue = nullptr;

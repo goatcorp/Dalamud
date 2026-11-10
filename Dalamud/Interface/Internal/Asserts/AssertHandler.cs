@@ -1,9 +1,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 
+using Dalamud.Configuration.Internal;
+using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 
 using Serilog;
@@ -15,28 +18,23 @@ namespace Dalamud.Interface.Internal.Asserts;
 /// </summary>
 internal class AssertHandler : IDisposable
 {
-    private const int HideThreshold = 20;
-    private const int HidePrintEvery = 500;
-
     private readonly HashSet<string> ignoredAsserts = [];
-    private readonly Dictionary<string, uint> assertCounts = new();
+    private readonly HashSet<string> seenAsserts = [];
 
     // Store callback to avoid it from being GC'd
     private readonly AssertCallbackDelegate callback;
 
-    private bool everShownAssertThisSession = false;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="AssertHandler"/> class.
     /// </summary>
-    public AssertHandler()
+    public unsafe AssertHandler()
     {
-        this.callback = (expr, file, line) => this.OnImGuiAssert(expr, file, line);
+        this.callback = this.OnImGuiAssert;
     }
 
-    private delegate void AssertCallbackDelegate(
-        [MarshalAs(UnmanagedType.LPStr)] string expr,
-        [MarshalAs(UnmanagedType.LPStr)] string file,
+    private unsafe delegate void AssertCallbackDelegate(
+        void* expr,
+        void* file,
         int line);
 
     /// <summary>
@@ -53,17 +51,22 @@ internal class AssertHandler : IDisposable
     /// <summary>
     /// Register the cimgui assert handler with the native library.
     /// </summary>
-    public void Setup()
+    public unsafe void Setup()
     {
-        CustomNativeFunctions.igCustom_SetAssertCallback(this.callback);
+        var cb = Marshal.GetFunctionPointerForDelegate(this.callback).ToPointer();
+        CustomNativeFunctions.igCustom_SetAssertCallback(cb);
+        CustomNativeFunctionsPlot.igCustom_SetAssertCallback(cb);
+        CustomNativeFunctionsGuizmo.igCustom_SetAssertCallback(cb);
     }
 
     /// <summary>
     /// Unregister the cimgui assert handler with the native library.
     /// </summary>
-    public void Shutdown()
+    public unsafe void Shutdown()
     {
         CustomNativeFunctions.igCustom_SetAssertCallback(null);
+        CustomNativeFunctionsPlot.igCustom_SetAssertCallback(null);
+        CustomNativeFunctionsGuizmo.igCustom_SetAssertCallback(null);
     }
 
     /// <inheritdoc/>
@@ -72,51 +75,96 @@ internal class AssertHandler : IDisposable
         this.Shutdown();
     }
 
-    private void OnImGuiAssert(string expr, string file, int line)
+    private static string? ExtractImguiFunction(StackTrace stackTrace)
     {
+        var frame = stackTrace.GetFrames()
+                              .FirstOrDefault(f => f.GetMethod()?.DeclaringType?.Namespace == "Dalamud.Bindings.ImGui");
+        if (frame == null)
+            return null;
+
+        var method = frame.GetMethod();
+        if (method == null)
+            return null;
+
+        return $"{method.Name}({string.Join(", ", method.GetParameters().Select(p => p.Name))})";
+    }
+
+    private static StackTrace GenerateStackTrace()
+    {
+        var trace = DiagnosticUtil.GetUsefulTrace(new StackTrace(true));
+        var frames = trace.GetFrames().ToList();
+
+        // Remove everything that happens in the assert context.
+        var lastAssertIdx = frames.FindLastIndex(f => f.GetMethod()?.DeclaringType == typeof(AssertHandler));
+        if (lastAssertIdx >= 0)
+        {
+            frames.RemoveRange(0, lastAssertIdx + 1);
+        }
+
+        var firstInterfaceManagerIdx = frames.FindIndex(f => f.GetMethod()?.DeclaringType == typeof(InterfaceManager));
+        if (firstInterfaceManagerIdx >= 0)
+        {
+            frames.RemoveRange(firstInterfaceManagerIdx, frames.Count - firstInterfaceManagerIdx);
+        }
+
+        return new StackTrace(frames);
+    }
+
+    private unsafe void OnImGuiAssert(void* pExpr, void* pFile, int line)
+    {
+        // Only show in dev mode for now
+        if (!Service<DalamudConfiguration>.Get().DevMode.GetValueOrDefault(false))
+            return;
+
+        var expr = Marshal.PtrToStringAnsi(new IntPtr(pExpr));
+        var file = Marshal.PtrToStringAnsi(new IntPtr(pFile));
+        if (expr == null || file == null)
+        {
+            Log.Warning(
+                "ImGui assertion failed: {Expr} at {File}:{Line} (failed to parse)",
+                expr,
+                file,
+                line);
+            return;
+        }
+
         var key = $"{file}:{line}";
         if (this.ignoredAsserts.Contains(key))
             return;
 
-        // Don't log unless we've ever shown an assert this session
-        if (!this.ShowAsserts && !this.everShownAssertThisSession)
-            return;
-
-        Lazy<string> stackTrace = new(() => DiagnosticUtil.GetUsefulTrace(new StackTrace()).ToString());
+        Lazy<StackTrace> stackTrace = new(GenerateStackTrace);
 
         if (!this.EnableVerboseLogging)
         {
-            if (this.assertCounts.TryGetValue(key, out var count))
+            if (this.seenAsserts.Add(key))
             {
-                this.assertCounts[key] = count + 1;
+                WarnForPlugin();
 
-                if (count <= HideThreshold || count % HidePrintEvery == 0)
-                {
-                    Log.Warning("ImGui assertion failed: {Expr} at {File}:{Line} (repeated {Count} times)",
-                                expr,
-                                file,
-                                line,
-                                count);
-                }
-            }
-            else
-            {
-                this.assertCounts[key] = 1;
+                Log.Warning(
+                    "ImGui assertion failed: {Expr} at {File}:{Line}\nFurther occurrences will be hidden. (/xldev -> GUI -> Enable verbose assert logging)\n{StackTrace:l}",
+                    expr,
+                    file,
+                    line,
+                    stackTrace.Value.ToString().TrimEnd());
             }
         }
         else
         {
-            Log.Warning("ImGui assertion failed: {Expr} at {File}:{Line}\n{StackTrace:l}",
-                        expr,
-                        file,
-                        line,
-                        stackTrace.Value);
+            if (this.seenAsserts.Add(key))
+            {
+                WarnForPlugin();
+            }
+
+            Log.Warning(
+                "ImGui assertion failed: {Expr} at {File}:{Line}\n{StackTrace:l}",
+                expr,
+                file,
+                line,
+                stackTrace.Value.ToString().TrimEnd());
         }
 
         if (!this.ShowAsserts)
             return;
-
-        this.everShownAssertThisSession = true;
 
         string? GetRepoUrl()
         {
@@ -134,7 +182,8 @@ internal class AssertHandler : IDisposable
         }
 
         // grab the stack trace now that we've decided to show UI.
-        _ = stackTrace.Value;
+        var responsiblePlugin = Service<PluginManager>.GetNullable()?.FindCallingPlugin(stackTrace.Value);
+        var responsibleMethodCall = ExtractImguiFunction(stackTrace.Value);
 
         var gitHubUrl = GetRepoUrl();
         var showOnGitHubButton = new TaskDialogButton
@@ -164,11 +213,36 @@ internal class AssertHandler : IDisposable
         var ignoreButton = TaskDialogButton.Ignore;
 
         TaskDialogButton? result = null;
+
         void DialogThreadStart()
         {
             // TODO(goat): This is probably not gonna work if we showed the loading dialog
             // this session since it already loaded visual styles...
             Application.EnableVisualStyles();
+
+            string text;
+            if (responsiblePlugin != null)
+            {
+                text = $"The plugin \"{responsiblePlugin.Name}\" appears to have caused an ImGui assertion failure. " +
+                       $"Please report this problem to the plugin's developer.\n\n";
+            }
+            else
+            {
+                text = "Some code in a plugin or Dalamud itself has caused an ImGui assertion failure. " +
+                       "Please report this problem in the Dalamud discord.\n\n";
+            }
+
+            text += $"You may attempt to continue running the game, but Dalamud UI elements may not work " +
+                    $"correctly, or the game may crash after resuming.\n\n";
+
+            if (responsibleMethodCall != null)
+            {
+                text += $"Assertion failed: {expr} when performing {responsibleMethodCall}\n{file}:{line}";
+            }
+            else
+            {
+                text += $"Assertion failed: {expr}\nAt: {file}:{line}";
+            }
 
             var page = new TaskDialogPage
             {
@@ -178,9 +252,9 @@ internal class AssertHandler : IDisposable
                 {
                     CollapsedButtonText = "Show stack trace",
                     ExpandedButtonText = "Hide stack trace",
-                    Text = stackTrace.Value,
+                    Text = stackTrace.Value.ToString(),
                 },
-                Text = $"Some code in a plugin or Dalamud itself has caused an internal assertion in ImGui to fail. The game will most likely crash now.\n\n{expr}\nAt: {file}:{line}",
+                Text = text,
                 Icon = TaskDialogIcon.Warning,
                 Buttons =
                 [
@@ -216,13 +290,42 @@ internal class AssertHandler : IDisposable
         {
             this.ignoredAsserts.Add(key);
         }
+
+        return;
+
+        void WarnForPlugin()
+        {
+            var pm = Service<PluginManager>.Get();
+            var localPlugin = pm.FindCallingPlugin(stackTrace.Value);
+
+            var errorHandler = localPlugin?
+                                   .ServiceScope?
+                                   .GetService(typeof(PluginErrorHandler)) as PluginErrorHandler;
+            errorHandler?.NotifyError();
+        }
     }
 
-    private static class CustomNativeFunctions
+    private static unsafe class CustomNativeFunctions
     {
         [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
 #pragma warning disable SA1300
-        public static extern void igCustom_SetAssertCallback(AssertCallbackDelegate? callback);
+        public static extern void igCustom_SetAssertCallback(void* cb);
+#pragma warning restore SA1300
+    }
+
+    private static unsafe class CustomNativeFunctionsPlot
+    {
+        [DllImport("cimplot", CallingConvention = CallingConvention.Cdecl)]
+#pragma warning disable SA1300
+        public static extern void igCustom_SetAssertCallback(void* cb);
+#pragma warning restore SA1300
+    }
+
+    private static unsafe class CustomNativeFunctionsGuizmo
+    {
+        [DllImport("cimguizmo", CallingConvention = CallingConvention.Cdecl)]
+#pragma warning disable SA1300
+        public static extern void igCustom_SetAssertCallback(void* cb);
 #pragma warning restore SA1300
     }
 }

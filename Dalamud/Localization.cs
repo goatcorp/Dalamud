@@ -18,7 +18,7 @@ public class Localization : IServiceType
     /// <summary>
     /// Array of language codes which have a valid translation in Dalamud.
     /// </summary>
-    public static readonly string[] ApplicableLangCodes = { "de", "ja", "fr", "it", "es", "ko", "no", "ru", "zh", "tw" };
+    public static readonly string[] ApplicableLangCodes = ["de", "ja", "fr", "it", "es", "ko", "no", "ru", "zh", "tw"];
 
     private const string FallbackLangCode = "en";
 
@@ -112,13 +112,15 @@ public class Localization : IServiceType
     }
 
     /// <summary>
-    /// Set up the UI language with "fallbacks"(original English text).
+    /// Set up the UI language with "fallbacks" (original English text).
     /// </summary>
     public void SetupWithFallbacks()
     {
         this.DalamudLanguageCultureInfo = CultureInfo.InvariantCulture;
-        this.LocalizationChanged?.Invoke(FallbackLangCode);
+
         Loc.SetupWithFallbacks(this.assembly);
+
+        this.InvokeLocalizationChanged(FallbackLangCode, () => Loc.SetupWithFallbacks(this.assembly));
     }
 
     /// <summary>
@@ -134,11 +136,13 @@ public class Localization : IServiceType
         }
 
         this.DalamudLanguageCultureInfo = GetCultureInfoFromLangCode(langCode);
-        this.LocalizationChanged?.Invoke(langCode);
 
         try
         {
-            Loc.Setup(this.ReadLocData(langCode), this.assembly);
+            var locData = this.ReadLocData(langCode);
+            Loc.Setup(locData, this.assembly);
+
+            this.InvokeLocalizationChanged(langCode, () => Loc.Setup(locData, this.assembly));
         }
         catch (Exception ex)
         {
@@ -185,5 +189,32 @@ public class Localization : IServiceType
         }
 
         return File.ReadAllText(Path.Combine(this.locResourceDirectory, $"{this.locResourcePrefix}{langCode}.json"));
+    }
+
+    private void InvokeLocalizationChanged(string langCode, Action restoreLocalization)
+    {
+        foreach (var d in Delegate.EnumerateInvocationList(this.LocalizationChanged))
+        {
+            try
+            {
+                restoreLocalization();
+                d(langCode);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during raise of {handler}", d.Method);
+            }
+            finally
+            {
+                try
+                {
+                    restoreLocalization();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception restoring localization after raise of {handler}", d.Method);
+                }
+            }
+        }
     }
 }

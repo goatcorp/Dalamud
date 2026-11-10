@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "DalamudStartInfo.h"
 
 #include "utils.h"
@@ -108,7 +107,13 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     config.LogName = json.value("LogName", config.LogName);
     config.PluginDirectory = json.value("PluginDirectory", config.PluginDirectory);
     config.AssetDirectory = json.value("AssetDirectory", config.AssetDirectory);
+
+    if (json.contains("TempDirectory") && !json["TempDirectory"].is_null()) {
+        config.TempDirectory = json.value("TempDirectory", config.TempDirectory);
+    }
+
     config.Language = json.value("Language", config.Language);
+    config.Platform = json.value("Platform", config.Platform);
     config.GameVersion = json.value("GameVersion", config.GameVersion);
     config.TroubleshootingPackData = json.value("TroubleshootingPackData", std::string{});
     config.DelayInitializeMs = json.value("DelayInitializeMs", config.DelayInitializeMs);
@@ -116,6 +121,7 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     config.NoLoadThirdPartyPlugins = json.value("NoLoadThirdPartyPlugins", config.NoLoadThirdPartyPlugins);
 
     config.BootLogPath = json.value("BootLogPath", config.BootLogPath);
+    config.BootDebugDirectX = json.value("BootDebugDirectX", config.BootDebugDirectX);
     config.BootShowConsole = json.value("BootShowConsole", config.BootShowConsole);
     config.BootDisableFallbackConsole = json.value("BootDisableFallbackConsole", config.BootDisableFallbackConsole);
     config.BootWaitMessageBox = json.value("BootWaitMessageBox", config.BootWaitMessageBox);

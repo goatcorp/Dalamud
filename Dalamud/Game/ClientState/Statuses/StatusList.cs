@@ -1,7 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+
+using Dalamud.Game.Player;
+using Dalamud.Utility;
+
+using CSStatus = FFXIVClientStructs.FFXIV.Client.Game.Status;
+using CSStatusManager = FFXIVClientStructs.FFXIV.Client.Game.StatusManager;
 
 namespace Dalamud.Game.ClientState.Statuses;
 
@@ -14,7 +19,7 @@ public sealed unsafe partial class StatusList
     /// Initializes a new instance of the <see cref="StatusList"/> class.
     /// </summary>
     /// <param name="address">Address of the status list.</param>
-    internal StatusList(IntPtr address)
+    internal StatusList(nint address)
     {
         this.Address = address;
     }
@@ -23,31 +28,36 @@ public sealed unsafe partial class StatusList
     /// Initializes a new instance of the <see cref="StatusList"/> class.
     /// </summary>
     /// <param name="pointer">Pointer to the status list.</param>
-    internal unsafe StatusList(void* pointer)
-        : this((IntPtr)pointer)
+    internal StatusList(void* pointer)
+        : this((nint)pointer)
     {
     }
 
     /// <summary>
     /// Gets the address of the status list in memory.
     /// </summary>
-    public IntPtr Address { get; }
+    public nint Address { get; }
 
     /// <summary>
     /// Gets the amount of status effect slots the actor has.
     /// </summary>
-    public int Length => Struct->NumValidStatuses;
+    public int Length => this.Struct->NumValidStatuses;
 
-    private static int StatusSize { get; } = Marshal.SizeOf<FFXIVClientStructs.FFXIV.Client.Game.Status>();
-
-    private FFXIVClientStructs.FFXIV.Client.Game.StatusManager* Struct => (FFXIVClientStructs.FFXIV.Client.Game.StatusManager*)this.Address;
+    private CSStatusManager* Struct
+    {
+        get
+        {
+            ThreadSafety.AssertMainThread();
+            return (CSStatusManager*)this.Address;
+        }
+    }
 
     /// <summary>
     /// Get a status effect at the specified index.
     /// </summary>
     /// <param name="index">Status Index.</param>
     /// <returns>The status at the specified index.</returns>
-    public Status? this[int index]
+    public IStatus? this[int index]
     {
         get
         {
@@ -64,17 +74,20 @@ public sealed unsafe partial class StatusList
     /// </summary>
     /// <param name="address">The address of the status list in memory.</param>
     /// <returns>The status object containing the requested data.</returns>
-    public static StatusList? CreateStatusListReference(IntPtr address)
+    public static StatusList? CreateStatusListReference(nint address)
     {
+        if (address == IntPtr.Zero)
+            return null;
+
         // The use case for CreateStatusListReference and CreateStatusReference to be static is so
         // fake status lists can be generated. Since they aren't exposed as services, it's either
         // here or somewhere else.
-        var clientState = Service<ClientState>.Get();
+        var playerState = Service<PlayerState>.Get();
 
-        if (clientState.LocalContentId == 0)
+        if (playerState.ContentId == 0)
             return null;
 
-        if (address == IntPtr.Zero)
+        if (address == 0)
             return null;
 
         return new StatusList(address);
@@ -85,14 +98,12 @@ public sealed unsafe partial class StatusList
     /// </summary>
     /// <param name="address">The address of the status effect in memory.</param>
     /// <returns>The status object containing the requested data.</returns>
-    public static Status? CreateStatusReference(IntPtr address)
+    public static IStatus? CreateStatusReference(nint address)
     {
-        var clientState = Service<ClientState>.Get();
-
-        if (clientState.LocalContentId == 0)
+        if (address == IntPtr.Zero)
             return null;
 
-        if (address == IntPtr.Zero)
+        if (address == 0)
             return null;
 
         return new Status(address);
@@ -103,22 +114,22 @@ public sealed unsafe partial class StatusList
     /// </summary>
     /// <param name="index">The index of the status.</param>
     /// <returns>The memory address of the status.</returns>
-    public IntPtr GetStatusAddress(int index)
+    public nint GetStatusAddress(int index)
     {
         if (index < 0 || index >= this.Length)
-            return IntPtr.Zero;
+            return 0;
 
-        return (IntPtr)Unsafe.AsPointer(ref this.Struct->Status[index]);
+        return (nint)Unsafe.AsPointer(ref this.Struct->Status[index]);
     }
 }
 
 /// <summary>
 /// This collection represents the status effects an actor is afflicted by.
 /// </summary>
-public sealed partial class StatusList : IReadOnlyCollection<Status>, ICollection
+public sealed partial class StatusList : IReadOnlyCollection<IStatus>, ICollection
 {
     /// <inheritdoc/>
-    int IReadOnlyCollection<Status>.Count => this.Length;
+    int IReadOnlyCollection<IStatus>.Count => this.Length;
 
     /// <inheritdoc/>
     int ICollection.Count => this.Length;
@@ -130,17 +141,9 @@ public sealed partial class StatusList : IReadOnlyCollection<Status>, ICollectio
     object ICollection.SyncRoot => this;
 
     /// <inheritdoc/>
-    public IEnumerator<Status> GetEnumerator()
+    public IEnumerator<IStatus> GetEnumerator()
     {
-        for (var i = 0; i < this.Length; i++)
-        {
-            var status = this[i];
-
-            if (status == null || status.StatusId == 0)
-                continue;
-
-            yield return status;
-        }
+        return new Enumerator(this);
     }
 
     /// <inheritdoc/>
@@ -153,6 +156,40 @@ public sealed partial class StatusList : IReadOnlyCollection<Status>, ICollectio
         {
             array.SetValue(this[i], index);
             index++;
+        }
+    }
+
+    private struct Enumerator(StatusList statusList) : IEnumerator<IStatus>
+    {
+        private int index = -1;
+
+        public IStatus Current { get; private set; }
+
+        object IEnumerator.Current => this.Current;
+
+        public bool MoveNext()
+        {
+            while (++this.index < statusList.Length)
+            {
+                var status = statusList[this.index];
+                if (status != null && status.StatusId != 0)
+                {
+                    this.Current = status;
+                    return true;
+                }
+            }
+
+            this.Current = default;
+            return false;
+        }
+
+        public void Reset()
+        {
+            this.index = -1;
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

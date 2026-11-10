@@ -7,6 +7,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text.SeStringHandling;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Arrays;
 using FFXIVClientStructs.Interop;
 
 namespace Dalamud.Game.Gui.NamePlate;
@@ -339,9 +340,16 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
                 return null;
             }
 
-            return this.gameObject ??= this.context.ObjectTable[
-                       this.context.Ui3DModule->NamePlateObjectInfoPointers[this.ArrayIndex]
-                           .Value->GameObject->ObjectIndex];
+            if (this.ArrayIndex >= this.context.Ui3DModule->NamePlateObjectInfoCount)
+                return null;
+
+            var objectInfoPtr = this.context.Ui3DModule->NamePlateObjectInfoPointers[this.ArrayIndex];
+            if (objectInfoPtr.Value == null) return null;
+
+            var gameObjectPtr = objectInfoPtr.Value->GameObject;
+            if (gameObjectPtr == null) return null;
+
+            return this.gameObject ??= this.context.ObjectTable[gameObjectPtr->ObjectIndex];
         }
     }
 
@@ -367,7 +375,7 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
     public int UpdateFlags
     {
         get => this.ObjectData->UpdateFlags;
-        private set => this.ObjectData->UpdateFlags = value;
+        internal set => this.ObjectData->UpdateFlags = value;
     }
 
     /// <inheritdoc/>
@@ -419,8 +427,8 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
     /// <inheritdoc/>
     public int VisibilityFlags
     {
-        get => ObjectData->VisibilityFlags;
-        set => ObjectData->VisibilityFlags = value;
+        get => this.ObjectData->VisibilityFlags;
+        set => this.ObjectData->VisibilityFlags = value;
     }
 
     /// <inheritdoc/>
@@ -503,7 +511,7 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
     private AddonNamePlate.NamePlateObject* NamePlateObject =>
         &this.context.Addon->NamePlateObjectArray[this.NamePlateIndex];
 
-    private AddonNamePlate.AddonNamePlateNumberArray.NamePlateObjectIntArrayData* ObjectData =>
+    private NamePlateNumberArray.NamePlateObjectIntArrayData* ObjectData =>
         this.context.NumberStruct->ObjectData.GetPointer(this.ArrayIndex);
 
     /// <inheritdoc/>

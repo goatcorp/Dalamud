@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Storage.Assets;
-
-using ImGuiNET;
 
 using Newtonsoft.Json;
 

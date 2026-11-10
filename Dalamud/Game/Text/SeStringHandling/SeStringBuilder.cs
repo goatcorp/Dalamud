@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Utility;
 
 namespace Dalamud.Game.Text.SeStringHandling;
 
@@ -113,7 +114,7 @@ public class SeStringBuilder
     /// Add an item link to the builder.
     /// </summary>
     /// <param name="itemId">The item ID.</param>
-    /// <param name="isHq">Whether or not the item is high quality.</param>
+    /// <param name="isHq">Whether the item is high quality.</param>
     /// <param name="itemNameOverride">Override for the item's name.</param>
     /// <returns>The current builder.</returns>
     public SeStringBuilder AddItemLink(uint itemId, bool isHq, string? itemNameOverride = null) =>
@@ -126,7 +127,7 @@ public class SeStringBuilder
     /// <param name="kind">Kind of item to encode.</param>
     /// <param name="itemNameOverride">Override for the item's name.</param>
     /// <returns>The current builder.</returns>
-    public SeStringBuilder AddItemLink(uint itemId, ItemPayload.ItemKind kind = ItemPayload.ItemKind.Normal, string? itemNameOverride = null) =>
+    public SeStringBuilder AddItemLink(uint itemId, ItemKind kind = ItemKind.Normal, string? itemNameOverride = null) =>
         this.Append(SeString.CreateItemLink(itemId, kind, itemNameOverride));
 
     /// <summary>

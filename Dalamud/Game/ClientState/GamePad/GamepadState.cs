@@ -1,20 +1,18 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 
-using ImGuiNET;
-using Serilog;
+using FFXIVClientStructs.FFXIV.Client.System.Input;
 
 namespace Dalamud.Game.ClientState.GamePad;
 
 /// <summary>
-/// Exposes the game gamepad state to dalamud.
-///
-/// Will block game's gamepad input if <see cref="ImGuiConfigFlags.NavEnableGamepad"/> is set.
+/// Exposes the game gamepad state to Dalamud.
 /// </summary>
 [PluginInterface]
 [ServiceManager.EarlyLoadedService]
@@ -23,37 +21,55 @@ namespace Dalamud.Game.ClientState.GamePad;
 #pragma warning restore SA1015
 internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
 {
-    private readonly Hook<ControllerPoll>? gamepadPoll;
+    private static readonly ModuleLog Log = ModuleLog.Create<GamepadState>();
 
-    private bool isDisposed;
-
+    private Hook<PadDevice.Delegates.Update> gamepadPollHook;
     private int leftStickX;
     private int leftStickY;
     private int rightStickX;
     private int rightStickY;
 
     [ServiceManager.ServiceConstructor]
-    private GamepadState(ClientState clientState)
+    private GamepadState()
     {
-        var resolver = clientState.AddressResolver;
-        Log.Verbose($"GamepadPoll address {Util.DescribeAddress(resolver.GamepadPoll)}");
-        this.gamepadPoll = Hook<ControllerPoll>.FromAddress(resolver.GamepadPoll, this.GamepadPollDetour);
-        this.gamepadPoll?.Enable();
+        this.gamepadPollHook = Hook<PadDevice.Delegates.Update>.FromAddress((nint)PadDevice.StaticVirtualTablePointer->Update, this.PadDeviceUpdateDetour);
+        this.gamepadPollHook.Enable();
     }
 
-    private delegate int ControllerPoll(IntPtr controllerInput);
-
-    /// <summary>
-    /// Gets the pointer to the current instance of the GamepadInput struct.
-    /// </summary>
-    public IntPtr GamepadInputAddress { get; private set; }
+    /// <inheritdoc/>
+    public nint GamepadInputAddress { get; private set; }
 
     /// <inheritdoc/>
-    public Vector2 LeftStick => 
+    // Internal Note: Ideally, we would use
+    // (ImGui.GetIO().ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0
+    // but this has a race condition during load with the detour which sets up ImGui
+    // and throws if our detour gets called before the other.
+    public bool EnableGamepadNav
+    {
+        get => field;
+        set
+        {
+            var gamepadEnabled = (ImGui.GetIO().BackendFlags & ImGuiBackendFlags.HasGamepad) > 0;
+
+            field = value && gamepadEnabled;
+
+            if (field)
+            {
+                ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableGamepad;
+            }
+            else
+            {
+                ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
+            }
+        }
+    }
+
+    /// <inheritdoc/>
+    public Vector2 LeftStick =>
         new(this.leftStickX, this.leftStickY);
-    
+
     /// <inheritdoc/>
-    public Vector2 RightStick => 
+    public Vector2 RightStick =>
         new(this.rightStickX, this.rightStickY);
 
     /// <summary>
@@ -61,82 +77,72 @@ internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
     ///
     /// Exposed internally for Debug Data window.
     /// </summary>
-    internal ushort ButtonsPressed { get; private set; }
+    internal GamepadButtons ButtonsPressed { get; private set; }
 
     /// <summary>
     /// Gets raw button bitmask, set the whole time while a button is held. See <see cref="GamepadButtons"/> for the mapping.
     ///
     /// Exposed internally for Debug Data window.
     /// </summary>
-    internal ushort ButtonsRaw { get; private set; }
+    internal GamepadButtons ButtonsRaw { get; private set; }
 
     /// <summary>
     /// Gets button released bitmask, set once right after the button is not hold anymore. See <see cref="GamepadButtons"/> for the mapping.
     ///
     /// Exposed internally for Debug Data window.
     /// </summary>
-    internal ushort ButtonsReleased { get; private set; }
+    internal GamepadButtons ButtonsReleased { get; private set; }
 
     /// <summary>
     /// Gets button repeat bitmask, emits the held button input in fixed intervals. See <see cref="GamepadButtons"/> for the mapping.
     ///
     /// Exposed internally for Debug Data window.
     /// </summary>
-    internal ushort ButtonsRepeat { get; private set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether detour should block gamepad input for game.
-    ///
-    /// Ideally, we would use
-    /// (ImGui.GetIO().ConfigFlags &amp; ImGuiConfigFlags.NavEnableGamepad) > 0
-    /// but this has a race condition during load with the detour which sets up ImGui
-    /// and throws if our detour gets called before the other.
-    /// </summary>
-    internal bool NavEnableGamepad { get; set; }
+    internal GamepadButtons ButtonsRepeat { get; private set; }
 
     /// <inheritdoc/>
-    public float Pressed(GamepadButtons button) => (this.ButtonsPressed & (ushort)button) > 0 ? 1 : 0;
+    public float Pressed(GamepadButtons button) => (this.ButtonsPressed & button) > 0 ? 1 : 0;
 
     /// <inheritdoc/>
-    public float Repeat(GamepadButtons button) => (this.ButtonsRepeat & (ushort)button) > 0 ? 1 : 0;
+    public float Repeat(GamepadButtons button) => (this.ButtonsRepeat & button) > 0 ? 1 : 0;
 
     /// <inheritdoc/>
-    public float Released(GamepadButtons button) => (this.ButtonsReleased & (ushort)button) > 0 ? 1 : 0;
+    public float Released(GamepadButtons button) => (this.ButtonsReleased & button) > 0 ? 1 : 0;
 
     /// <inheritdoc/>
-    public float Raw(GamepadButtons button) => (this.ButtonsRaw & (ushort)button) > 0 ? 1 : 0;
+    public float Raw(GamepadButtons button) => (this.ButtonsRaw & button) > 0 ? 1 : 0;
 
     /// <summary>
     /// Disposes this instance, alongside its hooks.
     /// </summary>
     void IInternalDisposableService.DisposeService()
     {
-        this.Dispose(true);
-        GC.SuppressFinalize(this);
+        this.gamepadPollHook.Dispose();
     }
 
-    private int GamepadPollDetour(IntPtr gamepadInput)
+    private void PadDeviceUpdateDetour(PadDevice* gamepadInput)
     {
-        var original = this.gamepadPoll!.Original(gamepadInput);
+        this.gamepadPollHook.Original(gamepadInput);
+
         try
         {
-            this.GamepadInputAddress = gamepadInput;
-            var input = (GamepadInput*)gamepadInput;
-            this.leftStickX = input->LeftStickX;
-            this.leftStickY = input->LeftStickY;
-            this.rightStickX = input->RightStickX;
-            this.rightStickY = input->RightStickY;
-            this.ButtonsRaw = input->ButtonsRaw;
-            this.ButtonsPressed = input->ButtonsPressed;
-            this.ButtonsReleased = input->ButtonsReleased;
-            this.ButtonsRepeat = input->ButtonsRepeat;
+            this.GamepadInputAddress = (nint)gamepadInput;
 
-            if (this.NavEnableGamepad)
+            this.leftStickX = gamepadInput->GamepadInputData.LeftStickX;
+            this.leftStickY = gamepadInput->GamepadInputData.LeftStickY;
+            this.rightStickX = gamepadInput->GamepadInputData.RightStickX;
+            this.rightStickY = gamepadInput->GamepadInputData.RightStickY;
+            this.ButtonsRaw = (GamepadButtons)gamepadInput->GamepadInputData.Buttons;
+            this.ButtonsPressed = (GamepadButtons)gamepadInput->GamepadInputData.ButtonsPressed;
+            this.ButtonsReleased = (GamepadButtons)gamepadInput->GamepadInputData.ButtonsReleased;
+            this.ButtonsRepeat = (GamepadButtons)gamepadInput->GamepadInputData.ButtonsRepeat;
+
+            if (this.EnableGamepadNav)
             {
-                input->LeftStickX = 0;
-                input->LeftStickY = 0;
-                input->RightStickX = 0;
-                input->RightStickY = 0;
+                gamepadInput->GamepadInputData.LeftStickX = 0;
+                gamepadInput->GamepadInputData.LeftStickY = 0;
+                gamepadInput->GamepadInputData.RightStickX = 0;
+                gamepadInput->GamepadInputData.RightStickY = 0;
 
                 // NOTE (Chiv) Zeroing `ButtonsRaw` destroys `ButtonPressed`, `ButtonReleased`
                 // and `ButtonRepeat` as the game uses the RAW input to determine those (apparently).
@@ -153,42 +159,24 @@ internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
                 // `ButtonPressed` while ImGuiConfigFlags.NavEnableGamepad is set.
                 // This is debatable.
                 // ImGui itself does not care either way as it uses the Raw values and does its own state handling.
-                const ushort deletionMask = (ushort)(~GamepadButtons.L2
-                                                     & ~GamepadButtons.R2
-                                                     & ~GamepadButtons.DpadDown
-                                                     & ~GamepadButtons.DpadLeft
-                                                     & ~GamepadButtons.DpadUp
-                                                     & ~GamepadButtons.DpadRight);
-                input->ButtonsRaw &= deletionMask;
-                input->ButtonsPressed = 0;
-                input->ButtonsReleased = 0;
-                input->ButtonsRepeat = 0;
-                return 0;
+                const GamepadButtonsFlags deletionMask = ~GamepadButtonsFlags.L2
+                                                     & ~GamepadButtonsFlags.R2
+                                                     & ~GamepadButtonsFlags.DPadDown
+                                                     & ~GamepadButtonsFlags.DPadLeft
+                                                     & ~GamepadButtonsFlags.DPadUp
+                                                     & ~GamepadButtonsFlags.DPadRight;
+                gamepadInput->GamepadInputData.Buttons &= deletionMask;
+                gamepadInput->GamepadInputData.ButtonsPressed = 0;
+                gamepadInput->GamepadInputData.ButtonsReleased = 0;
+                gamepadInput->GamepadInputData.ButtonsRepeat = 0;
             }
-
-            // NOTE (Chiv) Not so sure about the return value, does not seem to matter if we return the
-            // original, zero or do the work adjusting the bits.
-            return original;
         }
         catch (Exception e)
         {
-            Log.Error(e, $"Gamepad Poll detour critical error! Gamepad navigation will not work!");
+            Log.Error(e, "Unexpected error in PadDeviceUpdateDetour. Gamepad navigation will not work!");
 
             // NOTE (Chiv) Explicitly deactivate on error
-            ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
-            return original;
+            this.EnableGamepadNav = false;
         }
-    }
-
-    private void Dispose(bool disposing)
-    {
-        if (this.isDisposed) return;
-        if (disposing)
-        {
-            this.gamepadPoll?.Disable();
-            this.gamepadPoll?.Dispose();
-        }
-
-        this.isDisposed = true;
     }
 }

@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
@@ -53,7 +52,7 @@ internal static class UnicodeData
         if (Unsafe.SizeOf<T>() != 1)
             throw new InvalidOperationException("Enum must be of size 1 byte");
 
-        var isFlag = typeof(T).GetCustomAttribute<FlagsAttribute>() is not null;
+        var isFlag = Attribute.IsDefined(typeof(T), typeof(FlagsAttribute));
         using var sr = new StreamReader(stream);
         var res = new T[0x110000];
         res.AsSpan().Fill(defaultValue);

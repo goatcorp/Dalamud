@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 using CheapLoc;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Console;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
-using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -24,8 +24,6 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 
-using ImGuiNET;
-
 namespace Dalamud.Plugin.Internal.AutoUpdate;
 
 /// <summary>
@@ -34,7 +32,7 @@ namespace Dalamud.Plugin.Internal.AutoUpdate;
 [ServiceManager.EarlyLoadedService]
 internal class AutoUpdateManager : IServiceType
 {
-    private static readonly ModuleLog Log = new("AUTOUPDATE");
+    private static readonly ModuleLog Log = ModuleLog.Create<AutoUpdateManager>();
 
     /// <summary>
     /// Time we should wait after login to update.
@@ -102,8 +100,6 @@ internal class AutoUpdateManager : IServiceType
         this.openInstallerWindowLinkTask =
             Service<ChatGui>.GetAsync().ContinueWith(
                 chatGuiTask => chatGuiTask.Result.AddChatLinkHandler(
-                    "Dalamud",
-                    1001,
                     (_, _) =>
                      {
                          Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(PluginInstallerOpenKind.InstalledPlugins);
@@ -131,7 +127,7 @@ internal class AutoUpdateManager : IServiceType
     }
 
     /// <summary>
-    /// Gets a value indicating whether or not auto-updates have already completed this session.
+    /// Gets a value indicating whether auto-updates have already completed this session.
     /// </summary>
     public bool IsAutoUpdateComplete { get; private set; }
 
@@ -248,7 +244,7 @@ internal class AutoUpdateManager : IServiceType
             this.updateNotification == null)
         {
             Log.Verbose("Starting periodic update check");
-            this.pluginManager.ReloadPluginMastersAsync()
+            this.pluginManager.ReloadAllReposAsync()
                 .ContinueWith(
                     t =>
                     {
@@ -374,13 +370,13 @@ internal class AutoUpdateManager : IServiceType
 
             var failedPlugins = pluginStates
                                 .Where(x => x.Status != PluginUpdateStatus.StatusKind.Success)
-                                .Select(x => x.Name).ToList();
+                                .Select(x => x.AffectedPlugin.Name).ToList();
 
             notification.Content += "\n" + Locs.NotificationContentFailedPlugins(failedPlugins);
         }
     }
 
-    private void NotifyUpdatesAreAvailable(ICollection<AvailablePluginUpdate> updatablePlugins)
+    private void NotifyUpdatesAreAvailable(List<AvailablePluginUpdate> updatablePlugins)
     {
         if (updatablePlugins.Count == 0)
             return;
@@ -460,7 +456,7 @@ internal class AutoUpdateManager : IServiceType
                                     .Where(
                                         p =>
                                             !p.InstalledPlugin.IsDev && // Never update dev-plugins
-                                            p.InstalledPlugin.IsWantedByAnyProfile && // Never update plugins that are not wanted by any profile(not enabled)
+                                            (p.InstalledPlugin.IsWantedByAnyProfile || this.config.UpdateDisabledPlugins) && // Never update plugins that are not wanted by any profile(not enabled)
                                             !p.InstalledPlugin.Manifest.ScheduledForDeletion); // Never update plugins that we want to get rid of
 
         return updateablePlugins.Where(FilterPlugin).ToList();
@@ -495,13 +491,10 @@ internal class AutoUpdateManager : IServiceType
 
     private bool CanUpdateOrNag()
     {
-        var condition = Service<Condition>.Get();
+        var clientState = Service<ClientState>.Get();
         return this.IsPluginManagerReady() &&
             !this.dalamudInterface.IsPluginInstallerOpen &&
-            condition.OnlyAny(ConditionFlag.NormalConditions,
-                              ConditionFlag.Jumping,
-                              ConditionFlag.Mounted,
-                              ConditionFlag.UsingParasol);
+            clientState.IsClientIdle();
     }
 
     private bool IsPluginManagerReady()

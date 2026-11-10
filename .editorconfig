@@ -16,6 +16,7 @@ indent_size = 4
 
 # Microsoft .NET properties
 csharp_indent_braces = false
+csharp_indent_case_contents_when_block = false
 csharp_new_line_before_catch = true
 csharp_new_line_before_else = true
 csharp_new_line_before_finally = true
@@ -85,6 +86,10 @@ csharp_space_between_method_declaration_name_and_open_parenthesis = false
 csharp_space_between_method_declaration_parameter_list_parentheses = false
 csharp_space_between_parentheses = none
 csharp_space_between_square_brackets = false
+csharp_style_deconstructed_variable_declaration = true:silent
+
+# StyleCop.Analyzers
+dotnet_diagnostic.SA1400.severity = none
 
 # ReSharper properties
 resharper_align_linq_query = true
@@ -145,7 +150,6 @@ resharper_suggest_var_or_type_built_in_types_highlighting = hint
 resharper_suggest_var_or_type_elsewhere_highlighting = hint
 resharper_suggest_var_or_type_simple_types_highlighting = hint
 resharper_unused_auto_property_accessor_global_highlighting = none
-csharp_style_deconstructed_variable_declaration = true:silent
 
 [*.{appxmanifest,asax,ascx,aspx,axaml,axml,build,c,c++,cc,cginc,compute,config,cp,cpp,cs,cshtml,csproj,css,cu,cuh,cxx,dbml,discomap,dtd,h,hh,hlsl,hlsli,hlslinc,hpp,htm,html,hxx,inc,inl,ino,ipp,js,json,jsproj,jsx,lsproj,master,mpp,mq4,mq5,mqh,njsproj,nuspec,paml,proj,props,proto,razor,resjson,resw,resx,skin,StyleCop,targets,tasks,tpp,ts,tsx,usf,ush,vb,vbproj,xaml,xamlx,xml,xoml,xsd}]
 indent_style = space

@@ -1,4 +1,6 @@
-﻿namespace Dalamud.Game.Config;
+using Dalamud.Plugin.Services;
+
+namespace Dalamud.Game.Config;
 
 /// <summary>
 /// Game config system address resolver.
@@ -9,7 +11,7 @@ internal sealed class GameConfigAddressResolver : BaseAddressResolver
     /// Gets the address of the method called when any config option is changed.
     /// </summary>
     public nint ConfigChangeAddress { get; private set; }
-    
+
     /// <inheritdoc/>
     protected override void Setup64Bit(ISigScanner scanner)
     {

@@ -19,7 +19,7 @@ public readonly record struct GameIconLookup
         this.HiRes = hiRes;
         this.Language = language;
     }
-    
+
     /// <summary>Gets the icon ID.</summary>
     public uint IconId { get; init; }
 

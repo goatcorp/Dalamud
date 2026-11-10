@@ -1,5 +1,9 @@
-﻿using Dalamud.IoC;
+using System.Collections.Concurrent;
+
+using Dalamud.Interface.Internal.Windows.Data.Widgets;
+using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 
@@ -17,9 +21,15 @@ namespace Dalamud.Logging;
 #pragma warning disable SA1015
 [ResolveVia<IPluginLog>]
 #pragma warning restore SA1015
-internal class ScopedPluginLogService : IServiceType, IPluginLog
+internal class ScopedPluginLogService : IPluginLog, IInternalDisposableService
 {
+    /// <summary>
+    /// Gets the maximum number of exceptions tracked in <see cref="PluginExceptionEntries"/>.
+    /// </summary>
+    internal const int MaxPluginExceptionEntries = 100;
+
     private readonly LocalPlugin localPlugin;
+    private readonly PluginErrorHandler errorHandler;
 
     private readonly LoggingLevelSwitch levelSwitch;
 
@@ -27,10 +37,12 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
     /// Initializes a new instance of the <see cref="ScopedPluginLogService"/> class.
     /// </summary>
     /// <param name="localPlugin">The plugin that owns this service.</param>
-    internal ScopedPluginLogService(LocalPlugin localPlugin)
+    /// <param name="errorHandler">Error notifier service.</param>
+    internal ScopedPluginLogService(LocalPlugin localPlugin, PluginErrorHandler errorHandler)
     {
         this.localPlugin = localPlugin;
-        
+        this.errorHandler = errorHandler;
+
         this.levelSwitch = new LoggingLevelSwitch(this.GetDefaultLevel());
 
         var loggerConfiguration = new LoggerConfiguration()
@@ -40,7 +52,7 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
 
         this.Logger = loggerConfiguration.CreateLogger();
     }
-    
+
     /// <inheritdoc />
     public ILogger Logger { get; }
 
@@ -50,7 +62,18 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
         get => this.levelSwitch.MinimumLevel;
         set => this.levelSwitch.MinimumLevel = value;
     }
-    
+
+    /// <summary>
+    /// Gets a Dictionary of exceptions grouped by plugin source. For use with <see cref="ExceptionWidget"/>.
+    /// </summary>
+    internal static ConcurrentDictionary<LocalPlugin, ConcurrentQueue<PluginExceptionEntry>> PluginExceptionEntries { get; private set; } = [];
+
+    /// <inheritdoc />
+    public void DisposeService()
+    {
+        PluginExceptionEntries.TryRemove(this.localPlugin, out _);
+    }
+
     /// <inheritdoc />
     public void Fatal(string messageTemplate, params object[] values) =>
         this.Write(LogEventLevel.Fatal, null, messageTemplate, values);
@@ -82,11 +105,11 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
     /// <inheritdoc />
     public void Information(Exception? exception, string messageTemplate, params object[] values) =>
         this.Write(LogEventLevel.Information, exception, messageTemplate, values);
-    
+
     /// <inheritdoc/>
     public void Info(string messageTemplate, params object[] values) =>
         this.Information(messageTemplate, values);
-    
+
     /// <inheritdoc/>
     public void Info(Exception? exception, string messageTemplate, params object[] values) =>
         this.Information(exception, messageTemplate, values);
@@ -106,10 +129,23 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
     /// <inheritdoc />
     public void Verbose(Exception? exception, string messageTemplate, params object[] values) =>
         this.Write(LogEventLevel.Verbose, exception, messageTemplate, values);
-    
+
     /// <inheritdoc />
     public void Write(LogEventLevel level, Exception? exception, string messageTemplate, params object[] values)
     {
+        if (level == LogEventLevel.Error)
+            this.errorHandler.NotifyError();
+
+        if (exception is not null)
+        {
+            var entries = PluginExceptionEntries.GetOrAdd(this.localPlugin, _ => new());
+
+            if (entries.Count < MaxPluginExceptionEntries)
+            {
+                entries.Enqueue(new PluginExceptionEntry(exception, DateTime.UtcNow));
+            }
+        }
+
         this.Logger.Write(
             level,
             exception: exception,
@@ -124,7 +160,12 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
     private LogEventLevel GetDefaultLevel()
     {
         // TODO: Add some way to save log levels to a config. Or let plugins handle it?
-        
+
         return this.localPlugin.IsDev ? LogEventLevel.Verbose : LogEventLevel.Debug;
     }
 }
+
+/// <summary>
+/// Record for exception entries to record additional information for use in <see cref="ExceptionWidget"/>.
+/// </summary>
+internal record PluginExceptionEntry(Exception Exception, DateTime Timestamp);

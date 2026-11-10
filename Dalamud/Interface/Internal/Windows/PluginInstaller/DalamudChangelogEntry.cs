@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
+namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
 
 /// <summary>
 /// Class representing a Dalamud changelog.

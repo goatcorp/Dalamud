@@ -11,7 +11,7 @@ internal interface IRefCountable : IDisposable
     /// <summary>
     /// Result for <see cref="IRefCountable.AlterRefCount"/>.
     /// </summary>
-    public enum RefCountResult
+    enum RefCountResult
     {
         /// <summary>
         /// The object still has remaining references. No futher action should be done.
@@ -54,7 +54,7 @@ internal interface IRefCountable : IDisposable
     /// <param name="refCount">The reference to the reference count.</param>
     /// <param name="newRefCount">The new reference count.</param>
     /// <returns>The followup action that should be done.</returns>
-    public static RefCountResult AlterRefCount(int delta, ref int refCount, out int newRefCount)
+    static RefCountResult AlterRefCount(int delta, ref int refCount, out int newRefCount)
     {
         Debug.Assert(delta is 1 or -1, "delta must be 1 or -1");
 

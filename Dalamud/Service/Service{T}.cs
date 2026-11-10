@@ -23,6 +23,9 @@ namespace Dalamud;
 [SuppressMessage("ReSharper", "StaticMemberInGenericType", Justification = "Service container static type")]
 internal static class Service<T> where T : IServiceType
 {
+    // TODO: Service<T> should only work with singleton services. Trying to call Service<T>.Get() on a scoped service should
+    // be a compile-time error.
+
     private static readonly ServiceManager.ServiceAttribute ServiceAttribute;
     private static TaskCompletionSource<T> instanceTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private static List<Type>? dependencyServices;
@@ -36,35 +39,22 @@ internal static class Service<T> where T : IServiceType
             ?? throw new InvalidOperationException(
                 $"{nameof(T)} is missing {nameof(ServiceManager.ServiceAttribute)} annotations.");
 
-        var exposeToPlugins = type.GetCustomAttribute<PluginInterfaceAttribute>() != null;
+        ServiceManager.UnloadCancellationToken.Register(()
+            => instanceTcs.TrySetException(new UnloadedException()));
+
+        var exposeToPlugins = Attribute.IsDefined(type, typeof(PluginInterfaceAttribute));
         if (exposeToPlugins)
             ServiceManager.Log.Debug("Service<{0}>: Static ctor called; will be exposed to plugins", type.Name);
         else
             ServiceManager.Log.Debug("Service<{0}>: Static ctor called", type.Name);
 
-        if (exposeToPlugins)
-            Service<ServiceContainer>.Get().RegisterSingleton(instanceTcs.Task);
-    }
-
-    /// <summary>
-    /// Specifies how to handle the cases of failed services when calling <see cref="Service{T}.GetNullable"/>.
-    /// </summary>
-    public enum ExceptionPropagationMode
-    {
-        /// <summary>
-        /// Propagate all exceptions.
-        /// </summary>
-        PropagateAll,
-
-        /// <summary>
-        /// Propagate all exceptions, except for <see cref="UnloadedException"/>.
-        /// </summary>
-        PropagateNonUnloaded,
-
-        /// <summary>
-        /// Treat all exceptions as null.
-        /// </summary>
-        None,
+        // We can't use the service container to register itself. It does so in its constructor.
+        if (typeof(T) != typeof(ServiceContainer))
+        {
+            Service<ServiceContainer>.Get().RegisterSingleton(
+                instanceTcs.Task,
+                exposeToPlugins ? ObjectInstanceVisibility.ExposedToPlugins : ObjectInstanceVisibility.Internal);
+        }
     }
 
     /// <summary>Does nothing.</summary>
@@ -163,7 +153,7 @@ internal static class Service<T> where T : IServiceType
             return dependencyServices;
 
         var res = new List<Type>();
-        
+
         ServiceManager.Log.Verbose("Service<{0}>: Getting dependencies", typeof(T).Name);
 
         var ctor = GetServiceConstructor();
@@ -174,12 +164,12 @@ internal static class Service<T> where T : IServiceType
                .Select(x => x.ParameterType)
                .Where(x => x.GetServiceKind() != ServiceManager.ServiceKind.None));
         }
-        
+
         res.AddRange(typeof(T)
                          .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                          .Where(x => x.GetCustomAttribute<ServiceManager.ServiceDependency>(true) != null)
                          .Select(x => x.FieldType));
-        
+
         res.AddRange(typeof(T)
                      .GetCustomAttributes()
                      .OfType<InherentDependencyAttribute>()
@@ -191,14 +181,14 @@ internal static class Service<T> where T : IServiceType
         var deps = res
                    .Distinct()
                    .ToList();
-        if (typeof(T).GetCustomAttribute<ServiceManager.BlockingEarlyLoadedServiceAttribute>() is not null)
+        if (Attribute.IsDefined(typeof(T), typeof(ServiceManager.BlockingEarlyLoadedServiceAttribute)))
         {
             var offenders = deps.Where(
                                     x => x.GetCustomAttribute<ServiceManager.ServiceAttribute>(true)!.Kind
                                              is not ServiceManager.ServiceKind.BlockingEarlyLoadedService
                                              and not ServiceManager.ServiceKind.ProvidedService)
                                 .ToArray();
-            if (offenders.Any())
+            if (offenders.Length != 0)
             {
                 const string bels = nameof(ServiceManager.BlockingEarlyLoadedServiceAttribute);
                 const string ps = nameof(ServiceManager.ProvidedServiceAttribute);
@@ -278,13 +268,13 @@ internal static class Service<T> where T : IServiceType
                     {
                         if (method.Invoke(instance, args) is Task task)
                         {
-                            tasks ??= new();
+                            tasks ??= [];
                             tasks.Add(task);
                         }
                     }
                     catch (Exception e)
                     {
-                        tasks ??= new();
+                        tasks ??= [];
                         tasks.Add(Task.FromException(e));
                     }
                 }
@@ -309,6 +299,18 @@ internal static class Service<T> where T : IServiceType
     {
         if (!instanceTcs.Task.IsCompletedSuccessfully)
             return;
+
+        try
+        {
+            if (Service<ServiceContainer>.GetNullable(ExceptionPropagationMode.None) is { } container)
+            {
+                container.UnregisterSingleton(typeof(T));
+            }
+        }
+        catch (Exception e)
+        {
+            ServiceManager.Log.Warning(e, "Service<{0}>: Failed to notify ServiceContainer during Unset", typeof(T).Name);
+        }
 
         switch (instanceTcs.Task.Result)
         {
@@ -343,15 +345,12 @@ internal static class Service<T> where T : IServiceType
             BindingFlags.CreateInstance | BindingFlags.OptionalParamBinding;
         return typeof(T)
                .GetConstructors(ctorBindingFlags)
-               .SingleOrDefault(x => x.GetCustomAttributes(typeof(ServiceManager.ServiceConstructor), true).Any());
+               .SingleOrDefault(x => x.GetCustomAttributes(typeof(ServiceManager.ServiceConstructor), true).Length != 0);
     }
 
     private static async Task<T> ConstructObject(IReadOnlyCollection<object> additionalProvidedTypedObjects)
     {
-        var ctor = GetServiceConstructor();
-        if (ctor == null)
-            throw new Exception($"Service \"{typeof(T).FullName}\" had no applicable constructor");
-        
+        var ctor = GetServiceConstructor() ?? throw new Exception($"Service \"{typeof(T).FullName}\" had no applicable constructor");
         var args = await ResolveInjectedParameters(ctor.GetParameters(), additionalProvidedTypedObjects)
                        .ConfigureAwait(false);
         using (Timings.Start($"{typeof(T).Name} Construct"))
@@ -382,12 +381,12 @@ internal static class Service<T> where T : IServiceType
             var argType = argDefs[i].ParameterType;
             ref var argTask = ref argTasks[i];
 
-            if (argType.GetCustomAttribute<ServiceManager.InjectableTypeAttribute>() is not null)
+            if (Attribute.IsDefined(argType, typeof(ServiceManager.InjectableTypeAttribute)))
             {
                 argTask = Task.FromResult(additionalProvidedTypedObjects.Single(x => x.GetType() == argType));
                 continue;
             }
-            
+
             argTask = (Task<object>)typeof(Service<>)
                              .MakeGenericType(argType)
                              .InvokeMember(
@@ -407,7 +406,12 @@ internal static class Service<T> where T : IServiceType
     /// Pull the instance out of the service locator, waiting if necessary.
     /// </summary>
     /// <returns>The object.</returns>
-    private static Task<object> GetAsyncAsObject() => instanceTcs.Task.ContinueWith(r => (object)r.Result);
+    private static Task<object> GetAsyncAsObject() =>
+        instanceTcs.Task.ContinueWith(
+            r => (object)r.Result,
+            ServiceManager.UnloadCancellationToken,
+            TaskContinuationOptions.RunContinuationsAsynchronously,
+            TaskScheduler.Default);
 
     /// <summary>
     /// Exception thrown when service is attempted to be retrieved when it's unloaded.
@@ -452,7 +456,7 @@ internal static class ServiceHelpers
                    BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
                    null,
                    null,
-                   new object?[] { includeUnloadDependencies }) ?? new List<Type>();
+                   [includeUnloadDependencies]) ?? new List<Type>();
     }
 
     /// <summary>

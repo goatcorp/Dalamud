@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.IoC;
@@ -28,6 +29,7 @@ namespace Dalamud.Interface.Textures.Internal;
 [ResolveVia<ITextureProvider>]
 [ResolveVia<ITextureSubstitutionProvider>]
 [ResolveVia<ITextureReadbackProvider>]
+[InherentDependency<TextureManager>]
 #pragma warning restore SA1015
 internal sealed class TextureManagerPluginScoped
     : IInternalDisposableService,
@@ -152,6 +154,10 @@ internal sealed class TextureManagerPluginScoped
     }
 
     /// <inheritdoc/>
+    public IDrawListTextureWrap CreateDrawListTexture(string? debugName = null) =>
+        this.ManagerOrThrow.CreateDrawListTexture(this.plugin, debugName);
+
+    /// <inheritdoc/>
     public async Task<IDalamudTextureWrap> CreateFromExistingTextureAsync(
         IDalamudTextureWrap wrap,
         TextureModificationArgs args = default,
@@ -268,6 +274,29 @@ internal sealed class TextureManagerPluginScoped
     }
 
     /// <inheritdoc/>
+    public async Task<IDalamudTextureWrap> CreateFromClipboardAsync(
+        string? debugName = null,
+        CancellationToken cancellationToken = default)
+    {
+        var manager = await this.ManagerTask;
+        var textureWrap = await manager.CreateFromClipboardAsync(debugName, cancellationToken);
+        manager.Blame(textureWrap, this.plugin);
+        return textureWrap;
+    }
+
+    /// <inheritdoc/>
+    public IDalamudTextureWrap CreateTextureFromSeString(
+        ReadOnlySpan<byte> text,
+        scoped in SeStringDrawParams drawParams = default,
+        string? debugName = null)
+    {
+        var manager = this.ManagerOrThrow;
+        var textureWrap = manager.CreateTextureFromSeString(text, drawParams, debugName);
+        manager.Blame(textureWrap, this.plugin);
+        return textureWrap;
+    }
+
+    /// <inheritdoc/>
     public IEnumerable<IBitmapCodecInfo> GetSupportedImageDecoderInfos() =>
         this.ManagerOrThrow.Wic.GetSupportedDecoderInfos();
 
@@ -278,6 +307,9 @@ internal sealed class TextureManagerPluginScoped
         shared.AddOwnerPlugin(this.plugin);
         return shared;
     }
+
+    /// <inheritdoc/>
+    public bool HasClipboardImage() => this.ManagerOrThrow.HasClipboardImage();
 
     /// <inheritdoc/>
     public bool TryGetFromGameIcon(in GameIconLookup lookup, [NotNullWhen(true)] out ISharedImmediateTexture? texture)
@@ -292,7 +324,7 @@ internal sealed class TextureManagerPluginScoped
         texture = null;
         return false;
     }
-    
+
     /// <inheritdoc/>
     public ISharedImmediateTexture GetFromGame(string path)
     {
@@ -308,7 +340,7 @@ internal sealed class TextureManagerPluginScoped
         shared.AddOwnerPlugin(this.plugin);
         return shared;
     }
-    
+
     /// <inheritdoc/>
     public ISharedImmediateTexture GetFromFile(FileInfo file)
     {
@@ -368,6 +400,15 @@ internal sealed class TextureManagerPluginScoped
     }
 
     /// <inheritdoc/>
+    public async Task<(int MipLevels, (RawImageSpecification Specification, byte[] RawData)[] Images)>
+        GetAllRawImagesAsync(
+            IDalamudTextureWrap wrap, bool leaveWrapOpen = false, CancellationToken cancellationToken = default)
+    {
+        var manager = await this.ManagerTask;
+        return await manager.GetAllRawImagesAsync(wrap, leaveWrapOpen, cancellationToken);
+    }
+
+    /// <inheritdoc/>
     public IEnumerable<IBitmapCodecInfo> GetSupportedImageEncoderInfos() =>
         this.ManagerOrThrow.Wic.GetSupportedEncoderInfos();
 
@@ -409,6 +450,17 @@ internal sealed class TextureManagerPluginScoped
             props,
             leaveWrapOpen,
             cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task CopyToClipboardAsync(
+        IDalamudTextureWrap wrap,
+        string? preferredFileNameWithoutExtension = null,
+        bool leaveWrapOpen = false,
+        CancellationToken cancellationToken = default)
+    {
+        var manager = await this.ManagerTask;
+        await manager.CopyToClipboardAsync(wrap, preferredFileNameWithoutExtension, leaveWrapOpen, cancellationToken);
     }
 
     private void ResultOnInterceptTexDataLoad(string path, ref string? replacementPath) =>

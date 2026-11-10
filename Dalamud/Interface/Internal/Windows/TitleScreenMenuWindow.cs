@@ -2,14 +2,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Console;
 using Dalamud.Game;
 using Dalamud.Game.Addon.Lifecycle;
-using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Gui;
-using Dalamud.Game.Text;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -17,18 +16,13 @@ using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
-using FFXIVClientStructs.FFXIV.Component.GUI;
-
-using ImGuiNET;
-
 using Lumina.Text.ReadOnly;
 
-using LSeStringBuilder = Lumina.Text.SeStringBuilder;
+using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows;
 
@@ -49,19 +43,16 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     private readonly IFontAtlas privateAtlas;
     private readonly Lazy<IFontHandle> myFontHandle;
     private readonly Lazy<IDalamudTextureWrap> shadeTexture;
-    private readonly AddonLifecycleEventListener versionStringListener;
 
-    private readonly Dictionary<Guid, InOutCubic> shadeEasings = new();
-    private readonly Dictionary<Guid, InOutQuint> moveEasings = new();
-    private readonly Dictionary<Guid, InOutCubic> logoEasings = new();
+    private readonly Dictionary<Guid, InOutCubic> shadeEasings = [];
+    private readonly Dictionary<Guid, InOutQuint> moveEasings = [];
+    private readonly Dictionary<Guid, InOutCubic> logoEasings = [];
 
     private readonly IConsoleVariable<bool> showTsm;
 
     private InOutCubic? fadeOutEasing;
 
     private State state = State.Hide;
-
-    private int lastLoadedPluginCount = -1;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TitleScreenMenuWindow"/> class.
@@ -88,7 +79,8 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         : base(
             "TitleScreenMenuOverlay",
             ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar |
-            ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNavFocus)
+            ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNavFocus |
+            ImGuiWindowFlags.NoDocking)
     {
         this.showTsm = consoleManager.AddVariable("dalamud.show_tsm", "Show the Title Screen Menu", true);
 
@@ -109,6 +101,8 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         this.privateAtlas = fontAtlasFactory.CreateFontAtlas(this.WindowName, FontAtlasAutoRebuildMode.Async);
         this.scopedFinalizer.Add(this.privateAtlas);
 
+        this.AllowBackgroundBlur = false;
+
         this.myFontHandle = new(
             () => this.scopedFinalizer.Add(
                 this.privateAtlas.NewDelegateFontHandle(
@@ -124,10 +118,6 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
         framework.Update += this.FrameworkOnUpdate;
         this.scopedFinalizer.Add(() => framework.Update -= this.FrameworkOnUpdate);
-
-        this.versionStringListener = new AddonLifecycleEventListener(AddonEvent.PreDraw, "_TitleRevision", this.OnVersionStringDraw);
-        addonLifecycle.RegisterListener(this.versionStringListener);
-        this.scopedFinalizer.Add(() => addonLifecycle.UnregisterListener(this.versionStringListener));
     }
 
     private enum State
@@ -150,6 +140,10 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     {
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
+
+        if (this.state == State.Show)
+            ImGui.SetNextWindowFocus();
+
         base.PreDraw();
     }
 
@@ -185,6 +179,23 @@ internal class TitleScreenMenuWindow : Window, IDisposable
                     if (!entry.IsShowConditionSatisfied())
                         continue;
 
+                    if (entry.Texture.TryGetWrap(out var textureWrap, out var exception))
+                    {
+                        if (textureWrap.Width != 64 && textureWrap.Height != 64)
+                        {
+                            Log.Error("Texture provided for ITitleScreenMenuEntry must be 64x64. Entry will be removed.");
+                            this.titleScreenMenu.RemoveEntry(entry);
+                            continue;
+                        }
+                    }
+
+                    if (exception != null)
+                    {
+                        Log.Error(exception, "An exception occurred while attempting to get the texture wrap for a ITitleScreenMenuEntry. Entry will be removed.");
+                        this.titleScreenMenu.RemoveEntry(entry);
+                        continue;
+                    }
+
                     if (!this.moveEasings.TryGetValue(entry.Id, out var moveEasing))
                     {
                         moveEasing = new InOutQuint(TimeSpan.FromMilliseconds(400));
@@ -204,7 +215,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
                     moveEasing.Update();
 
                     var finalPos = (i + 1) * this.shadeTexture.Value.Height * scale;
-                    var pos = moveEasing.Value * finalPos;
+                    var pos = moveEasing.ValueClamped * finalPos;
 
                     // FIXME(goat): Sometimes, easings can overshoot and bring things out of alignment.
                     if (moveEasing.IsDone)
@@ -251,13 +262,30 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
                 this.fadeOutEasing.Update();
 
-                using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, (float)Math.Max(this.fadeOutEasing.Value, 0)))
+                using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, (float)this.fadeOutEasing.ValueClamped))
                 {
                     var i = 0;
                     foreach (var entry in entries)
                     {
                         if (!entry.IsShowConditionSatisfied())
                             continue;
+
+                        if (entry.Texture.TryGetWrap(out var textureWrap, out var exception))
+                        {
+                            if (textureWrap.Width != 64 && textureWrap.Height != 64)
+                            {
+                                Log.Error($"Texture provided for ITitleScreenMenuEntry {entry.Name} must be 64x64. Entry will be removed.");
+                                this.titleScreenMenu.RemoveEntry(entry);
+                                continue;
+                            }
+                        }
+
+                        if (exception != null)
+                        {
+                            Log.Error(exception, $"An exception occurred while attempting to get the texture wrap for ITitleScreenMenuEntry {entry.Name}. Entry will be removed.");
+                            this.titleScreenMenu.RemoveEntry(entry);
+                            continue;
+                        }
 
                         var finalPos = (i + 1) * this.shadeTexture.Value.Height * scale;
 
@@ -293,10 +321,13 @@ internal class TitleScreenMenuWindow : Window, IDisposable
                 {
                     this.state = State.Show;
                 }
+                else
+                {
+                    this.moveEasings.Clear();
+                    this.logoEasings.Clear();
+                    this.shadeEasings.Clear();
+                }
 
-                this.moveEasings.Clear();
-                this.logoEasings.Clear();
-                this.shadeEasings.Clear();
                 break;
             }
         }
@@ -317,10 +348,10 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
         var initialCursor = ImGui.GetCursorPos();
 
-        using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, (float)shadeEasing.Value))
+        using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, (float)shadeEasing.ValueClamped))
         {
             var texture = this.shadeTexture.Value;
-            ImGui.Image(texture.ImGuiHandle, new Vector2(texture.Width, texture.Height) * scale);
+            ImGui.Image(texture.Handle, new Vector2(texture.Width, texture.Height) * scale);
         }
 
         var isHover = ImGui.IsItemHovered();
@@ -367,14 +398,16 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
         if (overrideAlpha)
         {
-            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, isFirst ? 1f : (float)logoEasing.Value);
+            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, isFirst ? 1f : (float)logoEasing.ValueClamped);
         }
         else if (isFirst)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 1f);
         }
 
-        ImGui.Image(entry.Texture.ImGuiHandle, new Vector2(TitleScreenMenu.TextureSize * scale));
+        // Wrap should always be valid at this point due to us checking the validity of the image each frame
+        var dalamudTextureWrap = entry.Texture.GetWrapOrEmpty();
+        ImGui.Image(dalamudTextureWrap.Handle, new Vector2(TitleScreenMenu.TextureSize * scale));
         if (overrideAlpha || isFirst)
         {
             ImGui.PopStyleVar();
@@ -388,11 +421,11 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         var textHeight = ImGui.GetTextLineHeightWithSpacing();
         var cursor = ImGui.GetCursorPos();
 
-        cursor.Y += (entry.Texture.Height * scale / 2) - (textHeight / 2);
+        cursor.Y += (dalamudTextureWrap.Height * scale / 2) - (textHeight / 2);
 
         if (overrideAlpha)
         {
-            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, showText ? (float)Math.Min(logoEasing.Value, 1) : 0f);
+            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, showText ? (float)logoEasing.ValueClamped : 0f);
         }
 
         // Drop shadow
@@ -411,7 +444,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
             ImGui.PopStyleVar();
         }
 
-        initialCursor.Y += entry.Texture.Height * scale;
+        initialCursor.Y += dalamudTextureWrap.Height * scale;
         ImGui.SetCursorPos(initialCursor);
 
         return isHover;
@@ -424,55 +457,11 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         if (!this.configuration.ShowTsm)
             this.IsOpen = false;
 
-        var charaSelect = this.gameGui.GetAddonByName("CharaSelect", 1);
-        var charaMake = this.gameGui.GetAddonByName("CharaMake", 1);
-        var titleDcWorldMap = this.gameGui.GetAddonByName("TitleDCWorldMap", 1);
-        if (charaMake != IntPtr.Zero || charaSelect != IntPtr.Zero || titleDcWorldMap != IntPtr.Zero)
+        var charaSelect = this.gameGui.GetAddonByName("CharaSelect"u8, 1);
+        var charaMake = this.gameGui.GetAddonByName("CharaMake"u8, 1);
+        var titleDcWorldMap = this.gameGui.GetAddonByName("TitleDCWorldMap"u8, 1);
+        if (!charaMake.IsNull || !charaSelect.IsNull || !titleDcWorldMap.IsNull)
             this.IsOpen = false;
-    }
-
-    private unsafe void OnVersionStringDraw(AddonEvent ev, AddonArgs args)
-    {
-        if (args is not AddonDrawArgs drawArgs) return;
-
-        var addon = (AtkUnitBase*)drawArgs.Addon;
-        var textNode = addon->GetTextNodeById(3);
-
-        // look and feel init. should be harmless to set.
-        textNode->TextFlags |= (byte)TextFlags.MultiLine;
-        textNode->AlignmentType = AlignmentType.TopLeft;
-
-        var containsDalamudVersionString = textNode->OriginalTextPointer == textNode->NodeText.StringPtr;
-        if (!this.configuration.ShowTsm || !this.showTsm.Value)
-        {
-            if (containsDalamudVersionString)
-                textNode->SetText(addon->AtkValues[1].String);
-            this.lastLoadedPluginCount = -1;
-            return;
-        }
-
-        var pm = Service<PluginManager>.GetNullable();
-        var count = pm?.LoadedPluginCount ?? 0;
-
-        // Avoid rebuilding the string every frame.
-        if (containsDalamudVersionString && count == this.lastLoadedPluginCount)
-            return;
-        this.lastLoadedPluginCount = count;
-
-        var lssb = LSeStringBuilder.SharedPool.Get();
-        lssb.Append(new ReadOnlySeStringSpan(addon->AtkValues[1].String)).Append("\n\n");
-        lssb.PushEdgeColorType(701).PushColorType(539)
-            .Append(SeIconChar.BoxedLetterD.ToIconChar())
-            .PopColorType().PopEdgeColorType();
-        lssb.Append($" Dalamud: {Util.GetScmVersion()}");
-
-        lssb.Append($" - {count} {(count != 1 ? "plugins" : "plugin")} loaded");
-
-        if (pm?.SafeMode is true)
-            lssb.PushColorType(17).Append(" [SAFE MODE]").PopColorType();
-
-        textNode->SetText(lssb.GetViewAsSpan());
-        LSeStringBuilder.SharedPool.Return(lssb);
     }
 
     private void TitleScreenMenuEntryListChange() => this.privateAtlas.BuildFontsAsync();

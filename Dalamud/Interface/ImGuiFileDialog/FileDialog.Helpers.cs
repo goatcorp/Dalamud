@@ -12,7 +12,7 @@ public partial class FileDialog
 
     private static string BytesToString(long byteCount)
     {
-        string[] suf = { " B", " KB", " MB", " GB", " TB" };
+        string[] suf = [" B", " KB", " MB", " GB", " TB"];
         if (byteCount == 0)
             return "0" + suf[0];
         var bytes = Math.Abs(byteCount);

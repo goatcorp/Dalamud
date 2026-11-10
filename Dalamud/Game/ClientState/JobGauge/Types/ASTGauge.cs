@@ -22,7 +22,23 @@ public unsafe class ASTGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     /// Gets the currently drawn <see cref="CardType"/>.
     /// </summary>
     /// <returns>Currently drawn <see cref="CardType"/>.</returns>
+    [Obsolete("Use Card1, Card2 and Card3 individually.")]
     public CardType[] DrawnCards => this.Struct->CurrentCards.Select(card => (CardType)card).ToArray();
+
+    /// <summary>
+    /// Gets the type of the first drawn card.
+    /// </summary>
+    public CardType Card1 => (CardType)this.Struct->Card1;
+
+    /// <summary>
+    /// Gets the type of the second drawn card.
+    /// </summary>
+    public CardType Card2 => (CardType)this.Struct->Card2;
+
+    /// <summary>
+    /// Gets the type of the third drawn card.
+    /// </summary>
+    public CardType Card3 => (CardType)this.Struct->Card3;
 
     /// <summary>
     /// Gets the currently drawn crown <see cref="CardType"/>.

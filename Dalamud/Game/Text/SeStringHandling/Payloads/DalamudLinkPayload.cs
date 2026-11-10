@@ -1,5 +1,7 @@
 using System.IO;
 
+using Dalamud.Utility;
+
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
@@ -37,19 +39,18 @@ public class DalamudLinkPayload : Payload
     /// <inheritdoc/>
     protected override byte[] EncodeImpl()
     {
-        var ssb = Lumina.Text.SeStringBuilder.SharedPool.Get();
-        var res = ssb.BeginMacro(MacroCode.Link)
-                     .AppendIntExpression((int)EmbeddedInfoType.DalamudLink - 1)
-                     .AppendUIntExpression(this.CommandId)
-                     .AppendIntExpression(this.Extra1)
-                     .AppendIntExpression(this.Extra2)
-                     .BeginStringExpression()
-                     .Append(JsonConvert.SerializeObject(new[] { this.Plugin, this.ExtraString }))
-                     .EndExpression()
-                     .EndMacro()
-                     .ToArray();
-        Lumina.Text.SeStringBuilder.SharedPool.Return(ssb);
-        return res;
+        using var rssb = new RentedSeStringBuilder();
+        return rssb.Builder
+            .BeginMacro(MacroCode.Link)
+            .AppendIntExpression((int)EmbeddedInfoType.DalamudLink - 1)
+            .AppendUIntExpression(this.CommandId)
+            .AppendIntExpression(this.Extra1)
+            .AppendIntExpression(this.Extra2)
+            .BeginStringExpression()
+            .Append(JsonConvert.SerializeObject(new[] { this.Plugin, this.ExtraString }))
+            .EndExpression()
+            .EndMacro()
+            .ToArray();
     }
 
     /// <inheritdoc/>

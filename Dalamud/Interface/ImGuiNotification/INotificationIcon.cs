@@ -20,14 +20,14 @@ public interface INotificationIcon
     /// <param name="iconChar">The icon character.</param>
     /// <returns>A new instance of <see cref="INotificationIcon"/> that should be disposed after use.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static INotificationIcon From(SeIconChar iconChar) => new SeIconCharNotificationIcon(iconChar);
+    static INotificationIcon From(SeIconChar iconChar) => new SeIconCharNotificationIcon(iconChar);
 
     /// <summary>Gets a new instance of <see cref="INotificationIcon"/> that will source the icon from an
     /// <see cref="FontAwesomeIcon"/>.</summary>
     /// <param name="iconChar">The icon character.</param>
     /// <returns>A new instance of <see cref="INotificationIcon"/> that should be disposed after use.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static INotificationIcon From(FontAwesomeIcon iconChar) => new FontAwesomeIconNotificationIcon(iconChar);
+    static INotificationIcon From(FontAwesomeIcon iconChar) => new FontAwesomeIconNotificationIcon(iconChar);
 
     /// <summary>Gets a new instance of <see cref="INotificationIcon"/> that will source the icon from a texture
     /// file shipped as a part of the game resources.</summary>
@@ -35,7 +35,7 @@ public interface INotificationIcon
     /// <returns>A new instance of <see cref="INotificationIcon"/> that should be disposed after use.</returns>
     /// <remarks>If any errors are thrown, the default icon will be displayed instead.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static INotificationIcon FromGame(string gamePath) => new GamePathNotificationIcon(gamePath);
+    static INotificationIcon FromGame(string gamePath) => new GamePathNotificationIcon(gamePath);
 
     /// <summary>Gets a new instance of <see cref="INotificationIcon"/> that will source the icon from an image
     /// file from the file system.</summary>
@@ -43,7 +43,7 @@ public interface INotificationIcon
     /// <returns>A new instance of <see cref="INotificationIcon"/> that should be disposed after use.</returns>
     /// <remarks>If any errors are thrown, the default icon will be displayed instead.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static INotificationIcon FromFile(string filePath) => new FilePathNotificationIcon(filePath);
+    static INotificationIcon FromFile(string filePath) => new FilePathNotificationIcon(filePath);
 
     /// <summary>Draws the icon.</summary>
     /// <param name="minCoord">The coordinates of the top left of the icon area.</param>

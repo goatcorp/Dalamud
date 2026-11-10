@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -12,7 +12,7 @@ namespace Dalamud.IoC.Internal;
 /// <summary>
 /// Container enabling the creation of scoped services.
 /// </summary>
-internal interface IServiceScope : IAsyncDisposable
+internal interface IServiceScope : IServiceProvider, IAsyncDisposable
 {
     /// <summary>
     /// Register objects that may be injected to scoped services,
@@ -25,9 +25,10 @@ internal interface IServiceScope : IAsyncDisposable
     /// Create an object.
     /// </summary>
     /// <param name="objectType">The type of object to create.</param>
+    /// <param name="allowedVisibility">Defines which services are allowed to be directly resolved into this type.</param>
     /// <param name="scopedObjects">Scoped objects to be included in the constructor.</param>
     /// <returns>The created object.</returns>
-    Task<object> CreateAsync(Type objectType, params object[] scopedObjects);
+    Task<object> CreateAsync(Type objectType, ObjectInstanceVisibility allowedVisibility, params object[] scopedObjects);
 
     /// <summary>
     /// Inject <see cref="PluginInterfaceAttribute" /> interfaces into public or static properties on the provided object.
@@ -57,6 +58,12 @@ internal class ServiceScopeImpl : IServiceScope
     public ServiceScopeImpl(ServiceContainer container) => this.container = container;
 
     /// <inheritdoc/>
+    public object? GetService(Type serviceType)
+    {
+        return this.container.GetService(serviceType, this, []).ConfigureAwait(false).GetAwaiter().GetResult();
+    }
+
+    /// <inheritdoc/>
     public void RegisterPrivateScopes(params object[] scopes)
     {
         this.disposeLock.EnterReadLock();
@@ -72,13 +79,13 @@ internal class ServiceScopeImpl : IServiceScope
     }
 
     /// <inheritdoc />
-    public Task<object> CreateAsync(Type objectType, params object[] scopedObjects)
+    public Task<object> CreateAsync(Type objectType, ObjectInstanceVisibility allowedVisibility, params object[] scopedObjects)
     {
         this.disposeLock.EnterReadLock();
         try
         {
             ObjectDisposedException.ThrowIf(this.disposed, this);
-            return this.container.CreateAsync(objectType, scopedObjects, this);
+            return this.container.CreateAsync(objectType, allowedVisibility, scopedObjects, this);
         }
         finally
         {
@@ -117,7 +124,9 @@ internal class ServiceScopeImpl : IServiceScope
                 objectType,
                 static (objectType, p) => p.Scope.container.CreateAsync(
                     objectType,
-                    p.Objects.Concat(p.Scope.privateScopedObjects).ToArray()),
+                    ObjectInstanceVisibility.Internal, // We are allowed to resolve internal services here since this is a private scoped object.
+                    p.Objects.Concat(p.Scope.privateScopedObjects).ToArray(),
+                    p.Scope),
                 (Scope: this, Objects: scopedObjects));
         }
         finally
@@ -171,7 +180,11 @@ internal class ServiceScopeImpl : IServiceScope
         // have unregistered the event listeners, on next framework tick, none can be running anymore.
         // This has an additional effect of ensuring that DtrBar entries are completely removed on return.
         // Note that this still does not handle Framework.RunOnTick with specified delays.
-        await (Service<Framework>.GetNullable()?.DelayTicks(1) ?? Task.CompletedTask).SuppressException();
+        // If we're unloading, something else may block the framework thread, so we skip it in this case.
+        if (!ServiceManager.UnloadCancellationToken.IsCancellationRequested)
+        {
+            await (Service<Framework>.GetNullable()?.DelayTicks(1) ?? Task.CompletedTask).SuppressException();
+        }
 
         if (exceptions is not null)
             throw new AggregateException(exceptions);

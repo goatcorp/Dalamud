@@ -1,0 +1,29 @@
+using System.Numerics;
+
+using Dalamud.Utility;
+
+namespace Dalamud.Interface.Windowing;
+
+/// <summary>
+/// Structure detailing the size constraints of a window.
+/// </summary>
+[Api16ToDo("Interface? Rename to UnscaledX for clarity.")]
+public struct WindowSizeConstraints
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WindowSizeConstraints"/> struct.
+    /// </summary>
+    public WindowSizeConstraints()
+    {
+    }
+
+    /// <summary>
+    /// Gets or sets the minimum size of the window.
+    /// </summary>
+    public Vector2 MinimumSize { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum size of the window.
+    /// </summary>
+    public Vector2 MaximumSize { get; set; }
+}

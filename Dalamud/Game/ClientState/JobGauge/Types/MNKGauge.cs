@@ -27,9 +27,25 @@ public unsafe class MNKGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     /// Gets the types of Beast Chakra available.
     /// </summary>
     /// <remarks>
-    /// This will always return an array of size 3, inactive Beast Chakra are represented by <see cref="BeastChakra.NONE"/>.
+    /// This will always return an array of size 3, inactive Beast Chakra are represented by <see cref="Enums.BeastChakra.None"/>.
     /// </remarks>
+    [Obsolete("Use BeastChakra1, BeastChakra2 and BeastChakra3 individually.")]
     public BeastChakra[] BeastChakra => this.Struct->BeastChakra.Select(c => (BeastChakra)c).ToArray();
+
+    /// <summary>
+    /// Gets the type of the first Beast Chakra.
+    /// </summary>
+    public BeastChakra BeastChakra1 => (BeastChakra)this.Struct->BeastChakra1;
+
+    /// <summary>
+    /// Gets the type of the second Beast Chakra.
+    /// </summary>
+    public BeastChakra BeastChakra2 => (BeastChakra)this.Struct->BeastChakra2;
+
+    /// <summary>
+    /// Gets the type of the third Beast Chakra.
+    /// </summary>
+    public BeastChakra BeastChakra3 => (BeastChakra)this.Struct->BeastChakra3;
 
     /// <summary>
     /// Gets the types of Nadi available.
@@ -40,7 +56,7 @@ public unsafe class MNKGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     /// Gets the amount of available Opo-opo Fury stacks.
     /// </summary>
     public int OpoOpoFury => this.Struct->OpoOpoStacks;
-    
+
     /// <summary>
     /// Gets the amount of available Raptor Fury stacks.
     /// </summary>

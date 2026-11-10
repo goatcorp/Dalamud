@@ -1,16 +1,15 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
+using Dalamud.Game.Gui;
 using Dalamud.Game.Inventory.InventoryEventArgTypes;
-using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
-
-using FFXIVClientStructs.FFXIV.Client.UI;
 
 namespace Dalamud.Game.Inventory;
 
@@ -20,20 +19,30 @@ namespace Dalamud.Game.Inventory;
 [ServiceManager.EarlyLoadedService]
 internal class GameInventory : IInternalDisposableService
 {
-    private readonly List<GameInventoryPluginScoped> subscribersPendingChange = new();
-    private readonly List<GameInventoryPluginScoped> subscribers = new();
+    /// <summary>
+    /// Lists excluded InventoryTypes that are not supported by this service.
+    /// </summary>
+    internal static readonly GameInventoryType[] ExcludedInventoryTypes = [
+        GameInventoryType.Cosmopouch1,
+        GameInventoryType.Cosmopouch2
+    ];
 
-    private readonly List<InventoryItemAddedArgs> addedEvents = new();
-    private readonly List<InventoryItemRemovedArgs> removedEvents = new();
-    private readonly List<InventoryItemChangedArgs> changedEvents = new();
-    private readonly List<InventoryItemMovedArgs> movedEvents = new();
-    private readonly List<InventoryItemSplitArgs> splitEvents = new();
-    private readonly List<InventoryItemMergedArgs> mergedEvents = new();
+    private readonly List<GameInventoryPluginScoped> subscribersPendingChange = [];
+    private readonly List<GameInventoryPluginScoped> subscribers = [];
+    private readonly Lock subscribersLock = new();
+
+    private readonly List<InventoryItemAddedArgs> addedEvents = [];
+    private readonly List<InventoryItemRemovedArgs> removedEvents = [];
+    private readonly List<InventoryItemChangedArgs> changedEvents = [];
+    private readonly List<InventoryItemMovedArgs> movedEvents = [];
+    private readonly List<InventoryItemSplitArgs> splitEvents = [];
+    private readonly List<InventoryItemMergedArgs> mergedEvents = [];
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
 
-    private readonly Hook<RaptureAtkModuleUpdateDelegate> raptureAtkModuleUpdateHook;
+    [ServiceManager.ServiceDependency]
+    private readonly GameGui gameGui = Service<GameGui>.Get();
 
     private readonly GameInventoryType[] inventoryTypes;
     private readonly GameInventoryItem[]?[] inventoryItems;
@@ -44,32 +53,22 @@ internal class GameInventory : IInternalDisposableService
     [ServiceManager.ServiceConstructor]
     private GameInventory()
     {
-        this.inventoryTypes = Enum.GetValues<GameInventoryType>();
+        this.inventoryTypes = [.. Enum.GetValues<GameInventoryType>().Where(static type => !ExcludedInventoryTypes.Contains(type))];
         this.inventoryItems = new GameInventoryItem[this.inventoryTypes.Length][];
 
-        unsafe
-        {
-            this.raptureAtkModuleUpdateHook = Hook<RaptureAtkModuleUpdateDelegate>.FromFunctionPointerVariable(
-                new(&RaptureAtkModule.StaticVirtualTablePointer->Update),
-                this.RaptureAtkModuleUpdateDetour);
-        }
-
-        this.raptureAtkModuleUpdateHook.Enable();
+        this.gameGui.AgentUpdate += this.OnAgentUpdate;
     }
-
-    private unsafe delegate void RaptureAtkModuleUpdateDelegate(RaptureAtkModule* ram, float f1);
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        lock (this.subscribersPendingChange)
-        {
-            this.subscribers.Clear();
-            this.subscribersPendingChange.Clear();
-            this.subscribersChanged = false;
-            this.framework.Update -= this.OnFrameworkUpdate;
-            this.raptureAtkModuleUpdateHook.Dispose();
-        }
+        using var scope = this.subscribersLock.EnterScope();
+
+        this.subscribers.Clear();
+        this.subscribersPendingChange.Clear();
+        this.subscribersChanged = false;
+        this.framework.Update -= this.OnFrameworkUpdate;
+        this.gameGui.AgentUpdate -= this.OnAgentUpdate;
     }
 
     /// <summary>
@@ -78,15 +77,15 @@ internal class GameInventory : IInternalDisposableService
     /// <param name="s">The event target.</param>
     public void Subscribe(GameInventoryPluginScoped s)
     {
-        lock (this.subscribersPendingChange)
+        using var scope = this.subscribersLock.EnterScope();
+
+        this.subscribersPendingChange.Add(s);
+        this.subscribersChanged = true;
+
+        if (this.subscribersPendingChange.Count == 1)
         {
-            this.subscribersPendingChange.Add(s);
-            this.subscribersChanged = true;
-            if (this.subscribersPendingChange.Count == 1)
-            {
-                this.inventoriesMightBeChanged = true;
-                this.framework.Update += this.OnFrameworkUpdate;
-            }
+            this.inventoriesMightBeChanged = true;
+            this.framework.Update += this.OnFrameworkUpdate;
         }
     }
 
@@ -96,14 +95,15 @@ internal class GameInventory : IInternalDisposableService
     /// <param name="s">The event target.</param>
     public void Unsubscribe(GameInventoryPluginScoped s)
     {
-        lock (this.subscribersPendingChange)
-        {
-            if (!this.subscribersPendingChange.Remove(s))
-                return;
-            this.subscribersChanged = true;
-            if (this.subscribersPendingChange.Count == 0)
-                this.framework.Update -= this.OnFrameworkUpdate;
-        }
+        using var scope = this.subscribersLock.EnterScope();
+
+        if (!this.subscribersPendingChange.Remove(s))
+            return;
+
+        this.subscribersChanged = true;
+
+        if (this.subscribersPendingChange.Count == 0)
+            this.framework.Update -= this.OnFrameworkUpdate;
     }
 
     private void OnFrameworkUpdate(IFramework framework1)
@@ -120,7 +120,7 @@ internal class GameInventory : IInternalDisposableService
                 continue;
 
             // Assumption: newItems is sorted by slots, and the last item has the highest slot number.
-            var oldItems = this.inventoryItems[i] ??= new GameInventoryItem[newItems[^1].InternalItem.Slot + 1];
+            var oldItems = this.inventoryItems[i] ??= this.CreateItemsArray(newItems[^1].InternalItem.Slot + 1);
 
             foreach (ref readonly var newItem in newItems)
             {
@@ -159,9 +159,10 @@ internal class GameInventory : IInternalDisposableService
         if (this.subscribersChanged)
         {
             bool isNew;
-            lock (this.subscribersPendingChange)
+
+            using (this.subscribersLock.EnterScope())
             {
-                isNew = this.subscribersPendingChange.Any() && !this.subscribers.Any();
+                isNew = this.subscribersPendingChange.Count != 0 && this.subscribers.Count == 0;
                 this.subscribers.Clear();
                 this.subscribers.AddRange(this.subscribersPendingChange);
                 this.subscribersChanged = false;
@@ -312,10 +313,17 @@ internal class GameInventory : IInternalDisposableService
         this.mergedEvents.Clear();
     }
 
-    private unsafe void RaptureAtkModuleUpdateDetour(RaptureAtkModule* ram, float f1)
+    private GameInventoryItem[] CreateItemsArray(int length)
     {
-        this.inventoriesMightBeChanged |= ram->AgentUpdateFlag != 0;
-        this.raptureAtkModuleUpdateHook.Original(ram, f1);
+        var items = new GameInventoryItem[length];
+        foreach (ref var item in items.AsSpan())
+            item = new();
+        return items;
+    }
+
+    private void OnAgentUpdate(AgentUpdateFlag agentUpdateFlag)
+    {
+        this.inventoriesMightBeChanged |= true;
     }
 
     /// <summary>
@@ -351,7 +359,7 @@ internal class GameInventory : IInternalDisposableService
 #pragma warning restore SA1015
 internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInventory
 {
-    private static readonly ModuleLog Log = new(nameof(GameInventoryPluginScoped));
+    private static readonly ModuleLog Log = ModuleLog.Create<GameInventoryPluginScoped>();
 
     [ServiceManager.ServiceDependency]
     private readonly GameInventory gameInventoryService = Service<GameInventory>.Get();
@@ -466,7 +474,7 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
                 nameof(this.InventoryChangedRaw));
         }
     }
-    
+
     // Note below: using List<T> instead of IEnumerable<T>, since List<T> has a specialized lightweight enumerator.
 
     /// <summary>
@@ -475,42 +483,42 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemAddedArgs> events) =>
         Invoke(this.ItemAdded, this.ItemAddedExplicit, events);
-    
+
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemRemovedArgs> events) =>
         Invoke(this.ItemRemoved, this.ItemRemovedExplicit, events);
-    
+
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemChangedArgs> events) =>
         Invoke(this.ItemChanged, this.ItemChangedExplicit, events);
-    
+
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemMovedArgs> events) =>
         Invoke(this.ItemMoved, this.ItemMovedExplicit, events);
-    
+
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemSplitArgs> events) =>
         Invoke(this.ItemSplit, this.ItemSplitExplicit, events);
-    
+
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemMergedArgs> events) =>
         Invoke(this.ItemMerged, this.ItemMergedExplicit, events);
-    
+
     private static void Invoke<T>(
         IGameInventory.InventoryChangedDelegate? cb,
         IGameInventory.InventoryChangedDelegate<T>? cbt,

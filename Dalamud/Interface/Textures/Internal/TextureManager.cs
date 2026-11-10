@@ -11,12 +11,15 @@ using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 using Dalamud.Utility.TerraFxCom;
 
 using Lumina.Data;
 using Lumina.Data.Files;
+using Lumina.Data.Parsing.Tex.Buffers;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
@@ -31,7 +34,7 @@ internal sealed partial class TextureManager
       ITextureSubstitutionProvider,
       ITextureReadbackProvider
 {
-    private static readonly ModuleLog Log = new(nameof(TextureManager));
+    private static readonly ModuleLog Log = ModuleLog.Create<TextureManager>();
 
     [ServiceManager.ServiceDependency]
     private readonly Dalamud dalamud = Service<Dalamud>.Get();
@@ -46,19 +49,23 @@ internal sealed partial class TextureManager
     private readonly Framework framework = Service<Framework>.Get();
 
     [ServiceManager.ServiceDependency]
+    private readonly GameLifecycle gameLifecycle = Service<GameLifecycle>.Get();
+
+    [ServiceManager.ServiceDependency]
     private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
+
+    private readonly CancellationTokenSource disposeCts = new();
 
     private DynamicPriorityQueueLoader? dynamicPriorityTextureLoader;
     private SharedTextureManager? sharedTextureManager;
     private WicManager? wicManager;
-    private bool disposing;
     private ComPtr<ID3D11Device> device;
 
     [ServiceManager.ServiceConstructor]
     private unsafe TextureManager(InterfaceManager.InterfaceManagerWithScene withScene)
     {
         using var failsafe = new DisposeSafety.ScopedFinalizer();
-        failsafe.Add(this.device = new((ID3D11Device*)withScene.Manager.Device!.NativePointer));
+        failsafe.Add(this.device = new((ID3D11Device*)withScene.Manager.Backend!.DeviceHandle));
         failsafe.Add(this.dynamicPriorityTextureLoader = new(Math.Max(1, Environment.ProcessorCount - 1)));
         failsafe.Add(this.sharedTextureManager = new(this));
         failsafe.Add(this.wicManager = new(this));
@@ -104,10 +111,10 @@ internal sealed partial class TextureManager
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        if (this.disposing)
+        if (this.disposeCts.IsCancellationRequested)
             return;
 
-        this.disposing = true;
+        this.disposeCts.Cancel();
 
         Interlocked.Exchange(ref this.dynamicPriorityTextureLoader, null)?.Dispose();
         Interlocked.Exchange(ref this.simpleDrawer, null)?.Dispose();
@@ -215,7 +222,7 @@ internal sealed partial class TextureManager
             null,
             _ => Task.FromResult(
                 this.BlameSetName(
-                    this.NoThrottleCreateFromTexFile(file),
+                    this.NoThrottleCreateFromTexFile(file.Header, file.TextureBuffer),
                     debugName ?? $"{nameof(this.CreateFromTexFile)}({ForceNullable(file.FilePath)?.Path})")),
             cancellationToken);
 
@@ -245,7 +252,7 @@ internal sealed partial class TextureManager
             usage = D3D11_USAGE.D3D11_USAGE_DYNAMIC;
         else
             usage = D3D11_USAGE.D3D11_USAGE_DEFAULT;
-        
+
         using var texture = this.device.CreateTexture2D(
             new()
             {
@@ -268,6 +275,21 @@ internal sealed partial class TextureManager
         this.BlameSetName(wrap, debugName ?? $"{nameof(this.CreateEmpty)}({specs})");
         return wrap;
     }
+
+    /// <inheritdoc/>
+    public IDrawListTextureWrap CreateDrawListTexture(string? debugName = null) => this.CreateDrawListTexture(null, debugName);
+
+    /// <summary><inheritdoc cref="CreateDrawListTexture(string?)" path="/summary"/></summary>
+    /// <param name="plugin">Plugin that created the draw list.</param>
+    /// <param name="debugName"><inheritdoc cref="CreateDrawListTexture(string?)" path="/param[name=debugName]"/></param>
+    /// <returns><inheritdoc cref="CreateDrawListTexture(string?)" path="/returns"/></returns>
+    public IDrawListTextureWrap CreateDrawListTexture(LocalPlugin? plugin, string? debugName = null) =>
+        new DrawListTextureWrap(
+            new(this.device),
+            this,
+            Service<DalamudAssetManager>.Get().Empty4X4,
+            plugin,
+            debugName ?? $"{nameof(this.CreateDrawListTexture)}");
 
     /// <inheritdoc/>
     bool ITextureProvider.IsDxgiFormatSupported(int dxgiFormat) =>
@@ -326,14 +348,14 @@ internal sealed partial class TextureManager
 
     /// <summary>Creates a texture from the given <see cref="TexFile"/>. Skips the load throttler; intended to be used
     /// from implementation of <see cref="SharedImmediateTexture"/>s.</summary>
-    /// <param name="file">The data.</param>
+    /// <param name="header">Header of a <c>.tex</c> file.</param>
+    /// <param name="buffer">Texture buffer.</param>
     /// <returns>The loaded texture.</returns>
-    internal IDalamudTextureWrap NoThrottleCreateFromTexFile(TexFile file)
+    internal IDalamudTextureWrap NoThrottleCreateFromTexFile(TexFile.TexHeader header, TextureBuffer buffer)
     {
-        ObjectDisposedException.ThrowIf(this.disposing, this);
+        ObjectDisposedException.ThrowIf(this.disposeCts.IsCancellationRequested, this);
 
-        var buffer = file.TextureBuffer;
-        var (dxgiFormat, conversion) = TexFile.GetDxgiFormatFromTextureFormat(file.Header.Format, false);
+        var (dxgiFormat, conversion) = TexFile.GetDxgiFormatFromTextureFormat(header.Format, false);
         if (conversion != TexFile.DxgiFormatConversion.NoConversion ||
             !this.IsDxgiFormatSupported((DXGI_FORMAT)dxgiFormat))
         {
@@ -342,34 +364,31 @@ internal sealed partial class TextureManager
         }
 
         var wrap = this.NoThrottleCreateFromRaw(new(buffer.Width, buffer.Height, dxgiFormat), buffer.RawData);
-        this.BlameSetName(wrap, $"{nameof(this.NoThrottleCreateFromTexFile)}({ForceNullable(file.FilePath).Path})");
+        this.BlameSetName(wrap, $"{nameof(this.NoThrottleCreateFromTexFile)}({header.Width} x {header.Height})");
         return wrap;
-
-        static T? ForceNullable<T>(T s) => s;
     }
 
     /// <summary>Creates a texture from the given <paramref name="fileBytes"/>, trying to interpret it as a
     /// <see cref="TexFile"/>.</summary>
     /// <param name="fileBytes">The file bytes.</param>
     /// <returns>The loaded texture.</returns>
-    internal IDalamudTextureWrap NoThrottleCreateFromTexFile(ReadOnlySpan<byte> fileBytes)
+    internal unsafe IDalamudTextureWrap NoThrottleCreateFromTexFile(ReadOnlySpan<byte> fileBytes)
     {
-        ObjectDisposedException.ThrowIf(this.disposing, this);
+        ObjectDisposedException.ThrowIf(this.disposeCts.IsCancellationRequested, this);
 
         if (!TexFileExtensions.IsPossiblyTexFile2D(fileBytes))
             throw new InvalidDataException("The file is not a TexFile.");
 
-        var bytesArray = fileBytes.ToArray();
-        var tf = new TexFile();
-        typeof(TexFile).GetProperty(nameof(tf.Data))!.GetSetMethod(true)!.Invoke(
-            tf,
-            new object?[] { bytesArray });
-        typeof(TexFile).GetProperty(nameof(tf.Reader))!.GetSetMethod(true)!.Invoke(
-            tf,
-            new object?[] { new LuminaBinaryReader(bytesArray) });
-        // Note: FileInfo and FilePath are not used from TexFile; skip it.
+        TexFile.TexHeader header;
+        TextureBuffer buffer;
+        fixed (byte* p = fileBytes)
+        {
+            var lbr = new LuminaBinaryReader(new UnmanagedMemoryStream(p, fileBytes.Length));
+            header = lbr.ReadStructure<TexFile.TexHeader>();
+            buffer = TextureBuffer.FromStream(header, lbr);
+        }
 
-        var wrap = this.NoThrottleCreateFromTexFile(tf);
+        var wrap = this.NoThrottleCreateFromTexFile(header, buffer);
         this.BlameSetName(wrap, $"{nameof(this.NoThrottleCreateFromTexFile)}({fileBytes.Length:n0})");
         return wrap;
     }

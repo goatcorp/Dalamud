@@ -4,8 +4,10 @@ using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
+using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Internal;
 using Dalamud.Utility;
-using ImGuiNET;
+
 using Serilog;
 
 namespace Dalamud.Interface.DragDrop;
@@ -37,11 +39,12 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
     public void DragEnter(IDataObject pDataObj, uint grfKeyState, POINTL pt, ref uint pdwEffect)
     {
         this.IsDragging = true;
-        this.lastKeyState = UpdateIo((DragDropInterop.ModifierKeys)grfKeyState, true);
+        this.lastKeyState = UpdateIo((DragDropInterop.ModifierKeys)grfKeyState, pt, true);
 
         if (pDataObj.QueryGetData(ref this.formatEtc) != 0)
         {
             pdwEffect = 0;
+            (this.Files, this.Directories, this.Extensions) = ([], [], new HashSet<string>());
         }
         else
         {
@@ -64,7 +67,7 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
         if (frame != this.lastUpdateFrame)
         {
             this.lastUpdateFrame = frame;
-            this.lastKeyState = UpdateIo((DragDropInterop.ModifierKeys)grfKeyState, false);
+            this.lastKeyState = UpdateIo((DragDropInterop.ModifierKeys)grfKeyState, pt, false);
             pdwEffect &= (uint)DragDropInterop.DropEffects.Copy;
             Log.Verbose("[DragDrop] External Drag and Drop with {KeyState} at {PtX}, {PtY}.", (DragDropInterop.ModifierKeys)grfKeyState, pt.X, pt.Y);
         }
@@ -91,6 +94,10 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
         MouseDrop(this.lastKeyState);
         this.lastDropFrame = ImGui.GetFrameCount();
         this.IsDragging = false;
+
+        // OLE never calls DragLeave after a successful Drop
+        var totalCount = this.Files.Count + this.Directories.Count;
+
         if (this.HasPaths)
         {
             pdwEffect &= (uint)DragDropInterop.DropEffects.Copy;
@@ -100,14 +107,17 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
             pdwEffect = 0;
         }
 
-        Log.Debug("[DragDrop] Dropping {N} files with {KeyState} at {PtX}, {PtY}.", this.Files.Count + this.Directories.Count, (DragDropInterop.ModifierKeys)grfKeyState, pt.X, pt.Y);
+        Log.Debug("[DragDrop] Dropping {N} files with {KeyState} at {PtX}, {PtY}.", totalCount, (DragDropInterop.ModifierKeys)grfKeyState, pt.X, pt.Y);
     }
 
-    private static DragDropInterop.ModifierKeys UpdateIo(DragDropInterop.ModifierKeys keys, bool entering)
+    private static unsafe DragDropInterop.ModifierKeys UpdateIo(DragDropInterop.ModifierKeys keys, POINTL pt, bool entering)
     {
         var io = ImGui.GetIO();
         void UpdateMouse(int mouseIdx)
         {
+            if (io.MouseDown[mouseIdx])
+                return;
+
             if (entering)
             {
                 io.MouseDownDuration[mouseIdx] = 1f;
@@ -115,7 +125,21 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
 
             io.MouseDown[mouseIdx] = true;
             io.AddMouseButtonEvent(mouseIdx, true);
+            Log.Verbose("[DragDrop] Mouse button {MouseIdx} is now down due to external Drag and Drop.", mouseIdx);
         }
+
+        // The fallback in Win32InputHandler when the mouse isn't tracked isn't enough. When the D&D source app
+        // takes over we will sometimes just stop receiving WM_MOUSEMOVE, so let's just inject it here for good measure
+        // and fix this for good, hopefully.
+        var mousePos = new TerraFX.Interop.Windows.POINT { x = pt.X, y = pt.Y };
+        if ((io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) == 0)
+        {
+            // Use game window, otherwise, positions are calculated based on the focused window which might not be the game.
+            // Leads to offsets.
+            TerraFX.Interop.Windows.Windows.ClientToScreen(Service<InterfaceManager>.Get().GameWindowHandle, &mousePos);
+        }
+
+        io.AddMousePosEvent(mousePos.x, mousePos.y);
 
         if (keys.HasFlag(DragDropInterop.ModifierKeys.MK_LBUTTON))
         {
@@ -173,8 +197,12 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
         var io = ImGui.GetIO();
         void UpdateMouse(int mouseIdx)
         {
+            if (!io.MouseDown[mouseIdx])
+                return;
+
             io.AddMouseButtonEvent(mouseIdx, false);
             io.MouseDown[mouseIdx] = false;
+            Log.Verbose("[DragDrop] Mouse button {MouseIdx} is now up due to external Drag and Drop.", mouseIdx);
         }
 
         if (keys.HasFlag(DragDropInterop.ModifierKeys.MK_LBUTTON))

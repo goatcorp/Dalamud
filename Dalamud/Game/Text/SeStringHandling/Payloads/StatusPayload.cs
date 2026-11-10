@@ -5,6 +5,7 @@ using Dalamud.Data;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -63,7 +64,7 @@ public class StatusPayload : Payload
 
         bytes.AddRange(idBytes);
         // unk
-        bytes.AddRange(new byte[] { 0x01, 0x01, 0xFF, 0x02, 0x20, END_BYTE });
+        bytes.AddRange([0x01, 0x01, 0xFF, 0x02, 0x20, END_BYTE]);
 
         return bytes.ToArray();
     }

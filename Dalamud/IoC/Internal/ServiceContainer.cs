@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -7,35 +8,47 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Services;
 
 namespace Dalamud.IoC.Internal;
 
+// NOTE: Every await in this class has to use ConfigureAwait(false). IServiceProvider forces the scope's GetService to
+// block synchronously on these async methods, and that call may originate from a callback running on the framework
+// thread via Framework.Run, where TaskScheduler.Current is the framework's ThreadBoundTaskScheduler. An unconfigured
+// await would post its continuation to that scheduler, which only drains on the next framework tick which can never
+// happen while the framework thread is blocked waiting for the resolution to finish.
+
 /// <summary>
 /// A simple singleton-only IOC container that provides (optional) version-based dependency resolution.
-/// 
+///
 /// This is only used to resolve dependencies for plugins.
 /// Dalamud services are constructed via Service{T}.ConstructObject at the moment.
 /// </summary>
 [ServiceManager.ProvidedService]
-internal class ServiceContainer : IServiceProvider, IServiceType
+internal class ServiceContainer : IServiceType
 {
-    private static readonly ModuleLog Log = new("SERVICECONTAINER");
+    private static readonly ModuleLog Log = ModuleLog.Create<ServiceContainer>();
 
-    private readonly Dictionary<Type, ObjectInstance> instances = new();
-    private readonly Dictionary<Type, Type> interfaceToTypeMap = new();
+    private readonly Dictionary<Type, ObjectInstance> instances = [];
+    private readonly Dictionary<Type, Type> interfaceToTypeMap = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ServiceContainer"/> class.
     /// </summary>
     public ServiceContainer()
     {
+        // Register the service container itself as a singleton.
+        // For all other services, this is done through the static constructor of Service{T}.
+        this.instances.Add(
+            typeof(IServiceContainer),
+            new(Task.FromResult(new WeakReference(this)), typeof(ServiceContainer), ObjectInstanceVisibility.Internal));
     }
-    
+
     /// <summary>
     /// Gets a dictionary of all registered instances.
     /// </summary>
     public IReadOnlyDictionary<Type, ObjectInstance> Instances => this.instances;
-    
+
     /// <summary>
     /// Gets a dictionary mapping interfaces to their implementations.
     /// </summary>
@@ -45,15 +58,30 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// Register a singleton object of any type into the current IOC container.
     /// </summary>
     /// <param name="instance">The existing instance to register in the container.</param>
+    /// <param name="visibility">The visibility of this singleton.</param>
     /// <typeparam name="T">The type to register.</typeparam>
-    public void RegisterSingleton<T>(Task<T> instance)
+    public void RegisterSingleton<T>(Task<T> instance, ObjectInstanceVisibility visibility)
     {
-        if (instance == null)
-        {
-            throw new ArgumentNullException(nameof(instance));
-        }
+        ArgumentNullException.ThrowIfNull(instance);
 
-        this.instances[typeof(T)] = new(instance.ContinueWith(x => new WeakReference(x.Result)), typeof(T));
+        var continuation = instance.ContinueWith(
+            x => new WeakReference(x.Result),
+            ServiceManager.UnloadCancellationToken,
+            TaskContinuationOptions.RunContinuationsAsynchronously,
+            TaskScheduler.Default);
+
+        this.instances[typeof(T)] = new(continuation, typeof(T), visibility);
+    }
+
+    /// <summary>
+    /// Unregisters a singleton service from the container.
+    /// </summary>
+    /// <param name="serviceType">The type of the service to remove.</param>
+    public void UnregisterSingleton(Type serviceType)
+    {
+        ArgumentNullException.ThrowIfNull(serviceType);
+
+        this.instances.Remove(serviceType);
     }
 
     /// <summary>
@@ -69,9 +97,10 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         foreach (var resolvableType in resolveViaTypes)
         {
             Log.Verbose("=> {InterfaceName} provides for {TName}", resolvableType.FullName ?? "???", type.FullName ?? "???");
-            
+
             Debug.Assert(!this.interfaceToTypeMap.ContainsKey(resolvableType), "A service already implements this interface, this is not allowed");
             Debug.Assert(type.IsAssignableTo(resolvableType), "Service does not inherit from indicated ResolveVia type");
+            Debug.Assert(resolvableType.IsAssignableTo(typeof(IDalamudService)), "Indicated ResolveVia type does not inherit from IDalamudService");
 
             this.interfaceToTypeMap[resolvableType] = type;
         }
@@ -81,10 +110,11 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// Create an object.
     /// </summary>
     /// <param name="objectType">The type of object to create.</param>
+    /// <param name="allowedVisibility">Defines which services are allowed to be directly resolved into this type.</param>
     /// <param name="scopedObjects">Scoped objects to be included in the constructor.</param>
     /// <param name="scope">The scope to be used to create scoped services.</param>
     /// <returns>The created object.</returns>
-    public async Task<object> CreateAsync(Type objectType, object[] scopedObjects, IServiceScope? scope = null)
+    public async Task<object> CreateAsync(Type objectType, ObjectInstanceVisibility allowedVisibility, object[] scopedObjects, IServiceScope? scope = null)
     {
         var errorStep = "constructor lookup";
 
@@ -100,34 +130,24 @@ internal class ServiceContainer : IServiceProvider, IServiceType
                 await Task.WhenAll(
                     ctor.GetParameters()
                         .Select(p => p.ParameterType)
-                        .Select(type => this.GetService(type, scopeImpl, scopedObjects)));
+                        .Select(type => this.GetService(type, scopeImpl, scopedObjects))).ConfigureAwait(false);
 
             var instance = RuntimeHelpers.GetUninitializedObject(objectType);
 
             errorStep = "property injection";
-            await this.InjectProperties(instance, scopedObjects, scope);
+            await this.InjectProperties(instance, scopedObjects, scope).ConfigureAwait(false);
 
+            // Invoke ctor from a separate thread (LongRunning will spawn a new one)
+            // so that it does not count towards thread pool active threads cap.
+            // Legacy (IDalamudPlugin) plugin ctors can block to wait for Tasks, as the ctor is their only init.
+            // IAsyncDalamudPlugin plugins should do such work in LoadAsync instead, but their ctors are invoked
+            // through this same path.
             errorStep = "ctor invocation";
-            var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            var thr = new Thread(
-                () =>
-                {
-                    try
-                    {
-                        ctor.Invoke(instance, resolvedParams);
-                    }
-                    catch (Exception e)
-                    {
-                        tcs.SetException(e);
-                        return;
-                    }
-
-                    tcs.SetResult();
-                });
-
-            thr.Start();
-            await tcs.Task.ConfigureAwait(false);
-            thr.Join();
+            await Task.Factory.StartNew(
+                () => ctor.Invoke(instance, resolvedParams),
+                CancellationToken.None,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default).ConfigureAwait(false);
 
             return instance;
         }
@@ -158,7 +178,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
                 .ToArray();
 
         foreach (var prop in props)
-            prop.SetValue(instance, await this.GetService(prop.PropertyType, scopeImpl, publicScopes));
+            prop.SetValue(instance, await this.GetService(prop.PropertyType, scopeImpl, publicScopes).ConfigureAwait(false));
     }
 
     /// <summary>
@@ -167,15 +187,26 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// <returns>An implementation of a service scope.</returns>
     public IServiceScope GetScope() => new ServiceScopeImpl(this);
 
-    /// <inheritdoc/>
-    object? IServiceProvider.GetService(Type serviceType) => this.GetSingletonService(serviceType);
-
-    private async Task<object> GetService(Type serviceType, ServiceScopeImpl? scope, object[] scopedObjects)
+    /// <summary>
+    /// Resolves and returns an instance of the specified service type, using either singleton or scoped lifetime as
+    /// appropriate.
+    /// </summary>
+    /// <param name="serviceType">The type of the service to resolve. This must be a concrete or interface type registered with the service
+    /// manager.</param>
+    /// <param name="scope">The scope within which to create scoped services. Required if the requested service type is registered as
+    /// scoped; otherwise, can be null.</param>
+    /// <param name="scopedObjects">An array of objects available for scoped resolution. Used to locate or create scoped service instances when
+    /// applicable.</param>
+    /// <returns>An instance of the requested service type. Returns a singleton instance if available, a scoped instance if
+    /// required, or an object from the provided scoped objects if it matches the service type.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if a scoped service is requested but no scope is provided, or if the requested service type cannot be
+    /// resolved from the scoped objects.</exception>
+    public async Task<object> GetService(Type serviceType, ServiceScopeImpl? scope, object[] scopedObjects)
     {
         if (this.interfaceToTypeMap.TryGetValue(serviceType, out var implementingType))
             serviceType = implementingType;
-        
-        if (serviceType.GetCustomAttribute<ServiceManager.ScopedServiceAttribute>() != null)
+
+        if (Attribute.IsDefined(serviceType, typeof(ServiceManager.ScopedServiceAttribute)))
         {
             if (scope == null)
             {
@@ -183,10 +214,10 @@ internal class ServiceContainer : IServiceProvider, IServiceType
                     $"Failed to create {serviceType.FullName ?? serviceType.Name}, is scoped but no scope provided");
             }
 
-            return await scope.CreatePrivateScopedObject(serviceType, scopedObjects);
+            return await scope.CreatePrivateScopedObject(serviceType, scopedObjects).ConfigureAwait(false);
         }
 
-        var singletonService = await this.GetSingletonService(serviceType, false);
+        var singletonService = await this.GetSingletonService(serviceType, false).ConfigureAwait(false);
         if (singletonService != null)
             return singletonService;
 
@@ -204,14 +235,14 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         if (!this.instances.TryGetValue(serviceType, out var service))
             return null;
 
-        var instance = await service.InstanceTask;
+        var instance = await service.InstanceTask.ConfigureAwait(false);
         return instance.Target;
     }
 
     private ConstructorInfo? FindApplicableCtor(Type type, object[] scopedObjects)
     {
         // get a list of all the available types: scoped and singleton
-        var types = scopedObjects
+        var allValidServiceTypes = scopedObjects
                     .Select(o => o.GetType())
                     .Union(this.instances.Keys)
                     .ToArray();
@@ -224,7 +255,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         var ctors = type.GetConstructors(ctorFlags);
         foreach (var ctor in ctors)
         {
-            if (this.ValidateCtor(ctor, types))
+            if (this.ValidateCtor(ctor, allValidServiceTypes))
             {
                 return ctor;
             }
@@ -233,28 +264,30 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         return null;
     }
 
-    private bool ValidateCtor(ConstructorInfo ctor, Type[] types)
+    private bool ValidateCtor(ConstructorInfo ctor, Type[] validTypes)
     {
         bool IsTypeValid(Type type)
         {
-            var contains = types.Any(x => x.IsAssignableTo(type));
+            var contains = validTypes.Any(x => x.IsAssignableTo(type));
 
             // Scoped services are created on-demand
-            return contains || type.GetCustomAttribute<ServiceManager.ScopedServiceAttribute>() != null;
+            return contains || Attribute.IsDefined(type, typeof(ServiceManager.ScopedServiceAttribute));
         }
-        
+
         var parameters = ctor.GetParameters();
         foreach (var parameter in parameters)
         {
             var valid = IsTypeValid(parameter.ParameterType);
-            
+
             // If this service is provided by an interface
             if (!valid && this.interfaceToTypeMap.TryGetValue(parameter.ParameterType, out var implementationType))
                 valid = IsTypeValid(implementationType);
 
             if (!valid)
             {
-                Log.Error("Failed to validate {TypeName}, unable to find any services that satisfy the type", parameter.ParameterType.FullName!);
+                Log.Error("Ctor from {DeclaringType}: Failed to validate {TypeName}, unable to find any services that satisfy the type",
+                          ctor.DeclaringType?.FullName ?? ctor.DeclaringType?.Name ?? "null",
+                          parameter.ParameterType.FullName!);
                 return false;
             }
         }

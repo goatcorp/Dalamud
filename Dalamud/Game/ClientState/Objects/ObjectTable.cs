@@ -5,16 +5,13 @@ using System.Runtime.CompilerServices;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Game.Player;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
-using Dalamud.Logging.Internal;
-using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.Interop;
-
-using Microsoft.Extensions.ObjectPool;
 
 using CSGameObject = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject;
 using CSGameObjectManager = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager;
@@ -31,34 +28,22 @@ namespace Dalamud.Game.ClientState.Objects;
 #pragma warning restore SA1015
 internal sealed partial class ObjectTable : IServiceType, IObjectTable
 {
-    private static readonly ModuleLog Log = new("ObjectTable");
-
     private static int objectTableLength;
 
-    private readonly ClientState clientState;
+    [ServiceManager.ServiceDependency]
+    private readonly PlayerState playerState = Service<PlayerState>.Get();
+
     private readonly CachedEntry[] cachedObjectTable;
 
-    private readonly ObjectPool<Enumerator> multiThreadedEnumerators =
-        new DefaultObjectPoolProvider().Create<Enumerator>();
-
-    private readonly Enumerator?[] frameworkThreadEnumerators = new Enumerator?[4];
-
-    private long nextMultithreadedUsageWarnTime;
-
     [ServiceManager.ServiceConstructor]
-    private unsafe ObjectTable(ClientState clientState)
+    private unsafe ObjectTable()
     {
-        this.clientState = clientState;
-
         var nativeObjectTable = CSGameObjectManager.Instance()->Objects.IndexSorted;
         objectTableLength = nativeObjectTable.Length;
 
         this.cachedObjectTable = new CachedEntry[objectTableLength];
         for (var i = 0; i < this.cachedObjectTable.Length; i++)
             this.cachedObjectTable[i] = new(nativeObjectTable.GetPointer(i));
-
-        for (var i = 0; i < this.frameworkThreadEnumerators.Length; i++)
-            this.frameworkThreadEnumerators[i] = new(this, i);
     }
 
     /// <inheritdoc/>
@@ -66,7 +51,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     {
         get
         {
-            _ = this.WarnMultithreadedUsage();
+            ThreadSafety.AssertMainThread();
 
             return (nint)(&CSGameObjectManager.Instance()->Objects);
         }
@@ -76,11 +61,32 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     public int Length => objectTableLength;
 
     /// <inheritdoc/>
+    public IPlayerCharacter? LocalPlayer => this[0] as IPlayerCharacter;
+
+    /// <inheritdoc/>
+    public IEnumerable<IBattleChara> PlayerObjects => this.GetPlayerObjects();
+
+    /// <inheritdoc/>
+    public IEnumerable<IGameObject> CharacterManagerObjects => this.GetObjectsInRange(..199);
+
+    /// <inheritdoc/>
+    public IEnumerable<IGameObject> ClientObjects => this.GetObjectsInRange(200..448);
+
+    /// <inheritdoc/>
+    public IEnumerable<IGameObject> EventObjects => this.GetObjectsInRange(449..488);
+
+    /// <inheritdoc/>
+    public IEnumerable<IGameObject> StandObjects => this.GetObjectsInRange(489..628);
+
+    /// <inheritdoc/>
+    public IEnumerable<IGameObject> ReactionEventObjects => this.GetObjectsInRange(629..728);
+
+    /// <inheritdoc/>
     public IGameObject? this[int index]
     {
         get
         {
-            _ = this.WarnMultithreadedUsage();
+            ThreadSafety.AssertMainThread();
 
             return (index >= objectTableLength || index < 0) ? null : this.cachedObjectTable[index].Update();
         }
@@ -89,7 +95,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     /// <inheritdoc/>
     public IGameObject? SearchById(ulong gameObjectId)
     {
-        _ = this.WarnMultithreadedUsage();
+        ThreadSafety.AssertMainThread();
 
         if (gameObjectId is 0)
             return null;
@@ -106,7 +112,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     /// <inheritdoc/>
     public IGameObject? SearchByEntityId(uint entityId)
     {
-        _ = this.WarnMultithreadedUsage();
+        ThreadSafety.AssertMainThread();
 
         if (entityId is 0 or 0xE0000000)
             return null;
@@ -123,7 +129,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     /// <inheritdoc/>
     public unsafe nint GetObjectAddress(int index)
     {
-        _ = this.WarnMultithreadedUsage();
+        ThreadSafety.AssertMainThread();
 
         return (index >= objectTableLength || index < 0) ? nint.Zero : (nint)this.cachedObjectTable[index].Address;
     }
@@ -131,49 +137,50 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     /// <inheritdoc/>
     public unsafe IGameObject? CreateObjectReference(nint address)
     {
-        _ = this.WarnMultithreadedUsage();
-
-        if (this.clientState.LocalContentId == 0)
-            return null;
+        ThreadSafety.AssertMainThread();
 
         if (address == nint.Zero)
+            return null;
+
+        if (!this.playerState.IsLoaded)
             return null;
 
         var obj = (CSGameObject*)address;
         var objKind = (ObjectKind)obj->ObjectKind;
         return objKind switch
         {
-            ObjectKind.Player => new PlayerCharacter(address),
+            ObjectKind.Pc => new PlayerCharacter(address),
             ObjectKind.BattleNpc => new BattleNpc(address),
             ObjectKind.EventNpc => new Npc(address),
             ObjectKind.Retainer => new Npc(address),
             ObjectKind.EventObj => new EventObj(address),
             ObjectKind.Companion => new Npc(address),
-            ObjectKind.MountType => new Npc(address),
+            ObjectKind.Mount => new Npc(address),
             ObjectKind.Ornament => new Npc(address),
             _ => new GameObject(address),
         };
     }
 
-    [Api12ToDo("Use ThreadSafety.AssertMainThread() instead of this.")]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool WarnMultithreadedUsage()
+    private IEnumerable<IBattleChara> GetPlayerObjects()
     {
-        if (ThreadSafety.IsMainThread)
-            return false;
-
-        var n = Environment.TickCount64;
-        if (this.nextMultithreadedUsageWarnTime < n)
+        for (var index = 0; index < 200; index += 2)
         {
-            this.nextMultithreadedUsageWarnTime = n + 30000;
-
-            Log.Warning(
-                "{plugin} is accessing {objectTable} outside the main thread. This is deprecated.",
-                Service<PluginManager>.Get().FindCallingPlugin()?.Name ?? "<unknown plugin>",
-                nameof(ObjectTable));
+            if (this[index] is IBattleChara { ObjectKind: ObjectKind.Pc } gameObject)
+            {
+                yield return gameObject;
+            }
         }
+    }
 
-        return true;
+    private IEnumerable<IGameObject> GetObjectsInRange(Range range)
+    {
+        for (var index = range.Start.Value; index <= range.End.Value; index++)
+        {
+            if (this[index] is { } gameObject)
+            {
+                yield return gameObject;
+            }
+        }
     }
 
     /// <summary>Stores an object table entry, with preallocated concrete types.</summary>
@@ -204,13 +211,13 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
 
             var activeObject = (ObjectKind)address->ObjectKind switch
             {
-                ObjectKind.Player => this.playerCharacter,
+                ObjectKind.Pc => this.playerCharacter,
                 ObjectKind.BattleNpc => this.battleNpc,
                 ObjectKind.EventNpc => this.npc,
                 ObjectKind.Retainer => this.npc,
                 ObjectKind.EventObj => this.eventObj,
                 ObjectKind.Companion => this.npc,
-                ObjectKind.MountType => this.npc,
+                ObjectKind.Mount => this.npc,
                 ObjectKind.Ornament => this.npc,
                 _ => this.gameObject,
             };
@@ -228,60 +235,26 @@ internal sealed partial class ObjectTable
     /// <inheritdoc/>
     public IEnumerator<IGameObject> GetEnumerator()
     {
-        // If something's trying to enumerate outside the framework thread, we use the ObjectPool.
-        if (this.WarnMultithreadedUsage())
-        {
-            // let's not
-            var e = this.multiThreadedEnumerators.Get();
-            e.InitializeForPooledObjects(this);
-            return e;
-        }
-
-        // If we're on the framework thread, see if there's an already allocated enumerator available for use.
-        foreach (ref var x in this.frameworkThreadEnumerators.AsSpan())
-        {
-            if (x is not null)
-            {
-                var t = x;
-                x = null;
-                t.Reset();
-                return t;
-            }
-        }
-
-        // No reusable enumerator is available; allocate a new temporary one.
-        return new Enumerator(this, -1);
+        ThreadSafety.AssertMainThread();
+        return new Enumerator(this);
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
-    private sealed class Enumerator : IEnumerator<IGameObject>, IResettable
+    private struct Enumerator(ObjectTable owner) : IEnumerator<IGameObject>
     {
-        private readonly int slotId;
-        private ObjectTable? owner;
-
         private int index = -1;
 
-        public Enumerator() => this.slotId = -1;
-
-        public Enumerator(ObjectTable owner, int slotId)
-        {
-            this.owner = owner;
-            this.slotId = slotId;
-        }
-
-        public IGameObject Current { get; private set; } = null!;
+        public IGameObject Current { get; private set; }
 
         object IEnumerator.Current => this.Current;
 
         public bool MoveNext()
         {
-            if (this.index == objectTableLength)
-                return false;
+            var cache = owner.cachedObjectTable.AsSpan();
 
-            var cache = this.owner!.cachedObjectTable.AsSpan();
-            for (this.index++; this.index < objectTableLength; this.index++)
+            while (++this.index < objectTableLength)
             {
                 if (cache[this.index].Update() is { } ao)
                 {
@@ -290,28 +263,17 @@ internal sealed partial class ObjectTable
                 }
             }
 
+            this.Current = default;
             return false;
         }
 
-        public void InitializeForPooledObjects(ObjectTable ot) => this.owner = ot;
-
-        public void Reset() => this.index = -1;
+        public void Reset()
+        {
+            this.index = -1;
+        }
 
         public void Dispose()
         {
-            if (this.owner is not { } o)
-                return;
-
-            if (this.slotId == -1)
-                o.multiThreadedEnumerators.Return(this);
-            else
-                o.frameworkThreadEnumerators[this.slotId] = this;
-        }
-
-        public bool TryReset()
-        {
-            this.Reset();
-            return true;
         }
     }
 }

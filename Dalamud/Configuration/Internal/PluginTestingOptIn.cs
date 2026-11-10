@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Configuration.Internal;
+namespace Dalamud.Configuration.Internal;
 
 /// <summary>
 /// Represents a plugin that has opted in to testing.

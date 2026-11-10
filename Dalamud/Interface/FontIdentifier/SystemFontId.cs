@@ -2,10 +2,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 using Newtonsoft.Json;
 
@@ -38,7 +37,7 @@ public sealed class SystemFontId : IFontId
             this.EnglishName = name;
         else if (this.LocaleNames.TryGetValue("en", out name))
             this.EnglishName = name;
-        else 
+        else
             this.EnglishName = this.LocaleNames.Values.First();
     }
 
@@ -116,8 +115,8 @@ public sealed class SystemFontId : IFontId
 
         var familyIndex = 0u;
         BOOL exists = false;
-        fixed (void* name = this.Family.EnglishName)
-            sfc.Get()->FindFamilyName((ushort*)name, &familyIndex, &exists).ThrowOnError();
+        fixed (char* name = this.Family.EnglishName)
+            sfc.Get()->FindFamilyName(name, &familyIndex, &exists).ThrowOnError();
         if (!exists)
             throw new FileNotFoundException($"Font \"{this.Family.EnglishName}\" not found.");
 
@@ -154,7 +153,7 @@ public sealed class SystemFontId : IFontId
         flocal.Get()->GetFilePathLengthFromKey(refKey, refKeySize, &pathSize).ThrowOnError();
 
         var path = stackalloc char[(int)pathSize + 1];
-        flocal.Get()->GetFilePathFromKey(refKey, refKeySize, (ushort*)path, pathSize + 1).ThrowOnError();
+        flocal.Get()->GetFilePathFromKey(refKey, refKeySize, path, pathSize + 1).ThrowOnError();
         return (new(path, 0, (int)pathSize), (int)fface.Get()->GetIndex());
     }
 

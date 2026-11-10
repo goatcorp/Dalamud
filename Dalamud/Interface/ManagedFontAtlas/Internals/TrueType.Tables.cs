@@ -66,23 +66,23 @@ internal static partial class TrueTypeUtils
         public EncodingRecord? UnicodeEncodingRecord =>
             this.Records.Select(x => (EncodingRecord?)x).FirstOrDefault(
                 x => x!.Value.PlatformAndEncoding is
-                         { Platform: PlatformId.Unicode, UnicodeEncoding: UnicodeEncodingId.Unicode_2_0_Bmp })
+                { Platform: PlatformId.Unicode, UnicodeEncoding: UnicodeEncodingId.Unicode_2_0_Bmp })
             ??
             this.Records.Select(x => (EncodingRecord?)x).FirstOrDefault(
                 x => x!.Value.PlatformAndEncoding is
-                         { Platform: PlatformId.Unicode, UnicodeEncoding: UnicodeEncodingId.Unicode_2_0_Full })
+                { Platform: PlatformId.Unicode, UnicodeEncoding: UnicodeEncodingId.Unicode_2_0_Full })
             ??
             this.Records.Select(x => (EncodingRecord?)x).FirstOrDefault(
                 x => x!.Value.PlatformAndEncoding is
-                         { Platform: PlatformId.Unicode, UnicodeEncoding: UnicodeEncodingId.UnicodeFullRepertoire })
+                { Platform: PlatformId.Unicode, UnicodeEncoding: UnicodeEncodingId.UnicodeFullRepertoire })
             ??
             this.Records.Select(x => (EncodingRecord?)x).FirstOrDefault(
                 x => x!.Value.PlatformAndEncoding is
-                         { Platform: PlatformId.Windows, WindowsEncoding: WindowsEncodingId.UnicodeBmp })
+                { Platform: PlatformId.Windows, WindowsEncoding: WindowsEncodingId.UnicodeBmp })
             ??
             this.Records.Select(x => (EncodingRecord?)x).FirstOrDefault(
                 x => x!.Value.PlatformAndEncoding is
-                         { Platform: PlatformId.Windows, WindowsEncoding: WindowsEncodingId.UnicodeFullRepertoire });
+                { Platform: PlatformId.Windows, WindowsEncoding: WindowsEncodingId.UnicodeFullRepertoire });
 
         public CmapFormat? UnicodeTable => this.GetTable(this.UnicodeEncodingRecord);
 
@@ -748,7 +748,7 @@ internal static partial class TrueTypeUtils
                 public CoverageTable CoverageTable => new(this.Memory[this.CoverageOffset..]);
 
                 public PairSet this[int index] => new(
-                    this.Memory[this.PairSetOffsets[index] ..],
+                    this.Memory[this.PairSetOffsets[index]..],
                     this.ValueFormat1,
                     this.ValueFormat2);
 

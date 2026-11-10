@@ -2,6 +2,8 @@ using System.Collections.Generic;
 
 using Dalamud.Common.Game;
 using Dalamud.Plugin.Internal.Types.Manifest;
+using Dalamud.Utility;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal.Types;
@@ -42,7 +44,7 @@ internal record PluginManifest : IPluginManifest
     public List<string>? CategoryTags { get; init; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the plugin is hidden in the plugin installer.
+    /// Gets or sets a value indicating whether the plugin is hidden in the plugin installer.
     /// This value comes from the plugin master and is in addition to the list of hidden names kept by Dalamud.
     /// </summary>
     [JsonProperty]
@@ -58,14 +60,6 @@ internal record PluginManifest : IPluginManifest
 
     /// <inheritdoc/>
     [JsonProperty]
-    public Version? TestingAssemblyVersion { get; init; }
-
-    /// <inheritdoc/>
-    [JsonProperty]
-    public bool IsTestingExclusive { get; init; }
-
-    /// <inheritdoc/>
-    [JsonProperty]
     public string? RepoUrl { get; init; }
 
     /// <summary>
@@ -77,11 +71,11 @@ internal record PluginManifest : IPluginManifest
 
     /// <inheritdoc/>
     [JsonProperty]
-    public int DalamudApiLevel { get; init; } = PluginManager.DalamudApiLevel;
+    public Version? MinimumDalamudVersion { get; init; }
 
     /// <inheritdoc/>
     [JsonProperty]
-    public int? TestingDalamudApiLevel { get; init; }
+    public int DalamudApiLevel { get; init; } = PluginManager.DalamudApiLevel;
 
     /// <inheritdoc/>
     [JsonProperty]
@@ -155,5 +149,40 @@ internal record PluginManifest : IPluginManifest
 
     /// <inheritdoc/>
     [JsonProperty("_Dip17Channel")]
-    public string? Dip17Channel { get; init; }
+    public string? Dip17Channel { get; set; }
+
+    /// <summary>
+    /// Gets or sets the assembly version of the plugin's testing variant.
+    /// </summary>
+    [Api16ToDo("Move to RemotePluginManifest")]
+    public Version? TestingAssemblyVersion { get; set; }
+
+    /// <summary>
+    /// Gets or sets the API level of the plugin's testing variant.
+    /// For the current API level, please see <see cref="PluginManager.DalamudApiLevel"/> for the currently used API level.
+    /// </summary>
+    [Api16ToDo("Move to RemotePluginManifest")]
+    public int? TestingDalamudApiLevel { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the plugin is only available for testing.
+    /// </summary>
+    [Api16ToDo("Move to RemotePluginManifest")]
+    public bool IsTestingExclusive { get; set; }
+
+    /// <summary>
+    /// Gets a value indicating whether this plugin is eligible for testing.
+    /// </summary>
+    [JsonIgnore]
+    [Api16ToDo("Move to RemotePluginManifest")]
+    public bool IsAvailableForTesting
+        => this.TestingAssemblyVersion != null &&
+           this.TestingAssemblyVersion > this.AssemblyVersion &&
+           this.TestingDalamudApiLevel == PluginManager.DalamudApiLevel;
+
+    /// <summary>
+    /// Creates a shallow copy of this <see cref="PluginManifest"/>.
+    /// </summary>
+    /// <returns>A new <see cref="PluginManifest"/> instance with the same values.</returns>
+    public PluginManifest Copy() => this with { };
 }

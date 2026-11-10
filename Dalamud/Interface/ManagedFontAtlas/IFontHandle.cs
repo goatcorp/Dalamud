@@ -1,6 +1,7 @@
-﻿using System.Threading.Tasks;
+using System.Threading;
+using System.Threading.Tasks;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.ManagedFontAtlas;
 
@@ -15,7 +16,7 @@ public interface IFontHandle : IDisposable
     /// </summary>
     /// <param name="fontHandle">The relevant font handle.</param>
     /// <param name="lockedFont">The locked font for this font handle, locked during the call of this delegate.</param>
-    public delegate void ImFontChangedDelegate(IFontHandle fontHandle, ILockedImFont lockedFont);
+    delegate void ImFontChangedDelegate(IFontHandle fontHandle, ILockedImFont lockedFont);
 
     /// <summary>
     /// Called when the built instance of <see cref="ImFontPtr"/> has been changed.<br />
@@ -33,9 +34,21 @@ public interface IFontHandle : IDisposable
     /// </summary>
     /// <remarks>
     /// Use <see cref="Push"/> directly if you want to keep the current ImGui font if the font is not ready.<br />
-    /// Alternatively, use <see cref="WaitAsync"/> to wait for this property to become <c>true</c>.
+    /// Alternatively, use <see cref="WaitAsync()"/> to wait for this property to become <c>true</c>.
     /// </remarks>
     bool Available { get; }
+
+    /// <summary>
+    /// Attempts to lock the fully constructed instance of <see cref="ImFontPtr"/> corresponding to the this
+    /// <see cref="IFontHandle"/>, for use in any thread.<br />
+    /// Modification of the font will exhibit undefined behavior if some other thread also uses the font.
+    /// </summary>
+    /// <param name="errorMessage">The error message, if any.</param>
+    /// <returns>
+    /// An instance of <see cref="ILockedImFont"/> that <b>must</b> be disposed after use on success;
+    /// <c>null</c> with <paramref name="errorMessage"/> populated on failure.
+    /// </returns>
+    ILockedImFont? TryLock(out string? errorMessage);
 
     /// <summary>
     /// Locks the fully constructed instance of <see cref="ImFontPtr"/> corresponding to the this
@@ -56,9 +69,9 @@ public interface IFontHandle : IDisposable
     /// You may not access the font once you dispose this object.
     /// </summary>
     /// <returns>A disposable object that will pop the font on dispose.</returns>
-    /// <exception cref="InvalidOperationException">If called outside of the main thread.</exception>
+    /// <exception cref="InvalidOperationException">If called outside the main thread.</exception>
     /// <remarks>
-    /// <para>This function uses <see cref="ImGui.PushFont"/>, and may do extra things. 
+    /// <para>This function uses <see cref="ImGui.PushFont(ImFontPtr)"/>, and may do extra things.
     /// Use <see cref="IDisposable.Dispose"/> or <see cref="Pop"/> to undo this operation.
     /// Do not use <see cref="ImGui.PopFont"/>.</para>
     /// </remarks>
@@ -66,18 +79,18 @@ public interface IFontHandle : IDisposable
     /// <b>Push a font with `using` clause.</b>
     /// <code>
     /// using (fontHandle.Push())
-    ///     ImGui.TextUnformatted("Test");
+    ///     ImGui.Text("Test"u8);
     /// </code>
     /// <b>Push a font with a matching call to <see cref="Pop"/>.</b>
     /// <code>
     /// fontHandle.Push();
-    /// ImGui.TextUnformatted("Test 2");
+    /// ImGui.Text("Test 2"u8);
     /// fontHandle.Pop();
     /// </code>
     /// <b>Push a font between two choices.</b>
     /// <code>
     /// using ((someCondition ? myFontHandle : dalamudPluginInterface.UiBuilder.MonoFontHandle).Push())
-    ///     ImGui.TextUnformatted("Test 3"); 
+    ///     ImGui.Text("Test 3"u8);
     /// </code>
     /// </example>
     IDisposable Push();
@@ -92,4 +105,11 @@ public interface IFontHandle : IDisposable
     /// </summary>
     /// <returns>A task containing this <see cref="IFontHandle"/>.</returns>
     Task<IFontHandle> WaitAsync();
+
+    /// <summary>
+    /// Waits for <see cref="Available"/> to become <c>true</c>.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task containing this <see cref="IFontHandle"/>.</returns>
+    Task<IFontHandle> WaitAsync(CancellationToken cancellationToken);
 }

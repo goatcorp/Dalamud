@@ -54,6 +54,11 @@ internal static class NotificationConstants
     /// </summary>
     public const float ProgressWaveLoopMaxColorTimeRatio = 0.7f;
 
+    /// <summary>
+    /// The ratio of the screen at which the notification window will snap to the top or bottom of the screen.
+    /// </summary>
+    public const float NotificationTopBottomSnapMargin = 0.08f;
+
     /// <summary>Default duration of the notification.</summary>
     public static readonly TimeSpan DefaultDuration = TimeSpan.FromSeconds(7);
 
@@ -129,10 +134,10 @@ internal static class NotificationConstants
     public static Vector4 ToColor(this NotificationType type) => type switch
     {
         NotificationType.None => ImGuiColors.DalamudWhite,
-        NotificationType.Success => ImGuiColors.HealerGreen,
-        NotificationType.Warning => ImGuiColors.DalamudOrange,
-        NotificationType.Error => ImGuiColors.DalamudRed,
-        NotificationType.Info => ImGuiColors.TankBlue,
+        NotificationType.Success => ImGuiColors.SuccessForeground,
+        NotificationType.Warning => ImGuiColors.WarningForeground,
+        NotificationType.Error => ImGuiColors.ErrorForeground,
+        NotificationType.Info => ImGuiColors.InfoForeground,
         _ => ImGuiColors.DalamudWhite,
     };
 

@@ -57,60 +57,60 @@ internal sealed unsafe class ManagedIStream : IStream.Interface, IRefCountable
         static ManagedIStream? ToManagedObject(void* pThis) =>
             GCHandle.FromIntPtr(((nint*)pThis)[1]).Target as ManagedIStream;
 
-        [UnmanagedCallersOnly]
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
         static int QueryInterfaceStatic(IStream* pThis, Guid* riid, void** ppvObject) =>
             ToManagedObject(pThis)?.QueryInterface(riid, ppvObject) ?? E.E_UNEXPECTED;
 
-        [UnmanagedCallersOnly]
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
         static uint AddRefStatic(IStream* pThis) => (uint)(ToManagedObject(pThis)?.AddRef() ?? 0);
 
-        [UnmanagedCallersOnly]
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
         static uint ReleaseStatic(IStream* pThis) => (uint)(ToManagedObject(pThis)?.Release() ?? 0);
 
-        [UnmanagedCallersOnly]
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
         static int ReadStatic(IStream* pThis, void* pv, uint cb, uint* pcbRead) =>
             ToManagedObject(pThis)?.Read(pv, cb, pcbRead) ?? E.E_UNEXPECTED;
 
-        [UnmanagedCallersOnly]
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
         static int WriteStatic(IStream* pThis, void* pv, uint cb, uint* pcbWritten) =>
             ToManagedObject(pThis)?.Write(pv, cb, pcbWritten) ?? E.E_UNEXPECTED;
 
-        [UnmanagedCallersOnly]
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
         static int SeekStatic(
             IStream* pThis, LARGE_INTEGER dlibMove, uint dwOrigin, ULARGE_INTEGER* plibNewPosition) =>
             ToManagedObject(pThis)?.Seek(dlibMove, dwOrigin, plibNewPosition) ?? E.E_UNEXPECTED;
 
-        [UnmanagedCallersOnly]
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
         static int SetSizeStatic(IStream* pThis, ULARGE_INTEGER libNewSize) =>
             ToManagedObject(pThis)?.SetSize(libNewSize) ?? E.E_UNEXPECTED;
 
-        [UnmanagedCallersOnly]
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
         static int CopyToStatic(
             IStream* pThis, IStream* pstm, ULARGE_INTEGER cb, ULARGE_INTEGER* pcbRead,
             ULARGE_INTEGER* pcbWritten) =>
             ToManagedObject(pThis)?.CopyTo(pstm, cb, pcbRead, pcbWritten) ?? E.E_UNEXPECTED;
 
-        [UnmanagedCallersOnly]
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
         static int CommitStatic(IStream* pThis, uint grfCommitFlags) =>
             ToManagedObject(pThis)?.Commit(grfCommitFlags) ?? E.E_UNEXPECTED;
 
-        [UnmanagedCallersOnly]
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
         static int RevertStatic(IStream* pThis) => ToManagedObject(pThis)?.Revert() ?? E.E_UNEXPECTED;
 
-        [UnmanagedCallersOnly]
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
         static int LockRegionStatic(IStream* pThis, ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, uint dwLockType) =>
             ToManagedObject(pThis)?.LockRegion(libOffset, cb, dwLockType) ?? E.E_UNEXPECTED;
 
-        [UnmanagedCallersOnly]
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
         static int UnlockRegionStatic(
             IStream* pThis, ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, uint dwLockType) =>
             ToManagedObject(pThis)?.UnlockRegion(libOffset, cb, dwLockType) ?? E.E_UNEXPECTED;
 
-        [UnmanagedCallersOnly]
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
         static int StatStatic(IStream* pThis, STATSTG* pstatstg, uint grfStatFlag) =>
             ToManagedObject(pThis)?.Stat(pstatstg, grfStatFlag) ?? E.E_UNEXPECTED;
 
-        [UnmanagedCallersOnly]
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
         static int CloneStatic(IStream* pThis, IStream** ppstm) => ToManagedObject(pThis)?.Clone(ppstm) ?? E.E_UNEXPECTED;
     }
 

@@ -1,9 +1,7 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Fates;
 using Dalamud.Interface.Textures.Internal;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -12,11 +10,14 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class FateTableWidget : IDataWindowWidget
 {
+    private const ImGuiTableFlags TableFlags = ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg |
+                                               ImGuiTableFlags.Borders | ImGuiTableFlags.NoSavedSettings;
+
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "fate", "fatetable" };
-    
+    public string[]? CommandShortcuts { get; init; } = ["fate", "fatetable"];
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Fate Table"; 
+    public string DisplayName { get; init; } = "Fate Table";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -35,26 +36,26 @@ internal class FateTableWidget : IDataWindowWidget
 
         if (fateTable.Length == 0)
         {
-            ImGui.TextUnformatted("No fates or data not ready.");
+            ImGui.Text("No fates or data not ready."u8);
             return;
         }
 
-        using var table = ImRaii.Table("FateTable", 13, ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.NoSavedSettings);
+        using var table = ImRaii.Table("FateTable"u8, 13, TableFlags);
         if (!table) return;
 
-        ImGui.TableSetupColumn("Index", ImGuiTableColumnFlags.WidthFixed, 40);
-        ImGui.TableSetupColumn("Address", ImGuiTableColumnFlags.WidthFixed, 120);
-        ImGui.TableSetupColumn("FateId", ImGuiTableColumnFlags.WidthFixed, 40);
-        ImGui.TableSetupColumn("State", ImGuiTableColumnFlags.WidthFixed, 80);
-        ImGui.TableSetupColumn("Level", ImGuiTableColumnFlags.WidthFixed, 50);
-        ImGui.TableSetupColumn("Icon", ImGuiTableColumnFlags.WidthFixed, 30);
-        ImGui.TableSetupColumn("MapIcon", ImGuiTableColumnFlags.WidthFixed, 30);
-        ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.TableSetupColumn("Progress", ImGuiTableColumnFlags.WidthFixed, 55);
-        ImGui.TableSetupColumn("Duration", ImGuiTableColumnFlags.WidthFixed, 80);
-        ImGui.TableSetupColumn("Bonus", ImGuiTableColumnFlags.WidthFixed, 40);
-        ImGui.TableSetupColumn("Position", ImGuiTableColumnFlags.WidthFixed, 240);
-        ImGui.TableSetupColumn("Radius", ImGuiTableColumnFlags.WidthFixed, 40);
+        ImGui.TableSetupColumn("Index"u8, ImGuiTableColumnFlags.WidthFixed, 40);
+        ImGui.TableSetupColumn("Address"u8, ImGuiTableColumnFlags.WidthFixed, 120);
+        ImGui.TableSetupColumn("FateId"u8, ImGuiTableColumnFlags.WidthFixed, 40);
+        ImGui.TableSetupColumn("State"u8, ImGuiTableColumnFlags.WidthFixed, 80);
+        ImGui.TableSetupColumn("Level"u8, ImGuiTableColumnFlags.WidthFixed, 50);
+        ImGui.TableSetupColumn("Icon"u8, ImGuiTableColumnFlags.WidthFixed, 30);
+        ImGui.TableSetupColumn("MapIcon"u8, ImGuiTableColumnFlags.WidthFixed, 30);
+        ImGui.TableSetupColumn("Name"u8, ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("Progress"u8, ImGuiTableColumnFlags.WidthFixed, 55);
+        ImGui.TableSetupColumn("Duration"u8, ImGuiTableColumnFlags.WidthFixed, 80);
+        ImGui.TableSetupColumn("Bonus"u8, ImGuiTableColumnFlags.WidthFixed, 40);
+        ImGui.TableSetupColumn("Position"u8, ImGuiTableColumnFlags.WidthFixed, 240);
+        ImGui.TableSetupColumn("Radius"u8, ImGuiTableColumnFlags.WidthFixed, 40);
         ImGui.TableSetupScrollFreeze(7, 1);
         ImGui.TableHeadersRow();
 
@@ -66,26 +67,26 @@ internal class FateTableWidget : IDataWindowWidget
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); // Index
-            ImGui.TextUnformatted($"#{i}");
+            ImGui.Text($"#{i}");
 
             ImGui.TableNextColumn(); // Address
-            DrawCopyableText($"0x{fate.Address:X}", "Click to copy Address");
+            WidgetUtil.DrawCopyableText($"0x{fate.Address:X}", "Click to copy Address");
 
             ImGui.TableNextColumn(); // FateId
-            DrawCopyableText(fate.FateId.ToString(), "Click to copy FateId (RowId of Fate sheet)");
+            WidgetUtil.DrawCopyableText(fate.FateId.ToString(), "Click to copy FateId (RowId of Fate sheet)");
 
             ImGui.TableNextColumn(); // State
-            ImGui.TextUnformatted(fate.State.ToString());
+            ImGui.Text(fate.State.ToString());
 
             ImGui.TableNextColumn(); // Level
 
             if (fate.Level == fate.MaxLevel)
             {
-                ImGui.TextUnformatted($"{fate.Level}");
+                ImGui.Text($"{fate.Level}");
             }
             else
             {
-                ImGui.TextUnformatted($"{fate.Level}-{fate.MaxLevel}");
+                ImGui.Text($"{fate.Level}-{fate.MaxLevel}");
             }
 
             ImGui.TableNextColumn(); // Icon
@@ -94,16 +95,16 @@ internal class FateTableWidget : IDataWindowWidget
             {
                 if (textureManager.Shared.GetFromGameIcon(fate.IconId).TryGetWrap(out var texture, out _))
                 {
-                    ImGui.Image(texture.ImGuiHandle, new(ImGui.GetTextLineHeight()));
+                    ImGui.Image(texture.Handle, new(ImGui.GetTextLineHeight()));
 
                     if (ImGui.IsItemHovered())
                     {
                         ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-                        ImGui.BeginTooltip();
-                        ImGui.TextUnformatted("Click to copy IconId");
-                        ImGui.TextUnformatted($"ID: {fate.IconId} – Size: {texture.Width}x{texture.Height}");
-                        ImGui.Image(texture.ImGuiHandle, new(texture.Width, texture.Height));
-                        ImGui.EndTooltip();
+
+                        using var tooltip = ImRaii.Tooltip();
+                        ImGui.Text("Click to copy IconId"u8);
+                        ImGui.Text($"ID: {fate.IconId} – Size: {texture.Width}x{texture.Height}");
+                        ImGui.Image(texture.Handle, new(texture.Width, texture.Height));
                     }
 
                     if (ImGui.IsItemClicked())
@@ -119,16 +120,16 @@ internal class FateTableWidget : IDataWindowWidget
             {
                 if (textureManager.Shared.GetFromGameIcon(fate.MapIconId).TryGetWrap(out var texture, out _))
                 {
-                    ImGui.Image(texture.ImGuiHandle, new(ImGui.GetTextLineHeight()));
+                    ImGui.Image(texture.Handle, new(ImGui.GetTextLineHeight()));
 
                     if (ImGui.IsItemHovered())
                     {
                         ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-                        ImGui.BeginTooltip();
-                        ImGui.TextUnformatted("Click to copy MapIconId");
-                        ImGui.TextUnformatted($"ID: {fate.MapIconId} – Size: {texture.Width}x{texture.Height}");
-                        ImGui.Image(texture.ImGuiHandle, new(texture.Width, texture.Height));
-                        ImGui.EndTooltip();
+
+                        using var tooltip = ImRaii.Tooltip();
+                        ImGui.Text("Click to copy MapIconId"u8);
+                        ImGui.Text($"ID: {fate.MapIconId} – Size: {texture.Width}x{texture.Height}");
+                        ImGui.Image(texture.Handle, new(texture.Width, texture.Height));
                     }
 
                     if (ImGui.IsItemClicked())
@@ -140,44 +141,26 @@ internal class FateTableWidget : IDataWindowWidget
 
             ImGui.TableNextColumn(); // Name
 
-            DrawCopyableText(fate.Name.ToString(), "Click to copy Name");
+            WidgetUtil.DrawCopyableText(fate.Name.ToString(), "Click to copy Name");
 
             ImGui.TableNextColumn(); // Progress
-            ImGui.TextUnformatted($"{fate.Progress}%");
+            ImGui.Text($"{fate.Progress}%");
 
             ImGui.TableNextColumn(); // TimeRemaining
 
             if (fate.State == FateState.Running)
             {
-                ImGui.TextUnformatted($"{TimeSpan.FromSeconds(fate.TimeRemaining):mm\\:ss} / {TimeSpan.FromSeconds(fate.Duration):mm\\:ss}");
+                ImGui.Text($"{TimeSpan.FromSeconds(fate.TimeRemaining):mm\\:ss} / {TimeSpan.FromSeconds(fate.Duration):mm\\:ss}");
             }
 
             ImGui.TableNextColumn(); // HasExpBonus
-            ImGui.TextUnformatted(fate.HasBonus.ToString());
+            ImGui.Text(fate.HasBonus.ToString());
 
             ImGui.TableNextColumn(); // Position
-            DrawCopyableText(fate.Position.ToString(), "Click to copy Position");
+            WidgetUtil.DrawCopyableText(fate.Position.ToString(), "Click to copy Position");
 
             ImGui.TableNextColumn(); // Radius
-            DrawCopyableText(fate.Radius.ToString(), "Click to copy Radius");
-        }
-    }
-
-    private static void DrawCopyableText(string text, string tooltipText)
-    {
-        ImGuiHelpers.SafeTextWrapped(text);
-
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-            ImGui.BeginTooltip();
-            ImGui.TextUnformatted(tooltipText);
-            ImGui.EndTooltip();
-        }
-
-        if (ImGui.IsItemClicked())
-        {
-            ImGui.SetClipboardText(text);
+            WidgetUtil.DrawCopyableText(fate.Radius.ToString(), "Click to copy Radius");
         }
     }
 }

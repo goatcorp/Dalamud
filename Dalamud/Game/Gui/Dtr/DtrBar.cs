@@ -5,6 +5,7 @@ using System.Threading;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Addon.Events;
+using Dalamud.Game.Addon.Events.EventDataTypes;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.Text.SeStringHandling;
@@ -29,8 +30,8 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 {
     private const uint BaseNodeId = 1000;
 
-    private static readonly ModuleLog Log = new("DtrBar");
-    
+    private static readonly ModuleLog Log = ModuleLog.Create<DtrBar>();
+
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
 
@@ -53,12 +54,12 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     private readonly ReaderWriterLockSlim entriesLock = new();
     private readonly List<DtrBarEntry> entries = [];
 
-    private readonly Dictionary<uint, List<IAddonEventHandle>> eventHandles = new();
+    private readonly Dictionary<uint, List<IAddonEventHandle>> eventHandles = [];
 
     private ImmutableList<IReadOnlyDtrBarEntry>? entriesReadOnlyCopy;
 
     private Utf8String* emptyString;
-    
+
     private uint runningNodeIds = BaseNodeId;
     private float entryStartPos = float.NaN;
 
@@ -72,7 +73,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         this.addonLifecycle.RegisterListener(this.dtrPostDrawListener);
         this.addonLifecycle.RegisterListener(this.dtrPostRequestedUpdateListener);
         this.addonLifecycle.RegisterListener(this.dtrPreFinalizeListener);
-        
+
         this.framework.Update += this.Update;
 
         this.configuration.DtrOrder ??= [];
@@ -89,7 +90,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             if (erc is null)
             {
                 this.entriesLock.EnterReadLock();
-                this.entriesReadOnlyCopy = erc = [..this.entries];
+                this.entriesReadOnlyCopy = erc = [.. this.entries];
                 this.entriesLock.ExitReadLock();
             }
 
@@ -256,7 +257,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     /// <param name="toRemove">The resources to remove.</param>
     internal void RemoveEntry(DtrBarEntry toRemove)
     {
-        this.RemoveNode(toRemove.TextNode);
+        this.RemoveNode(toRemove);
 
         if (toRemove.Storage != null)
         {
@@ -269,7 +270,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     /// Check whether an entry with the specified title exists.
     /// </summary>
     /// <param name="title">The title to check for.</param>
-    /// <returns>Whether or not an entry with that title is registered.</returns>
+    /// <returns>Whether an entry with that title is registered.</returns>
     internal bool HasEntry(string title)
     {
         var found = false;
@@ -330,7 +331,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         this.entriesReadOnlyCopy = null;
     }
 
-    private AtkUnitBase* GetDtr() => (AtkUnitBase*)this.gameGui.GetAddonByName("_DTR").ToPointer();
+    private AtkUnitBase* GetDtr() => this.gameGui.GetAddonByName("_DTR"u8).Struct;
 
     private void Update(IFramework unused)
     {
@@ -377,12 +378,12 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
             var isHide = !data.Shown || data.UserHidden;
             var node = data.TextNode;
-            var nodeHidden = !node->AtkResNode.IsVisible();
+            var nodeHidden = !node->IsVisible();
 
             if (!isHide)
             {
                 if (nodeHidden)
-                    node->AtkResNode.ToggleVisibility(true);
+                    node->ToggleVisibility(true);
 
                 if (data is { Added: true, Text: not null, TextNode: not null } && (data.Dirty || nodeHidden))
                 {
@@ -396,27 +397,35 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
                     ushort w = 0, h = 0;
                     node->GetTextDrawSize(&w, &h, node->NodeText.StringPtr);
-                    node->AtkResNode.SetWidth(w);
+
+                    if (data.MinimumWidth > 0)
+                    {
+                        node->SetWidth(Math.Max(data.MinimumWidth, w));
+                    }
+                    else
+                    {
+                        node->SetWidth(w);
+                    }
                 }
 
-                var elementWidth = data.TextNode->AtkResNode.Width + this.configuration.DtrSpacing;
+                var elementWidth = data.TextNode->Width + this.configuration.DtrSpacing;
 
                 if (this.configuration.DtrSwapDirection)
                 {
-                    data.TextNode->AtkResNode.SetPositionFloat(runningXPos + this.configuration.DtrSpacing, 2);
+                    data.TextNode->SetPositionFloat(runningXPos + this.configuration.DtrSpacing, 2);
                     runningXPos += elementWidth;
                 }
                 else
                 {
                     runningXPos -= elementWidth;
-                    data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
+                    data.TextNode->SetPositionFloat(runningXPos, 2);
                 }
             }
             else if (!nodeHidden)
             {
                 // If we want the node hidden, shift it up, to prevent collision conflicts
-                node->AtkResNode.SetYFloat(-collisionNode->Height * dtr->RootNode->ScaleX);
-                node->AtkResNode.ToggleVisibility(false);
+                node->SetYFloat(-collisionNode->Height * dtr->RootNode->ScaleX);
+                node->ToggleVisibility(false);
             }
 
             data.Dirty = false;
@@ -427,7 +436,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
     private void FixCollision(AddonEvent eventType, AddonArgs addonInfo)
     {
-        var addon = (AtkUnitBase*)addonInfo.Addon;
+        var addon = addonInfo.Addon.Struct;
         if (addon->RootNode is null || addon->UldManager.NodeList is null) return;
 
         float minX = addon->RootNode->Width;
@@ -515,20 +524,20 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
         var node = data.TextNode = this.MakeNode(++this.runningNodeIds);
 
-        this.eventHandles.TryAdd(node->AtkResNode.NodeId, new List<IAddonEventHandle>());
-        this.eventHandles[node->AtkResNode.NodeId].AddRange(new List<IAddonEventHandle>
+        this.eventHandles.TryAdd(node->NodeId, []);
+        this.eventHandles[node->NodeId].AddRange(new List<IAddonEventHandle>
         {
             this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, (nint)dtr, (nint)node, AddonEventType.MouseOver, this.DtrEventHandler),
             this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, (nint)dtr, (nint)node, AddonEventType.MouseOut, this.DtrEventHandler),
             this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, (nint)dtr, (nint)node, AddonEventType.MouseClick, this.DtrEventHandler),
         });
-        
+
         var lastChild = dtr->RootNode->ChildNode;
         while (lastChild->PrevSiblingNode != null) lastChild = lastChild->PrevSiblingNode;
         Log.Debug($"Found last sibling: {(ulong)lastChild:X}");
         lastChild->PrevSiblingNode = (AtkResNode*)node;
-        node->AtkResNode.ParentNode = lastChild->ParentNode;
-        node->AtkResNode.NextSiblingNode = lastChild;
+        node->ParentNode = lastChild->ParentNode;
+        node->NextSiblingNode = lastChild;
 
         dtr->RootNode->ChildCount = (ushort)(dtr->RootNode->ChildCount + 1);
         Log.Debug("Set last sibling of DTR and updated child count");
@@ -541,22 +550,31 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         return true;
     }
 
-    private void RemoveNode(AtkTextNode* node)
+    private void RemoveNode(DtrBarEntry data)
     {
         var dtr = this.GetDtr();
+        var node = data.TextNode;
         if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return;
 
-        this.eventHandles[node->AtkResNode.NodeId].ForEach(handle => this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, handle));
-        this.eventHandles[node->AtkResNode.NodeId].Clear();
+        if (this.eventHandles.TryGetValue(node->NodeId, out var eventHandles))
+        {
+            eventHandles.ForEach(handle => this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, handle));
+            eventHandles.Clear();
+        }
+        else
+        {
+            Log.Warning("Could not find AtkResNode with NodeId {nodeId} in eventHandles", node->NodeId);
+        }
 
-        var tmpPrevNode = node->AtkResNode.PrevSiblingNode;
-        var tmpNextNode = node->AtkResNode.NextSiblingNode;
+        var tmpPrevNode = node->PrevSiblingNode;
+        var tmpNextNode = node->NextSiblingNode;
 
         // if (tmpNextNode != null)
         tmpNextNode->PrevSiblingNode = tmpPrevNode;
         if (tmpPrevNode != null)
             tmpPrevNode->NextSiblingNode = tmpNextNode;
-        node->AtkResNode.Destroy(true);
+        node->Destroy(true);
+        data.TextNode = null;
 
         dtr->RootNode->ChildCount = (ushort)(dtr->RootNode->ChildCount - 1);
         Log.Debug("Set last sibling of DTR and updated child count");
@@ -574,46 +592,34 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             return null;
         }
 
-        newTextNode->AtkResNode.NodeId = nodeId;
-        newTextNode->AtkResNode.Type = NodeType.Text;
-        newTextNode->AtkResNode.NodeFlags = NodeFlags.AnchorLeft | NodeFlags.AnchorTop | NodeFlags.Enabled | NodeFlags.RespondToMouse | NodeFlags.HasCollision | NodeFlags.EmitsEvents;
-        newTextNode->AtkResNode.DrawFlags = 12;
-        newTextNode->AtkResNode.SetWidth(22);
-        newTextNode->AtkResNode.SetHeight(22);
-        newTextNode->AtkResNode.SetPositionFloat(-200, 2);
+        newTextNode->NodeId = nodeId;
+        newTextNode->Type = NodeType.Text;
+        newTextNode->NodeFlags = NodeFlags.AnchorLeft | NodeFlags.AnchorTop | NodeFlags.Enabled | NodeFlags.RespondToMouse | NodeFlags.HasCollision | NodeFlags.EmitsEvents;
+        newTextNode->DrawFlags = 12;
+        newTextNode->SetWidth(22);
+        newTextNode->SetHeight(22);
+        newTextNode->SetPositionFloat(-200, 2);
 
         newTextNode->LineSpacing = 12;
         newTextNode->AlignmentFontType = 5;
         newTextNode->FontSize = 14;
-        newTextNode->TextFlags = (byte)TextFlags.Edge;
-        newTextNode->TextFlags2 = 0;
+        newTextNode->TextFlags = TextFlags.Edge;
 
         if (this.emptyString == null)
             this.emptyString = Utf8String.FromString(" ");
-        
+
         newTextNode->SetText(this.emptyString->StringPtr);
 
         newTextNode->TextColor = new ByteColor { R = 255, G = 255, B = 255, A = 255 };
         newTextNode->EdgeColor = new ByteColor { R = 142, G = 106, B = 12, A = 255 };
 
-        // ICreatable was restored, this may be necessary if AtkUldManager.CreateAtkTextNode(); is used instead of Create<T>
-        // // Memory is filled with random data after being created, zero out some things to avoid issues.
-        // newTextNode->UnkPtr_1 = null;
-        // newTextNode->SelectStart = 0;
-        // newTextNode->SelectEnd = 0;
-        // newTextNode->FontCacheHandle = 0;
-        // newTextNode->CharSpacing = 0;
-        // newTextNode->BackgroundColor = new ByteColor { R = 0, G = 0, B = 0, A = 0 };
-        // newTextNode->TextId = 0;
-        // newTextNode->SheetType = 0;
-
         return newTextNode;
     }
-    
-    private void DtrEventHandler(AddonEventType atkEventType, IntPtr atkUnitBase, IntPtr atkResNode)
+
+    private void DtrEventHandler(AddonEventType atkEventType, AddonEventData eventData)
     {
-        var addon = (AtkUnitBase*)atkUnitBase;
-        var node = (AtkResNode*)atkResNode;
+        var addon = (AtkUnitBase*)eventData.AddonPointer;
+        var node = (AtkResNode*)eventData.NodeTargetPointer;
 
         DtrBarEntry? dtrBarEntry = null;
         this.entriesLock.EnterReadLock();
@@ -632,7 +638,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
                 case AddonEventType.MouseOver:
                     AtkStage.Instance()->TooltipManager.ShowTooltip(addon->Id, node, dtrBarEntry.Tooltip.Encode());
                     break;
-                
+
                 case AddonEventType.MouseOut:
                     AtkStage.Instance()->TooltipManager.HideTooltip(addon->Id);
                     break;
@@ -646,13 +652,13 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
                 case AddonEventType.MouseOver:
                     this.uiEventManager.SetCursor(AddonCursorType.Clickable);
                     break;
-                
+
                 case AddonEventType.MouseOut:
                     this.uiEventManager.ResetCursor();
                     break;
-                
+
                 case AddonEventType.MouseClick:
-                    dtrBarEntry.OnClick.Invoke();
+                    dtrBarEntry.OnClick?.Invoke(DtrInteractionEvent.FromMouseEvent(new AddonMouseEventData(eventData)));
                     break;
             }
         }

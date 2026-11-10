@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
@@ -124,19 +124,20 @@ internal sealed class LoadingDialog
 
     private unsafe void UpdateMainInstructionText(HWND hwnd)
     {
-        fixed (void* pszText = this.CurrentState switch
-               {
-                   State.LoadingDalamud => Loc.Localize(
-                       "LoadingDialogMainInstructionLoadingDalamud",
-                       "Dalamud is loading..."),
-                   State.LoadingPlugins => Loc.Localize(
-                       "LoadingDialogMainInstructionLoadingPlugins",
-                       "Waiting for plugins to load..."),
-                   State.AutoUpdatePlugins => Loc.Localize(
-                       "LoadingDialogMainInstructionAutoUpdatePlugins",
-                       "Updating plugins..."),
-                   _ => string.Empty, // should not happen
-               })
+        var text = this.CurrentState switch
+        {
+            State.LoadingDalamud => Loc.Localize(
+                "LoadingDialogMainInstructionLoadingDalamud",
+                "Dalamud is loading..."),
+            State.LoadingPlugins => Loc.Localize(
+                "LoadingDialogMainInstructionLoadingPlugins",
+                "Waiting for plugins to load..."),
+            State.AutoUpdatePlugins => Loc.Localize(
+                "LoadingDialogMainInstructionAutoUpdatePlugins",
+                "Updating plugins..."),
+            _ => string.Empty, // should not happen
+        };
+        fixed (void* pszText = text)
         {
             SendMessageW(
                 hwnd,
@@ -206,7 +207,7 @@ internal sealed class LoadingDialog
 
         if (NewLogEntries.IsEmpty)
             return;
-        
+
         var sb = new StringBuilder();
         while (NewLogEntries.TryDequeue(out var e))
         {
@@ -219,7 +220,7 @@ internal sealed class LoadingDialog
                 t = i == -1 ? ReadOnlySpan<char>.Empty : t[(i + 1)..];
                 if (line.IsEmpty)
                     continue;
-                
+
                 sb.Clear();
                 if (first)
                     sb.Append($"{e.LogEvent.Timestamp:HH:mm:ss} | ");
@@ -294,18 +295,18 @@ internal sealed class LoadingDialog
                 ? null
                 : Icon.ExtractAssociatedIcon(Path.Combine(workingDirectory, "Dalamud.Injector.exe"));
 
-        fixed (void* pszEmpty = "-")
-        fixed (void* pszWindowTitle = "Dalamud")
-        fixed (void* pszDalamudBoot = "Dalamud.Boot.dll")
-        fixed (void* pszThemesManifestResourceName = "RT_MANIFEST_THEMES")
-        fixed (void* pszHide = Loc.Localize("LoadingDialogHide", "Hide"))
-        fixed (void* pszShowLatestLogs = Loc.Localize("LoadingDialogShowLatestLogs", "Show Latest Logs"))
-        fixed (void* pszHideLatestLogs = Loc.Localize("LoadingDialogHideLatestLogs", "Hide Latest Logs"))
+        fixed (char* pszEmpty = "-")
+        fixed (char* pszWindowTitle = "Dalamud")
+        fixed (char* pszDalamudBoot = "Dalamud.Boot.dll")
+        fixed (char* pszThemesManifestResourceName = "RT_MANIFEST_THEMES")
+        fixed (char* pszHide = Loc.Localize("LoadingDialogHide", "Hide"))
+        fixed (char* pszShowLatestLogs = Loc.Localize("LoadingDialogShowLatestLogs", "Show Latest Logs"))
+        fixed (char* pszHideLatestLogs = Loc.Localize("LoadingDialogHideLatestLogs", "Hide Latest Logs"))
         {
             var taskDialogButton = new TASKDIALOG_BUTTON
             {
                 nButtonID = IDOK,
-                pszButtonText = (ushort*)pszHide,
+                pszButtonText = pszHide,
             };
             var taskDialogConfig = new TASKDIALOGCONFIG
             {
@@ -318,8 +319,8 @@ internal sealed class LoadingDialog
                           (int)TDF_CALLBACK_TIMER |
                           (extractedIcon is null ? 0 : (int)TDF_USE_HICON_MAIN),
                 dwCommonButtons = 0,
-                pszWindowTitle = (ushort*)pszWindowTitle,
-                pszMainIcon = extractedIcon is null ? TD.TD_INFORMATION_ICON : (ushort*)extractedIcon.Handle,
+                pszWindowTitle = pszWindowTitle,
+                pszMainIcon = extractedIcon is null ? TD.TD_INFORMATION_ICON : (char*)extractedIcon.Handle,
                 pszMainInstruction = null,
                 pszContent = null,
                 cButtons = 1,
@@ -329,9 +330,9 @@ internal sealed class LoadingDialog
                 pRadioButtons = null,
                 nDefaultRadioButton = 0,
                 pszVerificationText = null,
-                pszExpandedInformation = (ushort*)pszEmpty,
-                pszExpandedControlText = (ushort*)pszShowLatestLogs,
-                pszCollapsedControlText = (ushort*)pszHideLatestLogs,
+                pszExpandedInformation = pszEmpty,
+                pszExpandedControlText = pszShowLatestLogs,
+                pszCollapsedControlText = pszHideLatestLogs,
                 pszFooterIcon = null,
                 pszFooter = null,
                 pfCallback = &HResultFuncBinder,
@@ -348,8 +349,8 @@ internal sealed class LoadingDialog
                 {
                     cbSize = (uint)sizeof(ACTCTXW),
                     dwFlags = ACTCTX_FLAG_HMODULE_VALID | ACTCTX_FLAG_RESOURCE_NAME_VALID,
-                    lpResourceName = (ushort*)pszThemesManifestResourceName,
-                    hModule = GetModuleHandleW((ushort*)pszDalamudBoot),
+                    lpResourceName = pszThemesManifestResourceName,
+                    hModule = GetModuleHandleW(pszDalamudBoot),
                 };
                 hActCtx = CreateActCtxW(&actctx);
                 if (hActCtx == default)

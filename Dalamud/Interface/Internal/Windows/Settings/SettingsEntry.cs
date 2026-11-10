@@ -1,22 +1,25 @@
-﻿namespace Dalamud.Interface.Internal.Windows.Settings;
+using Dalamud.Utility;
+using Dalamud.Utility.Internal;
+
+namespace Dalamud.Interface.Internal.Windows.Settings;
 
 /// <summary>
 /// Basic, drawable settings entry.
 /// </summary>
-public abstract class SettingsEntry
+internal abstract class SettingsEntry
 {
     /// <summary>
     /// Gets or sets the public, searchable name of this settings entry.
     /// </summary>
-    public string? Name { get; protected set; }
+    public LazyLoc Name { get; protected set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this entry is valid.
+    /// Gets or sets a value indicating whether this entry is valid.
     /// </summary>
     public virtual bool IsValid { get; protected set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this entry is visible.
+    /// Gets or sets a value indicating whether this entry is visible.
     /// </summary>
     public virtual bool IsVisible { get; protected set; } = true;
 
@@ -54,12 +57,22 @@ public abstract class SettingsEntry
     {
         // ignored
     }
-    
+
     /// <summary>
     /// Function to be called when the tab is closed.
     /// </summary>
     public virtual void OnClose()
     {
         // ignored
+    }
+
+    /// <summary>
+    /// Function to be called when we are searching for settings.
+    /// </summary>
+    /// <param name="search">The term we are searching for.</param>
+    /// <returns>Whether this setting matches the term.</returns>
+    public virtual bool MatchesSearch(string search)
+    {
+        return !this.Name.Key.IsNullOrEmpty() && this.Name.ToString().Contains(search, StringComparison.InvariantCultureIgnoreCase);
     }
 }

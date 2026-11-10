@@ -2,17 +2,16 @@ using System.Buffers.Binary;
 using System.Numerics;
 using System.Text;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game.Inventory;
-using Dalamud.Game.Text;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
-
-using ImGuiNET;
 
 using Lumina.Excel.Sheets;
 
@@ -23,9 +22,14 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class InventoryWidget : IDataWindowWidget
 {
+    private const ImGuiTableFlags TableFlags = ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders |
+                                               ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings;
+
+    private const ImGuiTableFlags InnerTableFlags = ImGuiTableFlags.BordersInner | ImGuiTableFlags.NoSavedSettings;
+
     private DataManager dataManager;
     private TextureManager textureManager;
-    private InventoryType? selectedInventoryType = InventoryType.Inventory1;
+    private GameInventoryType? selectedInventoryType = GameInventoryType.Inventory1;
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = ["inv", "inventory"];
@@ -55,7 +59,7 @@ internal class InventoryWidget : IDataWindowWidget
 
         ImGui.SameLine(0, ImGui.GetStyle().ItemInnerSpacing.X);
 
-        this.DrawInventoryType((InventoryType)this.selectedInventoryType);
+        this.DrawInventoryType(this.selectedInventoryType.Value);
     }
 
     private static string StripSoftHypen(string input)
@@ -65,17 +69,17 @@ internal class InventoryWidget : IDataWindowWidget
 
     private unsafe void DrawInventoryTypeList()
     {
-        using var table = ImRaii.Table("InventoryTypeTable", 2, ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings, new Vector2(300, -1));
+        using var table = ImRaii.Table("InventoryTypeTable"u8, 2, TableFlags, new Vector2(300, -1));
         if (!table) return;
 
-        ImGui.TableSetupColumn("Type");
-        ImGui.TableSetupColumn("Size", ImGuiTableColumnFlags.WidthFixed, 40);
+        ImGui.TableSetupColumn("Type"u8);
+        ImGui.TableSetupColumn("Size"u8, ImGuiTableColumnFlags.WidthFixed, 40);
         ImGui.TableSetupScrollFreeze(2, 1);
         ImGui.TableHeadersRow();
 
-        foreach (var inventoryType in Enum.GetValues<InventoryType>())
+        foreach (var inventoryType in Enum.GetValues<GameInventoryType>())
         {
-            var items = GameInventoryItem.GetReadOnlySpanOfInventory((GameInventoryType)inventoryType);
+            var items = GameInventoryItem.GetReadOnlySpanOfInventory(inventoryType);
 
             using var itemDisabled = ImRaii.Disabled(items.IsEmpty);
 
@@ -90,39 +94,40 @@ internal class InventoryWidget : IDataWindowWidget
             {
                 if (contextMenu)
                 {
-                    if (ImGui.MenuItem("Copy Name"))
+                    if (ImGui.MenuItem("Copy Name"u8))
                     {
                         ImGui.SetClipboardText(inventoryType.ToString());
                     }
 
-                    if (ImGui.MenuItem("Copy Address"))
+                    if (ImGui.MenuItem("Copy Address"u8))
                     {
-                        var container = InventoryManager.Instance()->GetInventoryContainer(inventoryType);
+                        var container = InventoryManager.Instance()->GetInventoryContainer((InventoryType)inventoryType);
                         ImGui.SetClipboardText($"0x{(nint)container:X}");
                     }
                 }
             }
 
             ImGui.TableNextColumn(); // Size
-            ImGui.TextUnformatted(items.Length.ToString());
+            ImGui.Text(items.Length.ToString());
         }
     }
 
-    private unsafe void DrawInventoryType(InventoryType inventoryType)
+    private void DrawInventoryType(GameInventoryType inventoryType)
     {
-        var items = GameInventoryItem.GetReadOnlySpanOfInventory((GameInventoryType)inventoryType);
+        var items = GameInventoryItem.GetReadOnlySpanOfInventory(inventoryType);
         if (items.IsEmpty)
         {
-            ImGui.TextUnformatted($"{inventoryType} is empty.");
+            ImGui.Text($"{inventoryType} is empty.");
             return;
         }
 
-        using var itemTable = ImRaii.Table("InventoryItemTable", 4, ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings);
+        using var itemTable = ImRaii.Table("InventoryItemTable"u8, 4, TableFlags);
         if (!itemTable) return;
-        ImGui.TableSetupColumn("Slot", ImGuiTableColumnFlags.WidthFixed, 40);
-        ImGui.TableSetupColumn("ItemId", ImGuiTableColumnFlags.WidthFixed, 70);
-        ImGui.TableSetupColumn("Quantity", ImGuiTableColumnFlags.WidthFixed, 70);
-        ImGui.TableSetupColumn("Item");
+
+        ImGui.TableSetupColumn("Slot"u8, ImGuiTableColumnFlags.WidthFixed, 40);
+        ImGui.TableSetupColumn("ItemId"u8, ImGuiTableColumnFlags.WidthFixed, 70);
+        ImGui.TableSetupColumn("Quantity"u8, ImGuiTableColumnFlags.WidthFixed, 70);
+        ImGui.TableSetupColumn("Item"u8);
         ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableHeadersRow();
 
@@ -130,11 +135,11 @@ internal class InventoryWidget : IDataWindowWidget
         {
             var item = items[slotIndex];
 
-            using var disableditem = ImRaii.Disabled(item.ItemId == 0);
+            using var disabledItem = ImRaii.Disabled(item.ItemId == 0);
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); // Slot
-            ImGui.TextUnformatted(slotIndex.ToString());
+            ImGui.Text(slotIndex.ToString());
 
             ImGui.TableNextColumn(); // ItemId
             ImGuiHelpers.ClickToCopyText(item.ItemId.ToString());
@@ -145,24 +150,21 @@ internal class InventoryWidget : IDataWindowWidget
             ImGui.TableNextColumn(); // Item
             if (item.ItemId != 0 && item.Quantity != 0)
             {
-                var itemName = this.GetItemName(item.ItemId);
+                var itemName = ItemUtil.GetItemName(item.ItemId).ExtractText();
                 var iconId = this.GetItemIconId(item.ItemId);
-
-                if (item.IsHq)
-                    itemName += " " + SeIconChar.HighQuality.ToIconString();
 
                 if (this.textureManager.Shared.TryGetFromGameIcon(new GameIconLookup(iconId, item.IsHq), out var tex) && tex.TryGetWrap(out var texture, out _))
                 {
-                    ImGui.Image(texture.ImGuiHandle, new Vector2(ImGui.GetTextLineHeight()));
+                    ImGui.Image(texture.Handle, new Vector2(ImGui.GetTextLineHeight()));
 
                     if (ImGui.IsItemHovered())
                     {
                         ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-                        ImGui.BeginTooltip();
-                        ImGui.TextUnformatted("Click to copy IconId");
-                        ImGui.TextUnformatted($"ID: {iconId} – Size: {texture.Width}x{texture.Height}");
-                        ImGui.Image(texture.ImGuiHandle, new(texture.Width, texture.Height));
-                        ImGui.EndTooltip();
+
+                        using var tooltip = ImRaii.Tooltip();
+                        ImGui.Text("Click to copy IconId"u8);
+                        ImGui.Text($"ID: {iconId} – Size: {texture.Width}x{texture.Height}");
+                        ImGui.Image(texture.Handle, new(texture.Width, texture.Height));
                     }
 
                     if (ImGui.IsItemClicked())
@@ -173,13 +175,13 @@ internal class InventoryWidget : IDataWindowWidget
 
                 using var itemNameColor = ImRaii.PushColor(ImGuiCol.Text, this.GetItemRarityColor(item.ItemId));
                 using var node = ImRaii.TreeNode($"{itemName}###{inventoryType}_{slotIndex}", ImGuiTreeNodeFlags.SpanAvailWidth);
-                itemNameColor.Dispose();
+                itemNameColor.Pop();
 
                 using (var contextMenu = ImRaii.ContextPopupItem($"{inventoryType}_{slotIndex}_ContextMenu"))
                 {
                     if (contextMenu)
                     {
-                        if (ImGui.MenuItem("Copy Name"))
+                        if (ImGui.MenuItem("Copy Name"u8))
                         {
                             ImGui.SetClipboardText(itemName);
                         }
@@ -188,18 +190,18 @@ internal class InventoryWidget : IDataWindowWidget
 
                 if (!node) continue;
 
-                using var itemInfoTable = ImRaii.Table($"{inventoryType}_{slotIndex}_Table", 2, ImGuiTableFlags.BordersInner | ImGuiTableFlags.NoSavedSettings);
+                using var itemInfoTable = ImRaii.Table($"{inventoryType}_{slotIndex}_Table", 2, InnerTableFlags);
                 if (!itemInfoTable) continue;
 
-                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 150);
-                ImGui.TableSetupColumn("Value");
+                ImGui.TableSetupColumn("Name"u8, ImGuiTableColumnFlags.WidthFixed, 150);
+                ImGui.TableSetupColumn("Value"u8);
                 // ImGui.TableHeadersRow();
 
                 static void AddKeyValueRow(string fieldName, string value)
                 {
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted(fieldName);
+                    ImGui.Text(fieldName);
                     ImGui.TableNextColumn();
                     ImGuiHelpers.ClickToCopyText(value);
                 }
@@ -217,9 +219,9 @@ internal class InventoryWidget : IDataWindowWidget
                 AddKeyValueRow("Quantity", item.Quantity.ToString());
                 AddKeyValueRow("GlamourId", item.GlamourId.ToString());
 
-                if (!this.IsEventItem(item.ItemId))
+                if (!ItemUtil.IsEventItem(item.ItemId))
                 {
-                    AddKeyValueRow(item.IsCollectable ? "Collectability" : "Spiritbond", item.Spiritbond.ToString());
+                    AddKeyValueRow(item.IsCollectable ? "Collectability" : "Spiritbond", item.SpiritbondOrCollectability.ToString());
 
                     if (item.CrafterContentId != 0)
                         AddKeyValueRow("CrafterContentId", item.CrafterContentId.ToString());
@@ -261,40 +263,41 @@ internal class InventoryWidget : IDataWindowWidget
 
                 AddKeyValueRow("Flags", flagsBuilder.ToString());
 
-                if (this.IsNormalItem(item.ItemId) && this.dataManager.Excel.GetSheet<Item>().TryGetRow(item.ItemId, out var itemRow))
+                if (ItemUtil.IsNormalItem(item.ItemId) && this.dataManager.Excel.GetSheet<Item>().TryGetRow(item.ItemId, out var itemRow))
                 {
-                    if (itemRow.DyeCount > 0)
+                    if (itemRow.DyeCount > 0 && item.Stains.Length > 0)
                     {
                         ImGui.TableNextRow();
                         ImGui.TableNextColumn();
-                        ImGui.TextUnformatted("Stains");
+                        ImGui.Text("Stains"u8);
                         ImGui.TableNextColumn();
 
-                        using var stainTable = ImRaii.Table($"{inventoryType}_{slotIndex}_StainTable", 2, ImGuiTableFlags.BordersInner | ImGuiTableFlags.NoSavedSettings);
+                        using var stainTable = ImRaii.Table($"{inventoryType}_{slotIndex}_StainTable", 2, InnerTableFlags);
                         if (!stainTable) continue;
 
-                        ImGui.TableSetupColumn("Stain Id", ImGuiTableColumnFlags.WidthFixed, 80);
-                        ImGui.TableSetupColumn("Name");
+                        ImGui.TableSetupColumn("Stain Id"u8, ImGuiTableColumnFlags.WidthFixed, 80);
+                        ImGui.TableSetupColumn("Name"u8);
                         ImGui.TableHeadersRow();
 
                         for (var i = 0; i < itemRow.DyeCount; i++)
                         {
-                            AddValueValueRow(item.Stains[i].ToString(), this.GetStainName(item.Stains[i]));
+                            var stainId = item.Stains[i];
+                            AddValueValueRow(stainId.ToString(), this.GetStainName(stainId));
                         }
                     }
 
-                    if (itemRow.MateriaSlotCount > 0)
+                    if (itemRow.MateriaSlotCount > 0 && item.Materia.Length > 0)
                     {
                         ImGui.TableNextRow();
                         ImGui.TableNextColumn();
-                        ImGui.TextUnformatted("Materia");
+                        ImGui.Text("Materia"u8);
                         ImGui.TableNextColumn();
 
-                        using var materiaTable = ImRaii.Table($"{inventoryType}_{slotIndex}_MateriaTable", 2, ImGuiTableFlags.BordersInner | ImGuiTableFlags.NoSavedSettings);
+                        using var materiaTable = ImRaii.Table($"{inventoryType}_{slotIndex}_MateriaTable", 2, InnerTableFlags);
                         if (!materiaTable) continue;
 
-                        ImGui.TableSetupColumn("Materia Id", ImGuiTableColumnFlags.WidthFixed, 80);
-                        ImGui.TableSetupColumn("MateriaGrade Id");
+                        ImGui.TableSetupColumn("Materia Id"u8, ImGuiTableColumnFlags.WidthFixed, 80);
+                        ImGui.TableSetupColumn("MateriaGrade Id"u8);
                         ImGui.TableHeadersRow();
 
                         for (var i = 0; i < Math.Min(itemRow.MateriaSlotCount, item.Materia.Length); i++)
@@ -307,45 +310,6 @@ internal class InventoryWidget : IDataWindowWidget
         }
     }
 
-    private bool IsEventItem(uint itemId) => itemId is > 2_000_000;
-
-    private bool IsHighQuality(uint itemId) => itemId is > 1_000_000 and < 2_000_000;
-
-    private bool IsCollectible(uint itemId) => itemId is > 500_000 and < 1_000_000;
-
-    private bool IsNormalItem(uint itemId) => itemId is < 500_000;
-
-    private uint GetBaseItemId(uint itemId)
-    {
-        if (this.IsEventItem(itemId)) return itemId; // uses EventItem sheet
-        if (this.IsHighQuality(itemId)) return itemId - 1_000_000;
-        if (this.IsCollectible(itemId)) return itemId - 500_000;
-        return itemId;
-    }
-
-    private string GetItemName(uint itemId)
-    {
-        // EventItem
-        if (this.IsEventItem(itemId))
-        {
-            return this.dataManager.Excel.GetSheet<EventItem>().TryGetRow(itemId, out var eventItemRow)
-                ? StripSoftHypen(eventItemRow.Name.ExtractText())
-                : $"EventItem#{itemId}";
-        }
-
-        // HighQuality
-        if (this.IsHighQuality(itemId))
-            itemId -= 1_000_000;
-
-        // Collectible
-        if (this.IsCollectible(itemId))
-            itemId -= 500_000;
-
-        return this.dataManager.Excel.GetSheet<Item>().TryGetRow(itemId, out var itemRow)
-            ? StripSoftHypen(itemRow.Name.ExtractText())
-            : $"Item#{itemId}";
-    }
-
     private string GetStainName(uint stainId)
     {
         return this.dataManager.Excel.GetSheet<Stain>().TryGetRow(stainId, out var stainRow)
@@ -353,51 +317,30 @@ internal class InventoryWidget : IDataWindowWidget
             : $"Stain#{stainId}";
     }
 
-    private uint GetItemRarityColorType(Item item, bool isEdgeColor = false)
-    {
-        return (isEdgeColor ? 548u : 547u) + item.Rarity * 2u;
-    }
-
-    private uint GetItemRarityColorType(uint itemId, bool isEdgeColor = false)
-    {
-        // EventItem
-        if (this.IsEventItem(itemId))
-            return this.GetItemRarityColorType(1, isEdgeColor);
-
-        if (!this.dataManager.Excel.GetSheet<Item>().TryGetRow(this.GetBaseItemId(itemId), out var item))
-            return this.GetItemRarityColorType(1, isEdgeColor);
-
-        return this.GetItemRarityColorType(item, isEdgeColor);
-    }
-
     private uint GetItemRarityColor(uint itemId, bool isEdgeColor = false)
     {
-        if (this.IsEventItem(itemId))
+        var normalized = ItemUtil.GetBaseId(itemId);
+
+        if (normalized.Kind == ItemKind.EventItem)
             return isEdgeColor ? 0xFF000000 : 0xFFFFFFFF;
 
-        if (!this.dataManager.Excel.GetSheet<Item>().TryGetRow(this.GetBaseItemId(itemId), out var item))
+        if (!this.dataManager.Excel.GetSheet<Item>().TryGetRow(normalized.ItemId, out var item))
             return isEdgeColor ? 0xFF000000 : 0xFFFFFFFF;
 
-        var rowId = this.GetItemRarityColorType(item, isEdgeColor);
+        var rowId = ItemUtil.GetItemRarityColorType(item.RowId, isEdgeColor);
         return this.dataManager.Excel.GetSheet<UIColor>().TryGetRow(rowId, out var color)
-            ? BinaryPrimitives.ReverseEndianness(color.UIForeground) | 0xFF000000
+            ? BinaryPrimitives.ReverseEndianness(color.Dark) | 0xFF000000
             : 0xFFFFFFFF;
     }
 
     private uint GetItemIconId(uint itemId)
     {
+        var normalized = ItemUtil.GetBaseId(itemId);
+
         // EventItem
-        if (this.IsEventItem(itemId))
+        if (normalized.Kind == ItemKind.EventItem)
             return this.dataManager.Excel.GetSheet<EventItem>().TryGetRow(itemId, out var eventItem) ? eventItem.Icon : 0u;
 
-        // HighQuality
-        if (this.IsHighQuality(itemId))
-            itemId -= 1_000_000;
-
-        // Collectible
-        if (this.IsCollectible(itemId))
-            itemId -= 500_000;
-
-        return this.dataManager.Excel.GetSheet<Item>().TryGetRow(itemId, out var item) ? item.Icon : 0u;
+        return this.dataManager.Excel.GetSheet<Item>().TryGetRow(normalized.ItemId, out var item) ? item.Icon : 0u;
     }
 }

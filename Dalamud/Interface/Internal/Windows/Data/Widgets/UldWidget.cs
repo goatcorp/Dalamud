@@ -5,15 +5,15 @@ using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Memory;
-
-using ImGuiNET;
 
 using Lumina.Data.Files;
 using Lumina.Data.Parsing.Uld;
@@ -27,9 +27,10 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class UldWidget : IDataWindowWidget
 {
+    private const string UldBaseBath = "ui/uld/";
+
     // ULD styles can be hardcoded for now as they don't add new ones regularly. Can later try and find where to load these from in the game EXE.
-    private static readonly string[] ThemeDisplayNames = ["Dark", "Light", "Classic FF", "Clear Blue"];
-    private static readonly string[] ThemeBasePaths = ["ui/uld/", "ui/uld/light/", "ui/uld/third/", "ui/uld/fourth/"];
+    private static readonly string[] ThemeDisplayNames = ["Dark", "Light", "Classic FF", "Clear Blue", "Clear White", "Clear Green"];
 
     // 48 8D 15 ?? ?? ?? ?? is the part of the signatures that contain the string location offset
     // 48 = 64 bit register prefix
@@ -48,6 +49,7 @@ internal class UldWidget : IDataWindowWidget
         ("48 8D 15 ?? ?? ?? ?? 45 33 C0 E9 ?? ?? ?? ??", 3)
     ];
 
+    private DataManager dataManager;
     private CancellationTokenSource? cts;
     private Task<string[]>? uldNamesTask;
 
@@ -70,6 +72,8 @@ internal class UldWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Load()
     {
+        this.dataManager ??= Service<DataManager>.Get();
+
         this.cts?.Cancel();
         ClearTask(ref this.uldNamesTask);
         this.uldNamesTask = null;
@@ -92,18 +96,18 @@ internal class UldWidget : IDataWindowWidget
                 uldNames = t.Result;
                 break;
             case { Exception: { } loadException }:
-                ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudRed, loadException.ToString());
+                ImGui.TextColoredWrapped(ImGuiColors.ErrorForeground, loadException.ToString());
                 return;
             case { IsCanceled: true }:
                 ClearTask(ref this.uldNamesTask);
                 goto default;
             default:
-                ImGui.TextUnformatted("Loading...");
+                ImGui.Text("Loading..."u8);
                 return;
         }
 
         var selectedUldPrev = this.selectedUld;
-        ImGui.Combo("##selectUld", ref this.selectedUld, uldNames, uldNames.Length);
+        ImGui.Combo("##selectUld", ref this.selectedUld, uldNames);
         ImGui.SameLine();
         if (ImGuiComponents.IconButton("selectUldLeft", FontAwesomeIcon.AngleLeft))
             this.selectedUld = ((this.selectedUld + uldNames.Length) - 1) % uldNames.Length;
@@ -111,7 +115,7 @@ internal class UldWidget : IDataWindowWidget
         if (ImGuiComponents.IconButton("selectUldRight", FontAwesomeIcon.AngleRight))
             this.selectedUld = (this.selectedUld + 1) % uldNames.Length;
         ImGui.SameLine();
-        ImGui.TextUnformatted("Select ULD File");
+        ImGui.Text("Select ULD File"u8);
         if (selectedUldPrev != this.selectedUld)
         {
             // reset selected parts when changing ULD
@@ -119,7 +123,7 @@ internal class UldWidget : IDataWindowWidget
             ClearTask(ref this.selectedUldFileTask);
         }
 
-        ImGui.Combo("##selectTheme", ref this.selectedTheme, ThemeDisplayNames, ThemeDisplayNames.Length);
+        ImGui.Combo("##selectTheme", ref this.selectedTheme, ThemeDisplayNames);
         ImGui.SameLine();
         if (ImGuiComponents.IconButton("selectThemeLeft", FontAwesomeIcon.AngleLeft))
             this.selectedTheme = ((this.selectedTheme + ThemeDisplayNames.Length) - 1) % ThemeDisplayNames.Length;
@@ -127,7 +131,7 @@ internal class UldWidget : IDataWindowWidget
         if (ImGuiComponents.IconButton("selectThemeRight", FontAwesomeIcon.AngleRight))
             this.selectedTheme = (this.selectedTheme + 1) % ThemeDisplayNames.Length;
         ImGui.SameLine();
-        ImGui.TextUnformatted("Select Theme");
+        ImGui.Text("Select Theme"u8);
 
         var dataManager = Service<DataManager>.Get();
         var textureManager = Service<TextureManager>.Get();
@@ -140,74 +144,76 @@ internal class UldWidget : IDataWindowWidget
                 uld = this.selectedUldFileTask.Result;
                 break;
             case { Exception: { } loadException }:
-                ImGuiHelpers.SafeTextColoredWrapped(
-                    ImGuiColors.DalamudRed,
+                ImGui.TextColoredWrapped(
+                    ImGuiColors.ErrorForeground,
                     $"Failed to load ULD file.\n{loadException}");
                 return;
             case { IsCanceled: true }:
                 this.selectedUldFileTask = null;
                 goto default;
             default:
-                ImGui.TextUnformatted("Loading...");
+                ImGui.Text("Loading..."u8);
                 return;
         }
 
-        if (ImGui.CollapsingHeader("Texture Entries"))
+        if (ImGui.CollapsingHeader("Texture Entries"u8))
         {
             if (ForceNullable(uld.AssetData) is null)
             {
-                ImGuiHelpers.SafeTextColoredWrapped(
-                    ImGuiColors.DalamudRed,
+                ImGui.TextColoredWrapped(
+                    ImGuiColors.ErrorForeground,
                     $"Error: {nameof(UldFile.AssetData)} is not populated.");
             }
-            else if (ImGui.BeginTable("##uldTextureEntries", 3, ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders))
+            else
             {
-                ImGui.TableSetupColumn("Id", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("000000").X);
-                ImGui.TableSetupColumn("Path", ImGuiTableColumnFlags.WidthStretch);
-                ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("Preview___").X);
-                ImGui.TableHeadersRow();
+                using var table = ImRaii.Table("##uldTextureEntries"u8, 3, ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders);
+                if (table.Success)
+                {
+                    ImGui.TableSetupColumn("Id"u8, ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("000000"u8).X);
+                    ImGui.TableSetupColumn("Path"u8, ImGuiTableColumnFlags.WidthStretch);
+                    ImGui.TableSetupColumn("Actions"u8, ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("Preview___"u8).X);
+                    ImGui.TableHeadersRow();
 
-                foreach (var textureEntry in uld.AssetData)
-                    this.DrawTextureEntry(textureEntry, textureManager);
-
-                ImGui.EndTable();
+                    foreach (var textureEntry in uld.AssetData)
+                        this.DrawTextureEntry(textureEntry, textureManager);
+                }
             }
         }
 
-        if (ImGui.CollapsingHeader("Timeline##TimelineCollapsingHeader"))
+        if (ImGui.CollapsingHeader("Timeline##TimelineCollapsingHeader"u8))
         {
             if (ForceNullable(uld.Timelines) is null)
             {
-                ImGuiHelpers.SafeTextColoredWrapped(
-                    ImGuiColors.DalamudRed,
+                ImGui.TextColoredWrapped(
+                    ImGuiColors.ErrorForeground,
                     $"Error: {nameof(UldFile.Timelines)} is not populated.");
             }
             else if (uld.Timelines.Length == 0)
             {
-                ImGui.TextUnformatted("No entry exists.");
+                ImGui.Text("No entry exists."u8);
             }
             else
             {
-                ImGui.SliderInt("Timeline##TimelineSlider", ref this.selectedTimeline, 0, uld.Timelines.Length - 1);
+                ImGui.SliderInt("Timeline##TimelineSlider"u8, ref this.selectedTimeline, 0, uld.Timelines.Length - 1);
                 this.DrawTimelines(uld.Timelines[this.selectedTimeline]);
             }
         }
 
-        if (ImGui.CollapsingHeader("Parts##PartsCollapsingHeader"))
+        if (ImGui.CollapsingHeader("Parts##PartsCollapsingHeader"u8))
         {
             if (ForceNullable(uld.Parts) is null)
             {
-                ImGuiHelpers.SafeTextColoredWrapped(
-                    ImGuiColors.DalamudRed,
+                ImGui.TextColoredWrapped(
+                    ImGuiColors.ErrorForeground,
                     $"Error: {nameof(UldFile.Parts)} is not populated.");
             }
             else if (uld.Parts.Length == 0)
             {
-                ImGui.TextUnformatted("No entry exists.");
+                ImGui.Text("No entry exists."u8);
             }
             else
             {
-                ImGui.SliderInt("Parts##PartsSlider", ref this.selectedParts, 0, uld.Parts.Length - 1);
+                ImGui.SliderInt("Parts##PartsSlider"u8, ref this.selectedParts, 0, uld.Parts.Length - 1);
                 this.DrawParts(uld.Parts[this.selectedParts], uld.AssetData, textureManager);
             }
         }
@@ -265,13 +271,13 @@ internal class UldWidget : IDataWindowWidget
     }
 
     private string ToThemedPath(string path) =>
-        ThemeBasePaths[this.selectedTheme] + path[ThemeBasePaths[0].Length..];
+        UldBaseBath + (this.selectedTheme > 0 ? $"img{this.selectedTheme:D2}/" : string.Empty) + path[UldBaseBath.Length..];
 
     private void DrawTextureEntry(UldRoot.TextureEntry textureEntry, TextureManager textureManager)
     {
         var path = GetStringNullTerminated(textureEntry.Path);
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(textureEntry.Id.ToString());
+        ImGui.Text(textureEntry.Id.ToString());
 
         ImGui.TableNextColumn();
         this.TextColumnCopiable(path, false, false);
@@ -280,47 +286,47 @@ internal class UldWidget : IDataWindowWidget
         if (string.IsNullOrWhiteSpace(path))
             return;
 
-        ImGui.TextUnformatted("Preview");
+        ImGui.Text("Preview"u8);
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.BeginTooltip();
+            using var tooltip = ImRaii.Tooltip();
 
             var texturePath = GetStringNullTerminated(textureEntry.Path);
-            ImGui.TextUnformatted($"Base path at {texturePath}:");
+            ImGui.Text($"Base path at {texturePath}:");
             if (textureManager.Shared.GetFromGame(texturePath).TryGetWrap(out var wrap, out var e))
-                ImGui.Image(wrap.ImGuiHandle, wrap.Size);
+                ImGui.Image(wrap.Handle, wrap.Size);
             else if (e is not null)
-                ImGui.TextUnformatted(e.ToString());
+                ImGui.Text(e.ToString());
 
-            if (this.selectedTheme != 0)
+            if (this.selectedTheme != 0 && (textureEntry.ThemeSupportBitmask & (1 << (this.selectedTheme - 1))) != 0)
             {
                 var texturePathThemed = this.ToThemedPath(texturePath);
-                ImGui.TextUnformatted($"Themed path at {texturePathThemed}:");
-                if (textureManager.Shared.GetFromGame(texturePathThemed).TryGetWrap(out wrap, out e))
-                    ImGui.Image(wrap.ImGuiHandle, wrap.Size);
-                else if (e is not null)
-                    ImGui.TextUnformatted(e.ToString());
+                if (this.dataManager.FileExists(texturePathThemed))
+                {
+                    ImGui.Text($"Themed path at {texturePathThemed}:");
+                    if (textureManager.Shared.GetFromGame(texturePathThemed).TryGetWrap(out wrap, out e))
+                        ImGui.Image(wrap.Handle, wrap.Size);
+                    else if (e is not null)
+                        ImGui.Text(e.ToString());
+                }
             }
-
-            ImGui.EndTooltip();
         }
     }
 
     private void DrawTimelines(UldRoot.Timeline timeline)
     {
-        ImGui.SliderInt("FrameData", ref this.selectedFrameData, 0, timeline.FrameData.Length - 1);
+        ImGui.SliderInt("FrameData"u8, ref this.selectedFrameData, 0, timeline.FrameData.Length - 1);
         var frameData = timeline.FrameData[this.selectedFrameData];
-        ImGui.TextUnformatted($"FrameInfo: {frameData.StartFrame} -> {frameData.EndFrame}");
-        ImGui.Indent();
+        ImGui.Text($"FrameInfo: {frameData.StartFrame} -> {frameData.EndFrame}");
+
+        using var indent = ImRaii.PushIndent();
         foreach (var frameDataKeyGroup in frameData.KeyGroups)
         {
-            ImGui.TextUnformatted($"{frameDataKeyGroup.Usage:G} {frameDataKeyGroup.Type:G}");
+            ImGui.Text($"{frameDataKeyGroup.Usage:G} {frameDataKeyGroup.Type:G}");
             foreach (var keyframe in frameDataKeyGroup.Frames)
                 this.DrawTimelineKeyGroupFrame(keyframe);
         }
-
-        ImGui.Unindent();
     }
 
     private void DrawTimelineKeyGroupFrame(IKeyframe frame)
@@ -328,160 +334,146 @@ internal class UldWidget : IDataWindowWidget
         switch (frame)
         {
             case BaseKeyframeData baseKeyframeData:
-                ImGui.TextUnformatted(
-                    $"Time: {baseKeyframeData.Time} | Interpolation: {baseKeyframeData.Interpolation} | Acceleration: {baseKeyframeData.Acceleration} | Deceleration: {baseKeyframeData.Deceleration}");
+                ImGui.Text($"Time: {baseKeyframeData.Time} | Interpolation: {baseKeyframeData.Interpolation} | Acceleration: {baseKeyframeData.Acceleration} | Deceleration: {baseKeyframeData.Deceleration}");
                 break;
             case Float1Keyframe float1Keyframe:
                 this.DrawTimelineKeyGroupFrame(float1Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted($" | Value: {float1Keyframe.Value}");
+                ImGui.Text($" | Value: {float1Keyframe.Value}");
                 break;
             case Float2Keyframe float2Keyframe:
                 this.DrawTimelineKeyGroupFrame(float2Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted($" | Value1: {float2Keyframe.Value[0]} | Value2: {float2Keyframe.Value[1]}");
+                ImGui.Text($" | Value1: {float2Keyframe.Value[0]} | Value2: {float2Keyframe.Value[1]}");
                 break;
             case Float3Keyframe float3Keyframe:
                 this.DrawTimelineKeyGroupFrame(float3Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted(
-                    $" | Value1: {float3Keyframe.Value[0]} | Value2: {float3Keyframe.Value[1]} | Value3: {float3Keyframe.Value[2]}");
+                ImGui.Text($" | Value1: {float3Keyframe.Value[0]} | Value2: {float3Keyframe.Value[1]} | Value3: {float3Keyframe.Value[2]}");
                 break;
             case SByte1Keyframe sbyte1Keyframe:
                 this.DrawTimelineKeyGroupFrame(sbyte1Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted($" | Value: {sbyte1Keyframe.Value}");
+                ImGui.Text($" | Value: {sbyte1Keyframe.Value}");
                 break;
             case SByte2Keyframe sbyte2Keyframe:
                 this.DrawTimelineKeyGroupFrame(sbyte2Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted($" | Value1: {sbyte2Keyframe.Value[0]} | Value2: {sbyte2Keyframe.Value[1]}");
+                ImGui.Text($" | Value1: {sbyte2Keyframe.Value[0]} | Value2: {sbyte2Keyframe.Value[1]}");
                 break;
             case SByte3Keyframe sbyte3Keyframe:
                 this.DrawTimelineKeyGroupFrame(sbyte3Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted(
-                    $" | Value1: {sbyte3Keyframe.Value[0]} | Value2: {sbyte3Keyframe.Value[1]} | Value3: {sbyte3Keyframe.Value[2]}");
+                ImGui.Text($" | Value1: {sbyte3Keyframe.Value[0]} | Value2: {sbyte3Keyframe.Value[1]} | Value3: {sbyte3Keyframe.Value[2]}");
                 break;
             case Byte1Keyframe byte1Keyframe:
                 this.DrawTimelineKeyGroupFrame(byte1Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted($" | Value: {byte1Keyframe.Value}");
+                ImGui.Text($" | Value: {byte1Keyframe.Value}");
                 break;
             case Byte2Keyframe byte2Keyframe:
                 this.DrawTimelineKeyGroupFrame(byte2Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted($" | Value1: {byte2Keyframe.Value[0]} | Value2: {byte2Keyframe.Value[1]}");
+                ImGui.Text($" | Value1: {byte2Keyframe.Value[0]} | Value2: {byte2Keyframe.Value[1]}");
                 break;
             case Byte3Keyframe byte3Keyframe:
                 this.DrawTimelineKeyGroupFrame(byte3Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted(
-                    $" | Value1: {byte3Keyframe.Value[0]} | Value2: {byte3Keyframe.Value[1]} | Value3: {byte3Keyframe.Value[2]}");
+                ImGui.Text($" | Value1: {byte3Keyframe.Value[0]} | Value2: {byte3Keyframe.Value[1]} | Value3: {byte3Keyframe.Value[2]}");
                 break;
             case Short1Keyframe short1Keyframe:
                 this.DrawTimelineKeyGroupFrame(short1Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted($" | Value: {short1Keyframe.Value}");
+                ImGui.Text($" | Value: {short1Keyframe.Value}");
                 break;
             case Short2Keyframe short2Keyframe:
                 this.DrawTimelineKeyGroupFrame(short2Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted($" | Value1: {short2Keyframe.Value[0]} | Value2: {short2Keyframe.Value[1]}");
+                ImGui.Text($" | Value1: {short2Keyframe.Value[0]} | Value2: {short2Keyframe.Value[1]}");
                 break;
             case Short3Keyframe short3Keyframe:
                 this.DrawTimelineKeyGroupFrame(short3Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted(
-                    $" | Value1: {short3Keyframe.Value[0]} | Value2: {short3Keyframe.Value[1]} | Value3: {short3Keyframe.Value[2]}");
+                ImGui.Text($" | Value1: {short3Keyframe.Value[0]} | Value2: {short3Keyframe.Value[1]} | Value3: {short3Keyframe.Value[2]}");
                 break;
             case UShort1Keyframe ushort1Keyframe:
                 this.DrawTimelineKeyGroupFrame(ushort1Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted($" | Value: {ushort1Keyframe.Value}");
+                ImGui.Text($" | Value: {ushort1Keyframe.Value}");
                 break;
             case UShort2Keyframe ushort2Keyframe:
                 this.DrawTimelineKeyGroupFrame(ushort2Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted($" | Value1: {ushort2Keyframe.Value[0]} | Value2: {ushort2Keyframe.Value[1]}");
+                ImGui.Text($" | Value1: {ushort2Keyframe.Value[0]} | Value2: {ushort2Keyframe.Value[1]}");
                 break;
             case UShort3Keyframe ushort3Keyframe:
                 this.DrawTimelineKeyGroupFrame(ushort3Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted(
-                    $" | Value1: {ushort3Keyframe.Value[0]} | Value2: {ushort3Keyframe.Value[1]} | Value3: {ushort3Keyframe.Value[2]}");
+                ImGui.Text($" | Value1: {ushort3Keyframe.Value[0]} | Value2: {ushort3Keyframe.Value[1]} | Value3: {ushort3Keyframe.Value[2]}");
                 break;
             case Int1Keyframe int1Keyframe:
                 this.DrawTimelineKeyGroupFrame(int1Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted($" | Value: {int1Keyframe.Value}");
+                ImGui.Text($" | Value: {int1Keyframe.Value}");
                 break;
             case Int2Keyframe int2Keyframe:
                 this.DrawTimelineKeyGroupFrame(int2Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted($" | Value1: {int2Keyframe.Value[0]} | Value2: {int2Keyframe.Value[1]}");
+                ImGui.Text($" | Value1: {int2Keyframe.Value[0]} | Value2: {int2Keyframe.Value[1]}");
                 break;
             case Int3Keyframe int3Keyframe:
                 this.DrawTimelineKeyGroupFrame(int3Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted(
-                    $" | Value1: {int3Keyframe.Value[0]} | Value2: {int3Keyframe.Value[1]} | Value3: {int3Keyframe.Value[2]}");
+                ImGui.Text($" | Value1: {int3Keyframe.Value[0]} | Value2: {int3Keyframe.Value[1]} | Value3: {int3Keyframe.Value[2]}");
                 break;
             case UInt1Keyframe uint1Keyframe:
                 this.DrawTimelineKeyGroupFrame(uint1Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted($" | Value: {uint1Keyframe.Value}");
+                ImGui.Text($" | Value: {uint1Keyframe.Value}");
                 break;
             case UInt2Keyframe uint2Keyframe:
                 this.DrawTimelineKeyGroupFrame(uint2Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted($" | Value1: {uint2Keyframe.Value[0]} | Value2: {uint2Keyframe.Value[1]}");
+                ImGui.Text($" | Value1: {uint2Keyframe.Value[0]} | Value2: {uint2Keyframe.Value[1]}");
                 break;
             case UInt3Keyframe uint3Keyframe:
                 this.DrawTimelineKeyGroupFrame(uint3Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted(
-                    $" | Value1: {uint3Keyframe.Value[0]} | Value2: {uint3Keyframe.Value[1]} | Value3: {uint3Keyframe.Value[2]}");
+                ImGui.Text($" | Value1: {uint3Keyframe.Value[0]} | Value2: {uint3Keyframe.Value[1]} | Value3: {uint3Keyframe.Value[2]}");
                 break;
             case Bool1Keyframe bool1Keyframe:
                 this.DrawTimelineKeyGroupFrame(bool1Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted($" | Value: {bool1Keyframe.Value}");
+                ImGui.Text($" | Value: {bool1Keyframe.Value}");
                 break;
             case Bool2Keyframe bool2Keyframe:
                 this.DrawTimelineKeyGroupFrame(bool2Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted($" | Value1: {bool2Keyframe.Value[0]} | Value2: {bool2Keyframe.Value[1]}");
+                ImGui.Text($" | Value1: {bool2Keyframe.Value[0]} | Value2: {bool2Keyframe.Value[1]}");
                 break;
             case Bool3Keyframe bool3Keyframe:
                 this.DrawTimelineKeyGroupFrame(bool3Keyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted(
-                    $" | Value1: {bool3Keyframe.Value[0]} | Value2: {bool3Keyframe.Value[1]} | Value3: {bool3Keyframe.Value[2]}");
+                ImGui.Text($" | Value1: {bool3Keyframe.Value[0]} | Value2: {bool3Keyframe.Value[1]} | Value3: {bool3Keyframe.Value[2]}");
                 break;
             case ColorKeyframe colorKeyframe:
                 this.DrawTimelineKeyGroupFrame(colorKeyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted(
-                    $" | Add: {colorKeyframe.AddRed} {colorKeyframe.AddGreen} {colorKeyframe.AddBlue} | Multiply: {colorKeyframe.MultiplyRed} {colorKeyframe.MultiplyGreen} {colorKeyframe.MultiplyBlue}");
+                ImGui.Text($" | Add: {colorKeyframe.AddRed} {colorKeyframe.AddGreen} {colorKeyframe.AddBlue} | Multiply: {colorKeyframe.MultiplyRed} {colorKeyframe.MultiplyGreen} {colorKeyframe.MultiplyBlue}");
                 break;
             case LabelKeyframe labelKeyframe:
                 this.DrawTimelineKeyGroupFrame(labelKeyframe.Keyframe);
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted(
-                    $" | LabelCommand: {labelKeyframe.LabelCommand} | JumpId: {labelKeyframe.JumpId} | LabelId: {labelKeyframe.LabelId}");
+                ImGui.Text($" | LabelCommand: {labelKeyframe.LabelCommand} | JumpId: {labelKeyframe.JumpId} | LabelId: {labelKeyframe.LabelId}");
                 break;
         }
     }
 
-    private void DrawParts(
-        UldRoot.PartsData partsData,
-        UldRoot.TextureEntry[] textureEntries,
-        TextureManager textureManager)
+    private void DrawParts(UldRoot.PartsData partsData, UldRoot.TextureEntry[] textureEntries, TextureManager textureManager)
     {
         for (var index = 0; index < partsData.Parts.Length; index++)
         {
-            ImGui.TextUnformatted($"Index: {index}");
+            ImGui.Text($"Index: {index}");
             var partsDataPart = partsData.Parts[index];
             ImGui.SameLine();
 
@@ -496,14 +488,14 @@ internal class UldWidget : IDataWindowWidget
 
             if (path is null)
             {
-                ImGui.TextUnformatted($"Could not find texture for id {partsDataPart.TextureId}");
+                ImGui.Text($"Could not find texture for id {partsDataPart.TextureId}");
                 continue;
             }
 
             var texturePath = GetStringNullTerminated(path);
             if (string.IsNullOrWhiteSpace(texturePath))
             {
-                ImGui.TextUnformatted("Texture path is empty.");
+                ImGui.Text("Texture path is empty."u8);
                 continue;
             }
 
@@ -520,7 +512,7 @@ internal class UldWidget : IDataWindowWidget
                     // neither the supposedly original path nor themed path had a file we could load.
                     if (e is not null && e2 is not null)
                     {
-                        ImGui.TextUnformatted($"{texturePathThemed}: {e}\n{texturePath}: {e2}");
+                        ImGui.Text($"{texturePathThemed}: {e}\n{texturePath}: {e2}");
                         continue;
                     }
                 }
@@ -535,7 +527,7 @@ internal class UldWidget : IDataWindowWidget
             {
                 var uv0 = new Vector2(partsDataPart.U, partsDataPart.V);
                 var uv1 = uv0 + partSize;
-                ImGui.Image(wrap.ImGuiHandle, partSize * ImGuiHelpers.GlobalScale, uv0 / wrap.Size, uv1 / wrap.Size);
+                ImGui.Image(wrap.Handle, partSize * ImGuiHelpers.GlobalScale, uv0 / wrap.Size, uv1 / wrap.Size);
             }
 
             if (ImGui.IsItemClicked())
@@ -543,10 +535,9 @@ internal class UldWidget : IDataWindowWidget
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.BeginTooltip();
-                ImGui.TextUnformatted("Click to copy:");
-                ImGui.TextUnformatted(texturePath);
-                ImGui.EndTooltip();
+                using var tooltip = ImRaii.Tooltip();
+                ImGui.Text("Click to copy:"u8);
+                ImGui.Text(texturePath);
             }
         }
     }

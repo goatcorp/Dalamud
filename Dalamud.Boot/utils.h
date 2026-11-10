@@ -1,5 +1,6 @@
 #pragma once
 
+#include <expected>
 #include <filesystem>
 #include <functional>
 #include <span>
@@ -7,6 +8,11 @@
 #include <memory>
 #include <vector>
 
+#include <Windows.h>
+
+#include <srell.hpp>
+
+#include "error_info.h"
 #include "unicode.h"
 
 namespace utils {
@@ -18,14 +24,13 @@ namespace utils {
         loaded_module(void* hModule) : m_hModule(reinterpret_cast<HMODULE>(hModule)) {}
         loaded_module(size_t hModule) : m_hModule(reinterpret_cast<HMODULE>(hModule)) {}
 
-        std::filesystem::path path() const;
+        DalamudExpected<std::filesystem::path> path() const;
 
         bool is_current_process() const { return m_hModule == GetModuleHandleW(nullptr); }
         bool owns_address(const void* pAddress) const;
 
-        operator HMODULE() const {
-            return m_hModule;
-        }
+        operator HMODULE() const { return m_hModule; }
+        operator bool() const { return m_hModule; }
 
         size_t address_int() const { return reinterpret_cast<size_t>(m_hModule); }
         size_t image_size() const { return is_pe64() ? nt_header64().OptionalHeader.SizeOfImage : nt_header32().OptionalHeader.SizeOfImage; }
@@ -58,9 +63,9 @@ namespace utils {
         void* get_imported_function_pointer(const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal) const;
         template<typename TFn> TFn** get_imported_function_pointer(const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal) { return reinterpret_cast<TFn**>(get_imported_function_pointer(pcszDllName, pcszFunctionName, hintOrOrdinal)); }
 
-        [[nodiscard]] std::unique_ptr<std::remove_pointer_t<HGLOBAL>, decltype(&FreeResource)> get_resource(LPCWSTR lpName, LPCWSTR lpType) const;
-        [[nodiscard]] std::wstring get_description() const;
-        [[nodiscard]] VS_FIXEDFILEINFO get_file_version() const;
+        [[nodiscard]] DalamudExpected<std::unique_ptr<std::remove_pointer_t<HGLOBAL>, decltype(&FreeResource)>> get_resource(LPCWSTR lpName, LPCWSTR lpType) const;
+        [[nodiscard]] DalamudExpected<std::wstring> get_description() const;
+        [[nodiscard]] DalamudExpected<const VS_FIXEDFILEINFO&> get_file_version() const;
 
         static loaded_module current_process();
         static std::vector<loaded_module> all_modules();
@@ -102,6 +107,11 @@ namespace utils {
             template<typename T>
             T resolve_jump_target(size_t instructionOffset = 0) const {
                 return reinterpret_cast<T>(const_cast<char*>(resolve_jump_target(instructionOffset)));
+            }
+
+            template<typename T>
+            T get_as(size_t offset = 0) const {
+                return reinterpret_cast<T>(const_cast<char*>(&Match[offset]));
             }
         };
 
@@ -267,7 +277,9 @@ namespace utils {
         return get_env_list<T>(unicode::convert<std::wstring>(pcszName).c_str());
     }
 
-    std::filesystem::path get_module_path(HMODULE hModule);
+    bool is_running_on_wine();
+
+    std::wstring get_string_resource(uint32_t resId);
 
     /// @brief Find the game main window.
     /// @return Handle to the game main window, or nullptr if it doesn't exist (yet).
@@ -278,4 +290,18 @@ namespace utils {
 	std::wstring escape_shell_arg(const std::wstring& arg);
 
     std::wstring format_win32_error(DWORD err);
+
+    class scoped_dpi_awareness_context {
+        DPI_AWARENESS_CONTEXT m_old;
+        decltype(&SetThreadDpiAwarenessContext) m_setThreadDpiAwarenessContext;
+
+    public:
+        scoped_dpi_awareness_context();
+        scoped_dpi_awareness_context(DPI_AWARENESS_CONTEXT);
+        ~scoped_dpi_awareness_context();
+        scoped_dpi_awareness_context(const scoped_dpi_awareness_context&) = delete;
+        scoped_dpi_awareness_context(scoped_dpi_awareness_context&&) = delete;
+        scoped_dpi_awareness_context& operator=(const scoped_dpi_awareness_context&) = delete;
+        scoped_dpi_awareness_context& operator=(scoped_dpi_awareness_context&&) = delete;
+    };
 }

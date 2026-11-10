@@ -1,15 +1,16 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 using CheapLoc;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.ReShadeHandling;
-using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 
@@ -17,140 +18,180 @@ namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
     "StyleCop.CSharp.DocumentationRules",
     "SA1600:Elements should be documented",
     Justification = "Internals")]
-public class SettingsTabExperimental : SettingsTab
+internal sealed class SettingsTabExperimental : SettingsTab
 {
-    public override SettingsEntry[] Entries { get; } =
-    [
-        new SettingsEntry<bool>(
-            Loc.Localize("DalamudSettingsPluginTest", "Get plugin testing builds"),
-            string.Format(
-                Loc.Localize(
+    private readonly SettingsEntry<bool> devModeEntry;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SettingsTabExperimental"/> class.
+    /// </summary>
+    public SettingsTabExperimental()
+    {
+        this.devModeEntry = new SettingsEntry<bool>(
+            LazyLoc.Localize("DalamudSettingEnableDeveloperMode", "Enable Developer Mode"),
+            LazyLoc.Localize("DalamudSettingEnableDeveloperModeHint", "Unlocks developer-specific settings."),
+            c => c.DevMode ?? false,
+            (v, c) => c.DevMode = v);
+
+        this.Entries =
+        [
+            new SettingsEntry<bool>(
+                LazyLoc.Localize("DalamudSettingsPluginTest", "Get plugin testing builds"),
+                LazyLoc.Localize(
                     "DalamudSettingsPluginTestHint",
-                    "Receive testing prereleases for selected plugins.\nTo opt-in to testing builds for a plugin, you have to right click it in the \"{0}\" tab of the plugin installer and select \"{1}\"."),
-                PluginCategoryManager.Locs.Group_Installed,
-                PluginInstallerWindow.Locs.PluginContext_TestingOptIn),
-            c => c.DoPluginTest,
-            (v, c) => c.DoPluginTest = v),
-        new HintSettingsEntry(
-            Loc.Localize(
-                "DalamudSettingsPluginTestWarning",
-                "Testing plugins may contain bugs or crash your game. Please only enable this if you are aware of the risks."),
-            ImGuiColors.DalamudRed),
-
-        new GapSettingsEntry(5),
-
-        new ButtonSettingsEntry(
-            Loc.Localize("DalamudSettingsClearHidden", "Clear hidden plugins"),
-            Loc.Localize(
-                "DalamudSettingsClearHiddenHint",
-                "Restore plugins you have previously hidden from the plugin installer."),
-            () =>
-            {
-                Service<DalamudConfiguration>.Get().HiddenPluginInternalName.Clear();
-                Service<PluginManager>.Get().RefilterPluginMasters();
-            }),
-
-        new GapSettingsEntry(5, true),
-
-        new DevPluginsSettingsEntry(),
-
-        new SettingsEntry<bool>(
-            Loc.Localize(
-                "DalamudSettingEnableImGuiAsserts",
-                "Enable ImGui asserts"),
-            Loc.Localize(
-                "DalamudSettingEnableImGuiAssertsHint",
-                "If this setting is enabled, a window containing further details will be shown when an internal assertion in ImGui fails.\nWe recommend enabling this when developing plugins."),
-            c => Service<InterfaceManager>.Get().ShowAsserts,
-            (v, _) => Service<InterfaceManager>.Get().ShowAsserts = v),
-
-        new SettingsEntry<bool>(
-            Loc.Localize(
-                "DalamudSettingEnableImGuiAssertsAtStartup",
-                "Always enable ImGui asserts at startup"),
-            Loc.Localize(
-                "DalamudSettingEnableImGuiAssertsAtStartupHint",
-                "This will enable ImGui asserts every time the game starts."),
-            c => c.ImGuiAssertsEnabledAtStartup ?? false,
-            (v, c) => c.ImGuiAssertsEnabledAtStartup = v),
-
-        new GapSettingsEntry(5, true),
-
-        new ThirdRepoSettingsEntry(),
-
-        new GapSettingsEntry(5, true),
-
-        new EnumSettingsEntry<ReShadeHandlingMode>(
-            Loc.Localize("DalamudSettingsReShadeHandlingMode", "ReShade handling mode"),
-            Loc.Localize(
-                "DalamudSettingsReShadeHandlingModeHint",
-                "You may try different options to work around problems you may encounter.\nRestart is required for changes to take effect."),
-            c => c.ReShadeHandlingMode,
-            (v, c) => c.ReShadeHandlingMode = v,
-            fallbackValue: ReShadeHandlingMode.Default,
-            warning: static rshm =>
-            {
-                var warning = string.Empty;
-                warning += rshm is ReShadeHandlingMode.UnwrapReShade or ReShadeHandlingMode.None ||
-                           Service<DalamudConfiguration>.Get().SwapChainHookMode == SwapChainHelper.HookMode.ByteCode
-                               ? string.Empty
-                               : "Current option will be ignored and no special ReShade handling will be done, because SwapChain vtable hook mode is set.";
-
-                if (ReShadeAddonInterface.ReShadeIsSignedByReShade)
+                    "Receive testing prereleases for selected plugins.\nTo opt-in to testing builds for a plugin, you have to right click it in the \"Installed Plugins\" tab of the plugin installer and select \"Receive plugin testing versions\"."),
+                c => c.DoPluginTest,
+                (v, c) =>
                 {
-                    warning += warning.Length > 0 ? "\n" : string.Empty;
-                    warning += Loc.Localize(
-                        "ReShadeNoAddonSupportNotificationContent",
-                        "Your installation of ReShade does not have full addon support, and may not work with Dalamud and/or the game.\n" +
-                        "Download and install ReShade with full addon-support.");
-                }
+                    c.DoPluginTest = v;
+                    _ = Service<PluginManager>.Get().ReloadAllReposAsync();
+                }),
+            new HintSettingsEntry(
+                LazyLoc.Localize(
+                    "DalamudSettingsPluginTestWarning",
+                    "Testing plugins may contain bugs or crash your game. Please only enable this if you are aware of the risks."),
+                ImGuiColors.AttentionForeground),
 
-                return warning.Length > 0 ? warning : null;
-            })
-        {
-            FriendlyEnumNameGetter = x => x switch
+            new GapSettingsEntry(5),
+
+            new ButtonSettingsEntry(
+                LazyLoc.Localize("DalamudSettingsClearHidden", "Clear hidden plugins"),
+                LazyLoc.Localize(
+                    "DalamudSettingsClearHiddenHint",
+                    "Restore plugins you have previously hidden from the plugin installer."),
+                () =>
+                {
+                    Service<DalamudConfiguration>.Get().HiddenPluginInternalName.Clear();
+                }),
+
+            new GapSettingsEntry(5, true),
+
+            new GroupSettingsEntry(
+                this.devModeEntry,
+                new HintSettingsEntry(
+                    LazyLoc.Localize(
+                        "DalamudSettingEnableDeveloperModeDescription",
+                        "Developer mode adds various features to Dalamud that are useful to plugin developers. This includes, but is not limited to:")),
+                new BulletSettingsEntry(
+                    LazyLoc.Localize("DalamudSettingEnableDeveloperModeDevPlugins", "Loading plugins from local paths")),
+                new BulletSettingsEntry(
+                    LazyLoc.Localize("DalamudSettingEnableDeveloperModeTitleMenu", "A developer menu entry on the title screen")),
+                new BulletSettingsEntry(
+                    LazyLoc.Localize("DalamudSettingEnableDeveloperModeAsserts", "A window showing failed ImGui asserts")),
+                new BulletSettingsEntry(
+                    LazyLoc.Localize("DalamudSettingEnableDeveloperModeMainThread", "Checks that plugins call game APIs in safe ways")),
+                new BulletSettingsEntry(
+                    LazyLoc.Localize("DalamudSettingEnableDeveloperModeHooks", "Verification of plugin hooks")),
+                new HintSettingsEntry(
+                    LazyLoc.Localize(
+                        "DalamudSettingEnableDeveloperModeDescriptionEnd",
+                        "These can sometimes cause plugins to behave differently. If you are encountering issues, please try again with developer mode disabled."))),
+
+            new DevPluginsSettingsEntry(
+                visibility: () => this.devModeEntry.Value),
+
+            new SettingsEntry<bool>(
+                LazyLoc.Localize("DalamudSettingEnableImGuiAsserts", "Enable ImGui asserts"),
+                LazyLoc.Localize(
+                    "DalamudSettingEnableImGuiAssertsHint",
+                    "If this setting is enabled, a window containing further details will be shown when an internal assertion in ImGui fails.\nWe recommend enabling this when developing plugins. " +
+                    "This setting does not persist and will reset when the game restarts.\nUse the setting below to enable it at startup."),
+                c => Service<InterfaceManager>.Get().ShowAsserts,
+                (v, _) => Service<InterfaceManager>.Get().ShowAsserts = v,
+                visibility: () => this.devModeEntry.Value),
+
+            new SettingsEntry<bool>(
+                LazyLoc.Localize("DalamudSettingEnableImGuiAssertsAtStartup", "Always enable ImGui asserts at startup"),
+                LazyLoc.Localize(
+                    "DalamudSettingEnableImGuiAssertsAtStartupHint",
+                    "This will enable ImGui asserts every time the game starts."),
+                c => c.ImGuiAssertsEnabledAtStartup ?? false,
+                (v, c) => c.ImGuiAssertsEnabledAtStartup = v,
+                visibility: () => this.devModeEntry.Value),
+
+            new GapSettingsEntry(5, true),
+
+            new ThirdRepoSettingsEntry(),
+
+            new GapSettingsEntry(5, true),
+
+            new EnumSettingsEntry<ReShadeHandlingMode>(
+                LazyLoc.Localize("DalamudSettingsReShadeHandlingMode", "ReShade handling mode"),
+                LazyLoc.Localize(
+                    "DalamudSettingsReShadeHandlingModeHint",
+                    "You may try different options to work around problems you may encounter.\nRestart is required for changes to take effect."),
+                c => c.ReShadeHandlingMode,
+                (v, c) => c.ReShadeHandlingMode = v,
+                fallbackValue: ReShadeHandlingMode.Default,
+                warning: static rshm =>
+                {
+                    var warning = string.Empty;
+                    warning += rshm is ReShadeHandlingMode.UnwrapReShade or ReShadeHandlingMode.None ||
+                               Service<DalamudConfiguration>.Get().SwapChainHookMode ==
+                               SwapChainHelper.HookMode.ByteCode
+                                   ? string.Empty
+                                   : "Current option will be ignored and no special ReShade handling will be done, because SwapChain vtable hook mode is set.";
+
+                    if (ReShadeAddonInterface.ReShadeIsSignedByReShade)
+                    {
+                        warning += warning.Length > 0 ? "\n" : string.Empty;
+                        warning += Loc.Localize(
+                            "ReShadeNoAddonSupportNotificationContent",
+                            "Your installation of ReShade does not have full addon support, and may not work with Dalamud and/or the game.\n" +
+                            "Download and install ReShade with full addon-support.");
+                    }
+
+                    return warning.Length > 0 ? warning : null;
+                })
             {
-                ReShadeHandlingMode.Default => "Default",
-                ReShadeHandlingMode.UnwrapReShade => "Unwrap",
-                ReShadeHandlingMode.ReShadeAddonPresent => "ReShade Addon (present)",
-                ReShadeHandlingMode.ReShadeAddonReShadeOverlay => "ReShade Addon (reshade_overlay)",
-                ReShadeHandlingMode.HookReShadeDxgiSwapChainOnPresent => "Hook ReShade::DXGISwapChain::OnPresent",
-                ReShadeHandlingMode.None => "Do not handle",
-                _ => "<invalid>",
+                FriendlyEnumNameGetter = x => x switch
+                {
+                    ReShadeHandlingMode.Default => "Default",
+                    ReShadeHandlingMode.UnwrapReShade => "Unwrap",
+                    ReShadeHandlingMode.ReShadeAddonPresent => "ReShade Addon (present)",
+                    ReShadeHandlingMode.ReShadeAddonReShadeOverlay => "ReShade Addon (reshade_overlay)",
+                    ReShadeHandlingMode.HookReShadeDxgiSwapChainOnPresent => "Hook ReShade::DXGISwapChain::OnPresent",
+                    ReShadeHandlingMode.None => "Do not handle",
+                    _ => "<invalid>",
+                },
             },
-        },
 
-        /* // Making this a console command instead, for now
-        new GapSettingsEntry(5, true),
+            /* // Making this a console command instead, for now
+            new GapSettingsEntry(5, true),
 
-        new EnumSettingsEntry<SwapChainHelper.HookMode>(
-            Loc.Localize("DalamudSettingsSwapChainHookMode", "Swap chain hooking mode"),
-            Loc.Localize(
-                "DalamudSettingsSwapChainHookModeHint",
-                "Depending on addons aside from Dalamud you use, you may have to use different options for Dalamud and other addons to cooperate.\nRestart is required for changes to take effect."),
-            c => c.SwapChainHookMode,
-            (v, c) => c.SwapChainHookMode = v,
-            fallbackValue: SwapChainHelper.HookMode.ByteCode),
-            */
+            new EnumSettingsEntry<SwapChainHelper.HookMode>(
+                Loc.Localize("DalamudSettingsSwapChainHookMode", "Swap chain hooking mode"),
+                Loc.Localize(
+                    "DalamudSettingsSwapChainHookModeHint",
+                    "Depending on addons aside from Dalamud you use, you may have to use different options for Dalamud and other addons to cooperate.\nRestart is required for changes to take effect."),
+                c => c.SwapChainHookMode,
+                (v, c) => c.SwapChainHookMode = v,
+                fallbackValue: SwapChainHelper.HookMode.ByteCode),
+                */
 
-        /* Disabling profiles after they've been enabled doesn't make much sense, at least not if the user has already created profiles.
-        new GapSettingsEntry(5, true),
+            /* Disabling profiles after they've been enabled doesn't make much sense, at least not if the user has already created profiles.
+            new GapSettingsEntry(5, true),
 
-        new SettingsEntry<bool>(
-            Loc.Localize("DalamudSettingsEnableProfiles", "Enable plugin collections"),
-            Loc.Localize("DalamudSettingsEnableProfilesHint", "Enables plugin collections, which lets you create toggleable lists of plugins."),
-            c => c.ProfilesEnabled,
-            (v, c) => c.ProfilesEnabled = v),
-            */
-    ];
+            new SettingsEntry<bool>(
+                Loc.Localize("DalamudSettingsEnableProfiles", "Enable plugin collections"),
+                Loc.Localize("DalamudSettingsEnableProfilesHint", "Enables plugin collections, which lets you create toggleable lists of plugins."),
+                c => c.ProfilesEnabled,
+                (v, c) => c.ProfilesEnabled = v),
+                */
+        ];
+    }
 
     public override string Title => Loc.Localize("DalamudSettingsExperimental", "Experimental");
+
+    public override SettingsOpenKind Kind => SettingsOpenKind.Experimental;
+
+    public override SettingsEntry[] Entries { get; }
 
     public override void Draw()
     {
         base.Draw();
 
-        ImGuiHelpers.SafeTextColoredWrapped(
+        ImGui.TextColoredWrapped(
             ImGuiColors.DalamudGrey,
             "Total memory used by Dalamud & Plugins: " + Util.FormatBytes(GC.GetTotalMemory(false)));
         ImGuiHelpers.ScaledDummy(15);

@@ -7,11 +7,11 @@ namespace Dalamud.Test
     public class LocalizationTests
     {
         private readonly Localization localization;
-        private string currentLangCode;
+        private string currentLangCode = "en";
 
         public LocalizationTests()
         {
-            var workingDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var workingDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
             this.localization = new Localization(workingDir, "dalamud_");
             this.localization.LocalizationChanged += code => this.currentLangCode = code;
         }

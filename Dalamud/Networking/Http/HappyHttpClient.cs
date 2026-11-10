@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 
@@ -36,7 +36,7 @@ internal class HappyHttpClient : IInternalDisposableService
             {
                 UserAgent =
                 {
-                    new ProductInfoHeaderValue("Dalamud", Util.AssemblyVersion),
+                    new ProductInfoHeaderValue("Dalamud", Versioning.GetAssemblyVersion()),
                 },
             },
         };
@@ -62,6 +62,7 @@ internal class HappyHttpClient : IInternalDisposableService
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        this.SharedHttpClient.CancelPendingRequests();
         this.SharedHttpClient.Dispose();
         this.SharedHappyEyeballsCallback.Dispose();
 

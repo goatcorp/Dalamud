@@ -41,7 +41,7 @@ public sealed class SystemFontFamilyId : IFontFamilyId
             this.EnglishName = name;
         else if (localeNames.TryGetValue("en", out name))
             this.EnglishName = name;
-        else 
+        else
             this.EnglishName = localeNames.Values.First();
         this.LocaleNames = localeNames;
     }
@@ -83,7 +83,7 @@ public sealed class SystemFontFamilyId : IFontFamilyId
         else if (candidates.Any(x => x.Style == (int)DWRITE_FONT_STYLE.DWRITE_FONT_STYLE_NORMAL))
             candidates.RemoveAll(x => x.Style != (int)DWRITE_FONT_STYLE.DWRITE_FONT_STYLE_NORMAL);
 
-        if (!candidates.Any())
+        if (candidates.Count == 0)
             return 0;
 
         for (var i = 0; i < this.Fonts.Count; i++)
@@ -117,7 +117,7 @@ public sealed class SystemFontFamilyId : IFontFamilyId
         return new(IObjectWithLocalizableName.GetLocaleNames(fn));
     }
 
-    private unsafe IReadOnlyList<IFontId> GetFonts()
+    private unsafe List<IFontId> GetFonts()
     {
         using var dwf = default(ComPtr<IDWriteFactory>);
         fixed (Guid* piid = &IID.IID_IDWriteFactory)
@@ -133,8 +133,8 @@ public sealed class SystemFontFamilyId : IFontFamilyId
 
         var familyIndex = 0u;
         BOOL exists = false;
-        fixed (void* pName = this.EnglishName)
-            sfc.Get()->FindFamilyName((ushort*)pName, &familyIndex, &exists).ThrowOnError();
+        fixed (char* pName = this.EnglishName)
+            sfc.Get()->FindFamilyName(pName, &familyIndex, &exists).ThrowOnError();
         if (!exists)
             throw new FileNotFoundException($"Font \"{this.EnglishName}\" not found.");
 

@@ -2,17 +2,24 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
+
+using CheapLoc;
 
 using Dalamud.Console;
+using Dalamud.Game.Gui;
+using Dalamud.Game.Gui.Toast;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using FFXIVClientStructs.FFXIV.Component.Shell;
 
 namespace Dalamud.Game.Command;
@@ -23,7 +30,7 @@ namespace Dalamud.Game.Command;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class CommandManager : IInternalDisposableService, ICommandManager
 {
-    private static readonly ModuleLog Log = new("Command");
+    private static readonly ModuleLog Log = ModuleLog.Create<CommandManager>();
 
     private readonly ConcurrentDictionary<string, IReadOnlyCommandInfo> commandMap = new();
     private readonly ConcurrentDictionary<(string, IReadOnlyCommandInfo), string> commandAssemblyNameMap = new();
@@ -34,7 +41,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
     private readonly ConsoleManager console = Service<ConsoleManager>.Get();
 
     [ServiceManager.ServiceConstructor]
-    private CommandManager(Dalamud dalamud)
+    private CommandManager()
     {
         this.tryInvokeDebugCommandHook = Hook<ShellCommands.Delegates.TryInvokeDebugCommand>.FromAddress(
             (nint)ShellCommands.MemberFunctionPointers.TryInvokeDebugCommand,
@@ -43,6 +50,16 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
 
         this.console.Invoke += this.ConsoleOnInvoke;
     }
+
+    /// <summary>
+    /// Published whenever a command is registered
+    /// </summary>
+    public event EventHandler<CommandEventArgs>? CommandAdded;
+
+    /// <summary>
+    /// Published whenever a command is unregistered
+    /// </summary>
+    public event EventHandler<CommandEventArgs>? CommandRemoved;
 
     /// <inheritdoc/>
     public ReadOnlyDictionary<string, IReadOnlyCommandInfo> Commands => new(this.commandMap);
@@ -60,7 +77,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
             if (separatorPosition + 1 >= content.Length)
             {
                 // Remove the trailing space
-                command = content.Substring(0, separatorPosition);
+                command = content[..separatorPosition];
             }
             else
             {
@@ -85,6 +102,22 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
 
         if (!this.commandMap.TryGetValue(command, out var handler)) // Command was not found.
             return false;
+
+        if (!handler.AllowedInMacros &&
+            (this.GetCurrentMacroLine()?.StartsWith($"/{command}", StringComparison.OrdinalIgnoreCase) ?? false))
+        {
+            Log.Warning("Command {CommandName} is not allowed to be run in macros.", command);
+
+            if (!RaptureShellModule.Instance()->SuppressMacroErrors)
+            {
+                var msg = Loc.Localize("CommandHandlerMacroBlocked", $"Command {command} cannot be run in a macro.");
+                Service<ChatGui>.Get().PrintError(msg);
+                Service<ToastGui>.Get().ShowError(msg);
+            }
+
+            // We handled the command, just refused to run it. Suppress the game's failure message
+            return true;
+        }
 
         this.DispatchCommand(command, argument, handler);
         return true;
@@ -121,6 +154,12 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
             return false;
         }
 
+        this.CommandAdded?.InvokeSafely(this, new CommandEventArgs
+        {
+            Command = command,
+            CommandInfo = info,
+        });
+
         if (!this.commandAssemblyNameMap.TryAdd((command, info), loaderAssemblyName))
         {
             this.commandMap.Remove(command, out _);
@@ -143,13 +182,34 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
             return false;
         }
 
+        this.CommandAdded?.InvokeSafely(this, new CommandEventArgs
+        {
+            Command = command,
+            CommandInfo = info,
+        });
+
         return true;
     }
 
     /// <inheritdoc/>
     public bool RemoveHandler(string command)
     {
-        return this.commandMap.Remove(command, out _);
+        if (this.commandAssemblyNameMap.FindFirst(c => c.Key.Item1 == command, out var assemblyKeyValuePair))
+        {
+            this.commandAssemblyNameMap.TryRemove(assemblyKeyValuePair.Key, out _);
+        }
+
+        var removed = this.commandMap.Remove(command, out var info);
+        if (removed)
+        {
+            this.CommandRemoved?.InvokeSafely(this, new CommandEventArgs
+            {
+                Command = command,
+                CommandInfo = info,
+            });
+        }
+
+        return removed;
     }
 
     /// <summary>
@@ -198,6 +258,26 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
 
         return this.ProcessCommand(command->ToString()) ? 0 : result;
     }
+
+    private unsafe string? GetCurrentMacroLine()
+    {
+        var shellModule = RaptureShellModule.Instance();
+        return shellModule->MacroCurrentLine == 0 ? null : shellModule->MacroLineText.ToString();
+    }
+
+    /// <inheritdoc />
+    public class CommandEventArgs : EventArgs
+    {
+        /// <summary>
+        ///  Gets the command string.
+        /// </summary>
+        public string Command { get; init; }
+
+        /// <summary>
+        ///  Gets the command info.
+        /// </summary>
+        public IReadOnlyCommandInfo CommandInfo { get; init; }
+    }
 }
 
 /// <summary>
@@ -210,13 +290,15 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
 #pragma warning restore SA1015
 internal class CommandManagerPluginScoped : IInternalDisposableService, ICommandManager
 {
-    private static readonly ModuleLog Log = new("Command");
+    private static readonly ModuleLog Log = ModuleLog.Create<CommandManager>();
 
     [ServiceManager.ServiceDependency]
     private readonly CommandManager commandManagerService = Service<CommandManager>.Get();
 
-    private readonly List<string> pluginRegisteredCommands = new();
+    private readonly List<string> pluginRegisteredCommands = [];
     private readonly LocalPlugin pluginInfo;
+
+    private readonly Lock commandListLock = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CommandManagerPluginScoped"/> class.
@@ -233,6 +315,8 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        using var scope = this.commandListLock.EnterScope();
+
         foreach (var command in this.pluginRegisteredCommands)
         {
             this.commandManagerService.RemoveHandler(command);
@@ -252,6 +336,8 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     /// <inheritdoc/>
     public bool AddHandler(string command, CommandInfo info)
     {
+        using var scope = this.commandListLock.EnterScope();
+
         if (!this.pluginRegisteredCommands.Contains(command))
         {
             if (this.commandManagerService.AddHandler(command, info, this.pluginInfo.InternalName))
@@ -262,7 +348,7 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
         }
         else
         {
-            Log.Error($"Command {command} is already registered.");
+            Log.Error("Command {Command} is already registered.", command);
         }
 
         return false;
@@ -271,6 +357,8 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     /// <inheritdoc/>
     public bool RemoveHandler(string command)
     {
+        using var scope = this.commandListLock.EnterScope();
+
         if (this.pluginRegisteredCommands.Contains(command))
         {
             if (this.commandManagerService.RemoveHandler(command))
@@ -281,7 +369,7 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
         }
         else
         {
-            Log.Error($"Command {command} not found.");
+            Log.Error("Command {Command} not found.", command);
         }
 
         return false;

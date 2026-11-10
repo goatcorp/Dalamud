@@ -37,7 +37,7 @@ internal class JobGauges : IServiceType, IJobGauges
         // Since the gauge itself reads from live memory, there isn't much downside to doing this.
         if (!this.cache.TryGetValue(typeof(T), out var gauge))
         {
-            gauge = this.cache[typeof(T)] = (T)Activator.CreateInstance(typeof(T), BindingFlags.NonPublic | BindingFlags.Instance, null, new object[] { this.Address }, null);
+            gauge = this.cache[typeof(T)] = (T)Activator.CreateInstance(typeof(T), BindingFlags.NonPublic | BindingFlags.Instance, null, [this.Address], null);
         }
 
         return (T)gauge;

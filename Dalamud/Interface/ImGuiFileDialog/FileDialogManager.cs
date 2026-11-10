@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.ImGuiFileDialog;
 
@@ -9,18 +9,32 @@ namespace Dalamud.Interface.ImGuiFileDialog;
 /// </summary>
 public class FileDialogManager
 {
+    /// <summary> Gets or sets a function that returns the desired default sort order in the file dialog. </summary>
+    public Func<FileDialog.SortingField>? GetDefaultSortOrder { get; set; }
+
+    /// <summary> Gets or sets an action to invoke when a file dialog changes its sort order. </summary>
+    public Action<FileDialog.SortingField>? SetDefaultSortOrder { get; set; }
+
 #pragma warning disable SA1401
-    /// <summary> Additional quick access items for the side bar.</summary>
-    public readonly List<(string Name, string Path, FontAwesomeIcon Icon, int Position)> CustomSideBarItems = new();
+#pragma warning disable SA1201
+    /// <summary> Additional quick access items for the sidebar.</summary>
+    public readonly List<(string Name, string Path, FontAwesomeIcon Icon, int Position)> CustomSideBarItems = [];
 
     /// <summary> Additional flags with which to draw the window. </summary>
     public ImGuiWindowFlags AddedWindowFlags = ImGuiWindowFlags.None;
 #pragma warning restore SA1401
+#pragma warning restore SA1201
 
     private FileDialog? dialog;
     private Action<bool, string>? callback;
     private Action<bool, List<string>>? multiCallback;
     private string savedPath = ".";
+
+    /// <summary>
+    /// Event fires when a new file is selected by the user
+    /// </summary>
+    /// <returns>Returns the path of the file as a string</returns>
+    public event EventHandler<string>? SelectionChanged;
 
     /// <summary>
     /// Create a dialog which selects an already existing folder.
@@ -167,6 +181,8 @@ public class FileDialogManager
         this.multiCallback = null;
     }
 
+    private void OnSelectionChange(object sender, string path) => this.SelectionChanged?.Invoke(sender, path);
+
     private void SetDialog(
         string id,
         string title,
@@ -189,10 +205,43 @@ public class FileDialogManager
             this.callback = callback as Action<bool, string>;
         }
 
+        if (this.dialog is not null)
+        {
+            this.dialog.SortOrderChanged -= this.OnSortOrderChange;
+            this.dialog.SelectionChanged -= this.OnSelectionChange;
+        }
+
         this.dialog = new FileDialog(id, title, filters, path, defaultFileName, defaultExtension, selectionCountMax, isModal, flags);
+        if (this.GetDefaultSortOrder is not null)
+        {
+            try
+            {
+                var order = this.GetDefaultSortOrder();
+                this.dialog.SortFields(order);
+            }
+            catch
+            {
+                // ignored.
+            }
+        }
+
+        this.dialog.SortOrderChanged += this.OnSortOrderChange;
+        this.dialog.SelectionChanged += this.OnSelectionChange;
         this.dialog.WindowFlags |= this.AddedWindowFlags;
         foreach (var (name, location, icon, position) in this.CustomSideBarItems)
             this.dialog.SetQuickAccess(name, location, icon, position);
         this.dialog.Show();
+    }
+
+    private void OnSortOrderChange(FileDialog.SortingField sortOrder)
+    {
+        try
+        {
+            this.SetDefaultSortOrder?.Invoke(sortOrder);
+        }
+        catch
+        {
+            // ignored.
+        }
     }
 }

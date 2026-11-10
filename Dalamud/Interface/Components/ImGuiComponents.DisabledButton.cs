@@ -1,8 +1,7 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Components;
 
@@ -46,28 +45,10 @@ public static partial class ImGuiComponents
     /// <returns>Indicator if button is clicked.</returns>
     public static bool DisabledButton(string labelWithId, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null, float alphaMult = .5f)
     {
-        using var col = new ImRaii.Color();
-
-        if (defaultColor.HasValue)
-        {
-            col.Push(ImGuiCol.Button, defaultColor.Value);
-        }
-
-        if (activeColor.HasValue)
-        {
-            col.Push(ImGuiCol.ButtonActive, activeColor.Value);
-        }
-
-        if (hoveredColor.HasValue)
-        {
-            col.Push(ImGuiCol.ButtonHovered, hoveredColor.Value);
-        }
-
-        var style = ImGui.GetStyle();
-
-        using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, style.Alpha * alphaMult))
-        {
-            return ImGui.Button(labelWithId);
-        }
+        using var col = ImRaii.PushColor(ImGuiCol.Button, defaultColor)
+                              .Push(ImGuiCol.ButtonActive, activeColor)
+                              .Push(ImGuiCol.ButtonHovered, hoveredColor);
+        using var style = ImRaii.PushStyle(ImGuiStyleVar.Alpha, ImGui.GetStyle().Alpha * alphaMult);
+        return ImGui.Button(labelWithId);
     }
 }

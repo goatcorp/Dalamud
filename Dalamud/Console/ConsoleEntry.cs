@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Dalamud.Console;
 
@@ -10,14 +10,14 @@ public interface IConsoleEntry
     /// <summary>
     /// Gets the name of the entry.
     /// </summary>
-    public string Name { get; }
-        
+    string Name { get; }
+
     /// <summary>
     /// Gets the description of the entry.
     /// </summary>
-    public string Description { get; }
+    string Description { get; }
 }
-    
+
 /// <summary>
 /// Interface representing a command in the console.
 /// </summary>
@@ -27,8 +27,8 @@ public interface IConsoleCommand : IConsoleEntry
     /// Execute this command.
     /// </summary>
     /// <param name="arguments">Arguments to invoke the entry with.</param>
-    /// <returns>Whether or not execution succeeded.</returns>
-    public bool Invoke(IEnumerable<object> arguments);
+    /// <returns>Whether execution succeeded.</returns>
+    bool Invoke(IEnumerable<object> arguments);
 }
 
 /// <summary>

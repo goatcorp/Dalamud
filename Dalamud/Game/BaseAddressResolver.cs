@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
+using Dalamud.Plugin.Services;
+
 namespace Dalamud.Game;
 
 /// <summary>
@@ -12,10 +14,10 @@ public abstract class BaseAddressResolver
     /// <summary>
     /// Gets a list of memory addresses that were found, to list in /xldata.
     /// </summary>
-    public static Dictionary<string, List<(string ClassName, IntPtr Address)>> DebugScannedValues { get; } = new();
+    public static Dictionary<string, List<(string ClassName, IntPtr Address)>> DebugScannedValues { get; } = [];
 
     /// <summary>
-    /// Gets or sets a value indicating whether the resolver has successfully run <see cref="Setup32Bit(ISigScanner)"/> or <see cref="Setup64Bit(ISigScanner)"/>.
+    /// Gets or sets a value indicating whether the resolver has successfully run <see cref="Setup64Bit(ISigScanner)"/>.
     /// </summary>
     protected bool IsResolved { get; set; }
 
@@ -33,15 +35,7 @@ public abstract class BaseAddressResolver
             return;
         }
 
-        if (scanner.Is32BitProcess)
-        {
-            this.Setup32Bit(scanner);
-        }
-        else
-        {
-            this.Setup64Bit(scanner);
-        }
-
+        this.Setup64Bit(scanner);
         this.SetupInternal(scanner);
 
         var className = this.GetType().Name;
@@ -74,15 +68,6 @@ public abstract class BaseAddressResolver
         var functionAddress = Marshal.ReadIntPtr(vtable, IntPtr.Size * count);
 
         return Marshal.GetDelegateForFunctionPointer<T>(functionAddress);
-    }
-
-    /// <summary>
-    /// Setup the resolver by finding any necessary memory addresses.
-    /// </summary>
-    /// <param name="scanner">The SigScanner instance.</param>
-    protected virtual void Setup32Bit(ISigScanner scanner)
-    {
-        throw new NotSupportedException("32 bit version is not supported.");
     }
 
     /// <summary>

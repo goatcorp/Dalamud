@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-using Dalamud.Interface.Utility;
-
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Microsoft.Extensions.ObjectPool;
 
@@ -32,10 +30,10 @@ internal sealed class SimplePushedFont : IDisposable
     public static SimplePushedFont Rent(List<IDisposable> stack, ImFontPtr fontPtr)
     {
         var rented = Pool.Get();
-        Debug.Assert(rented.font.IsNull(), "Rented object must not have its font set");
+        Debug.Assert(rented.font.IsNull, "Rented object must not have its font set");
         rented.stack = stack;
 
-        if (fontPtr.IsNotNullAndLoaded())
+        if (!fontPtr.IsNull && fontPtr.IsLoaded())
         {
             rented.font = fontPtr;
             ImGui.PushFont(fontPtr);
@@ -54,9 +52,9 @@ internal sealed class SimplePushedFont : IDisposable
 
         this.stack.RemoveAt(this.stack.Count - 1);
 
-        if (!this.font.IsNull())
+        if (!this.font.IsNull)
         {
-            if (ImGui.GetFont().NativePtr == this.font.NativePtr)
+            if (ImGui.GetFont().Handle == this.font.Handle)
             {
                 ImGui.PopFont();
             }

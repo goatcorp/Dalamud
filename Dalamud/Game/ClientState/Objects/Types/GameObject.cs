@@ -1,9 +1,9 @@
 using System.Numerics;
-using System.Runtime.CompilerServices;
 
 using Dalamud.Game.ClientState.Objects.Enums;
+using Dalamud.Game.Player;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Memory;
+using Dalamud.Utility;
 
 namespace Dalamud.Game.ClientState.Objects.Types;
 
@@ -15,7 +15,7 @@ public interface IGameObject : IEquatable<IGameObject>
     /// <summary>
     /// Gets the name of this <see cref="GameObject" />.
     /// </summary>
-    public SeString Name { get; }
+    SeString Name { get; }
 
     /// <summary>
     /// Gets the GameObjectID for this GameObject. The Game Object ID is a globally unique identifier that points to
@@ -23,81 +23,99 @@ public interface IGameObject : IEquatable<IGameObject>
     ///
     /// Not to be confused with <see cref="EntityId"/>.
     /// </summary>
-    public ulong GameObjectId { get; }
+    ulong GameObjectId { get; }
 
     /// <summary>
     /// Gets the Entity ID for this GameObject. Entity IDs are assigned to networked GameObjects.
     ///
     /// A value of <c>0xE000_0000</c> indicates that this entity is not networked and has specific interactivity rules.
     /// </summary>
-    public uint EntityId { get; }
+    uint EntityId { get; }
 
     /// <summary>
     /// Gets the data ID for linking to other respective game data.
     /// </summary>
-    public uint DataId { get; }
+    [Obsolete("Renamed to BaseId")]
+    uint DataId { get; }
+
+    /// <summary>
+    /// Gets the base ID for linking to other respective game data.
+    /// </summary>
+    uint BaseId { get; }
 
     /// <summary>
     /// Gets the ID of this GameObject's owner.
     /// </summary>
-    public uint OwnerId { get; }
+    uint OwnerId { get; }
 
     /// <summary>
     /// Gets the index of this object in the object table.
     /// </summary>
-    public ushort ObjectIndex { get; }
+    ushort ObjectIndex { get; }
 
     /// <summary>
     /// Gets the entity kind of this <see cref="GameObject" />.
     /// See <see cref="ObjectKind">the ObjectKind enum</see> for possible values.
     /// </summary>
-    public ObjectKind ObjectKind { get; }
+    ObjectKind ObjectKind { get; }
 
     /// <summary>
     /// Gets the sub kind of this Actor.
     /// </summary>
-    public byte SubKind { get; }
+    byte SubKind { get; }
 
     /// <summary>
     /// Gets the X distance from the local player in yalms.
     /// </summary>
-    public byte YalmDistanceX { get; }
+    [Obsolete("Use CurrentDistance.")]
+    byte YalmDistanceX { get; }
 
     /// <summary>
     /// Gets the Y distance from the local player in yalms.
     /// </summary>
-    public byte YalmDistanceZ { get; }
+    [Obsolete("This property did not represent the Z-axis. It is the next distance value that will replace CurrentDistance on the next update tick. Use CurrentDistance instead.")]
+    byte YalmDistanceZ { get; }
+
+    /// <summary>
+    /// Gets the current distance from the local player, in yalms.
+    /// </summary>
+    byte CurrentDistance { get; }
+
+    /// <summary>
+    /// Gets the next distance value that will replace <see cref="CurrentDistance"/> on the next update tick.
+    /// </summary>
+    byte NextDistance { get; }
 
     /// <summary>
     /// Gets a value indicating whether the object is dead or alive.
     /// </summary>
-    public bool IsDead { get; }
+    bool IsDead { get; }
 
     /// <summary>
     /// Gets a value indicating whether the object is targetable.
     /// </summary>
-    public bool IsTargetable { get; }
+    bool IsTargetable { get; }
 
     /// <summary>
     /// Gets the position of this <see cref="GameObject" />.
     /// </summary>
-    public Vector3 Position { get; }
+    Vector3 Position { get; }
 
     /// <summary>
     /// Gets the rotation of this <see cref="GameObject" />.
     /// This ranges from -pi to pi radians.
     /// </summary>
-    public float Rotation { get; }
+    float Rotation { get; }
 
     /// <summary>
     /// Gets the hitbox radius of this <see cref="GameObject" />.
     /// </summary>
-    public float HitboxRadius { get; }
+    float HitboxRadius { get; }
 
     /// <summary>
     /// Gets the current target of the game object.
     /// </summary>
-    public ulong TargetObjectId { get; }
+    ulong TargetObjectId { get; }
 
     /// <summary>
     /// Gets the target object of the game object.
@@ -106,18 +124,18 @@ public interface IGameObject : IEquatable<IGameObject>
     /// This iterates the actor table, it should be used with care.
     /// </remarks>
     // TODO: Fix for non-networked GameObjects
-    public IGameObject? TargetObject { get; }
+    IGameObject? TargetObject { get; }
 
     /// <summary>
     /// Gets the address of the game object in memory.
     /// </summary>
-    public IntPtr Address { get; }
+    IntPtr Address { get; }
 
     /// <summary>
     /// Gets a value indicating whether this actor is still valid in memory.
     /// </summary>
     /// <returns>True or false.</returns>
-    public bool IsValid();
+    bool IsValid();
 }
 
 /// <summary>
@@ -164,15 +182,10 @@ internal partial class GameObject
     /// <returns>True or false.</returns>
     public static bool IsValid(IGameObject? actor)
     {
-        var clientState = Service<ClientState>.GetNullable();
-
-        if (actor is null || clientState == null)
+        if (actor == null)
             return false;
 
-        if (clientState.LocalContentId == 0)
-            return false;
-
-        return true;
+        return Service<PlayerState>.Get().IsLoaded;
     }
 
     /// <summary>
@@ -197,7 +210,7 @@ internal partial class GameObject
 internal unsafe partial class GameObject : IGameObject
 {
     /// <inheritdoc/>
-    public SeString Name => SeString.Parse(this.Struct->Name);
+    public SeString Name => this.Struct->GetName().AsDalamudSeString();
 
     /// <inheritdoc/>
     public ulong GameObjectId => this.Struct->GetGameObjectId();
@@ -207,6 +220,9 @@ internal unsafe partial class GameObject : IGameObject
 
     /// <inheritdoc/>
     public uint DataId => this.Struct->BaseId;
+
+    /// <inheritdoc/>
+    public uint BaseId => this.Struct->BaseId;
 
     /// <inheritdoc/>
     public uint OwnerId => this.Struct->OwnerId;
@@ -221,10 +237,18 @@ internal unsafe partial class GameObject : IGameObject
     public byte SubKind => this.Struct->SubKind;
 
     /// <inheritdoc/>
+    [Obsolete]
     public byte YalmDistanceX => this.Struct->YalmDistanceFromPlayerX;
 
     /// <inheritdoc/>
+    [Obsolete]
     public byte YalmDistanceZ => this.Struct->YalmDistanceFromPlayerZ;
+
+    /// <inheritdoc/>
+    public byte CurrentDistance => this.Struct->CurrentDistance;
+
+    /// <inheritdoc/>
+    public byte NextDistance => this.Struct->NextDistance;
 
     /// <inheritdoc/>
     public bool IsDead => this.Struct->IsDead();
@@ -251,7 +275,14 @@ internal unsafe partial class GameObject : IGameObject
     /// <summary>
     /// Gets the underlying structure.
     /// </summary>
-    protected internal FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)this.Address;
+    protected internal FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* Struct
+    {
+        get
+        {
+            ThreadSafety.DevModeAssertMainThread();
+            return (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)this.Address;
+        }
+    }
 
     /// <inheritdoc/>
     public override string ToString() => $"{this.GameObjectId:X}({this.Name.TextValue} - {this.ObjectKind}) at {this.Address:X}";

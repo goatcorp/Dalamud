@@ -1,4 +1,4 @@
-﻿using Dalamud.Utility;
+using Dalamud.Utility;
 
 namespace Dalamud.Game.ClientState.Keys;
 

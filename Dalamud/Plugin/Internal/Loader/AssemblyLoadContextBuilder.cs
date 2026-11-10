@@ -15,9 +15,9 @@ namespace Dalamud.Plugin.Internal.Loader;
 /// </summary>
 internal class AssemblyLoadContextBuilder
 {
-    private readonly List<string> additionalProbingPaths = new();
-    private readonly List<string> resourceProbingPaths = new();
-    private readonly List<string> resourceProbingSubpaths = new();
+    private readonly List<string> additionalProbingPaths = [];
+    private readonly List<string> resourceProbingPaths = [];
+    private readonly List<string> resourceProbingSubpaths = [];
     private readonly Dictionary<string, ManagedLibrary> managedLibraries = new(StringComparer.Ordinal);
     private readonly Dictionary<string, NativeLibrary> nativeLibraries = new(StringComparer.Ordinal);
     private readonly HashSet<string> privateAssemblies = new(StringComparer.Ordinal);
@@ -140,7 +140,7 @@ internal class AssemblyLoadContextBuilder
             return this;
         }
 
-        var names = new Queue<AssemblyName>(new[] { assemblyName });
+        var names = new Queue<AssemblyName>([assemblyName]);
 
         while (names.TryDequeue(out var name))
         {

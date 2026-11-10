@@ -1,94 +1,100 @@
 using System.Collections.Generic;
 
-using Dalamud.Game.Gui;
+using Dalamud.Game.Chat;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 
 namespace Dalamud.Plugin.Services;
 
 /// <summary>
 /// This class handles interacting with the native chat UI.
 /// </summary>
-public interface IChatGui
+public interface IChatGui : IDalamudService
 {
     /// <summary>
-    /// A delegate type used with the <see cref="ChatGui.ChatMessage"/> event.
+    /// A delegate type used for the <see cref="ChatMessage"/> and <see cref="CheckMessageHandled"/> events.
     /// </summary>
-    /// <param name="type">The type of chat.</param>
-    /// <param name="timestamp">The timestamp of when the message was sent.</param>
-    /// <param name="sender">The sender name.</param>
     /// <param name="message">The message sent.</param>
-    /// <param name="isHandled">A value indicating whether the message was handled or should be propagated.</param>
-    public delegate void OnMessageDelegate(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled);
+    delegate void OnHandleableChatMessageDelegate(IHandleableChatMessage message);
 
     /// <summary>
-    /// A delegate type used with the <see cref="ChatGui.CheckMessageHandled"/> event.
+    /// A delegate type used for the <see cref="ChatMessageHandled"/> and <see cref="ChatMessageUnhandled"/> events.
     /// </summary>
-    /// <param name="type">The type of chat.</param>
-    /// <param name="timestamp">The timestamp of when the message was sent.</param>
-    /// <param name="sender">The sender name.</param>
     /// <param name="message">The message sent.</param>
-    /// <param name="isHandled">A value indicating whether the message was handled or should be propagated.</param>
-    public delegate void OnCheckMessageHandledDelegate(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled);
+    delegate void OnChatMessageDelegate(IChatMessage message);
 
     /// <summary>
-    /// A delegate type used with the <see cref="ChatGui.ChatMessageHandled"/> event.
+    /// A delegate type used for the <see cref="LogMessage"/> event.
     /// </summary>
-    /// <param name="type">The type of chat.</param>
-    /// <param name="timestamp">The timestamp of when the message was sent.</param>
-    /// <param name="sender">The sender name.</param>
-    /// <param name="message">The message sent.</param>
-    public delegate void OnMessageHandledDelegate(XivChatType type, int timestamp, SeString sender, SeString message);
+    /// <param name="message">The message sent. The passed object is only valid during the event callback and must not be used after returning from it.</param>
+    delegate void OnLogMessageDelegate(ILogMessage message);
 
     /// <summary>
-    /// A delegate type used with the <see cref="ChatGui.ChatMessageUnhandled"/> event.
+    /// An event that will be fired when a chat message is sent to chat by the game.
     /// </summary>
-    /// <param name="type">The type of chat.</param>
-    /// <param name="timestamp">The timestamp of when the message was sent.</param>
-    /// <param name="sender">The sender name.</param>
-    /// <param name="message">The message sent.</param>
-    public delegate void OnMessageUnhandledDelegate(XivChatType type, int timestamp, SeString sender, SeString message);
+    event OnHandleableChatMessageDelegate ChatMessage;
 
     /// <summary>
-    /// Event that will be fired when a chat message is sent to chat by the game.
+    /// A follow-up event after <see cref="ChatMessage"/>, that allows for final modifications, like translation or formatting.<br/>
+    /// It is only fired if the message was not suppressed during the <see cref="ChatMessage"/> event.
     /// </summary>
-    public event OnMessageDelegate ChatMessage;
-
-    /// <summary>
-    /// Event that allows you to stop messages from appearing in chat by setting the isHandled parameter to true.
-    /// </summary>
-    public event OnCheckMessageHandledDelegate CheckMessageHandled;
+    event OnHandleableChatMessageDelegate CheckMessageHandled;
 
     /// <summary>
     /// Event that will be fired when a chat message is handled by Dalamud or a Plugin.
     /// </summary>
-    public event OnMessageHandledDelegate ChatMessageHandled;
+    event OnChatMessageDelegate ChatMessageHandled;
 
     /// <summary>
     /// Event that will be fired when a chat message is not handled by Dalamud or a Plugin.
     /// </summary>
-    public event OnMessageUnhandledDelegate ChatMessageUnhandled;
+    event OnChatMessageDelegate ChatMessageUnhandled;
+
+    /// <summary>
+    /// Event that will be fired when a log message, that is a chat message based on entries in the LogMessage sheet, is sent.
+    /// </summary>
+    event OnLogMessageDelegate LogMessage;
 
     /// <summary>
     /// Gets the ID of the last linked item.
     /// </summary>
-    public uint LastLinkedItemId { get; }
+    uint LastLinkedItemId { get; }
 
     /// <summary>
     /// Gets the flags of the last linked item.
     /// </summary>
-    public byte LastLinkedItemFlags { get; }
+    byte LastLinkedItemFlags { get; }
 
     /// <summary>
     /// Gets the dictionary of Dalamud Link Handlers.
     /// </summary>
-    public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers { get; }
+    IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers { get; }
+
+    /// <summary>
+    /// Register a chat link handler.
+    /// </summary>
+    /// <param name="commandId">The ID of the command.</param>
+    /// <param name="commandAction">The action to be executed.</param>
+    /// <returns>Returns an SeString payload for the link.</returns>
+    DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction);
+
+    /// <summary>
+    /// Remove a chat link handler.
+    /// </summary>
+    /// <param name="commandId">The ID of the command.</param>
+    void RemoveChatLinkHandler(uint commandId);
+
+    /// <summary>
+    /// Removes all chat link handlers registered by the plugin.
+    /// </summary>
+    void RemoveChatLinkHandler();
 
     /// <summary>
     /// Queue a chat message. Dalamud will send queued messages on the next framework event.
     /// </summary>
     /// <param name="chat">A message to send.</param>
-    public void Print(XivChatEntry chat);
+    void Print(XivChatEntry chat);
 
     /// <summary>
     /// Queue a chat message. Dalamud will send queued messages on the next framework event.
@@ -96,7 +102,7 @@ public interface IChatGui
     /// <param name="message">A message to send.</param>
     /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
     /// <param name="tagColor">Color to display the message tag with.</param>
-    public void Print(string message, string? messageTag = null, ushort? tagColor = null);
+    void Print(string message, string? messageTag = null, ushort? tagColor = null);
 
     /// <summary>
     /// Queue a chat message. Dalamud will send queued messages on the next framework event.
@@ -104,7 +110,7 @@ public interface IChatGui
     /// <param name="message">A message to send.</param>
     /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
     /// <param name="tagColor">Color to display the message tag with.</param>
-    public void Print(SeString message, string? messageTag = null, ushort? tagColor = null);
+    void Print(SeString message, string? messageTag = null, ushort? tagColor = null);
 
     /// <summary>
     /// Queue a chat message. Dalamud will send queued messages on the next framework event.
@@ -112,7 +118,7 @@ public interface IChatGui
     /// <param name="message">A message to send.</param>
     /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
     /// <param name="tagColor">Color to display the message tag with.</param>
-    public void PrintError(string message, string? messageTag = null, ushort? tagColor = null);
+    void PrintError(string message, string? messageTag = null, ushort? tagColor = null);
 
     /// <summary>
     /// Queue a chat message. Dalamud will send queued messages on the next framework event.
@@ -120,7 +126,7 @@ public interface IChatGui
     /// <param name="message">A message to send.</param>
     /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
     /// <param name="tagColor">Color to display the message tag with.</param>
-    public void PrintError(SeString message, string? messageTag = null, ushort? tagColor = null);
+    void PrintError(SeString message, string? messageTag = null, ushort? tagColor = null);
 
     /// <summary>
     /// Queue a chat message. Dalamud will send queued messages on the next framework event.
@@ -128,7 +134,7 @@ public interface IChatGui
     /// <param name="message">A message to send.</param>
     /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
     /// <param name="tagColor">Color to display the message tag with.</param>
-    public void Print(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null);
+    void Print(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null);
 
     /// <summary>
     /// Queue a chat message. Dalamud will send queued messages on the next framework event.
@@ -136,5 +142,5 @@ public interface IChatGui
     /// <param name="message">A message to send.</param>
     /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
     /// <param name="tagColor">Color to display the message tag with.</param>
-    public void PrintError(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null);
+    void PrintError(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null);
 }

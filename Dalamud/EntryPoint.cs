@@ -1,12 +1,13 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Common;
 using Dalamud.Configuration.Internal;
+using Dalamud.Hooking;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Logging.Internal;
 using Dalamud.Logging.Retention;
@@ -14,13 +15,15 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Support;
 using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using Newtonsoft.Json;
-using PInvoke;
+using Reloaded.Hooks;
+using Reloaded.Hooks.Definitions;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-
-using static Dalamud.NativeFunctions;
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Dalamud;
 
@@ -34,18 +37,14 @@ public sealed class EntryPoint
     /// </summary>
     public static readonly LoggingLevelSwitch LogLevelSwitch = new(LogEventLevel.Verbose);
 
+    private static IHook<Framework.Delegates.Destroy>? globalFrameworkDestroyHook;
+
     /// <summary>
     /// A delegate used during initialization of the CLR from Dalamud.Boot.
     /// </summary>
     /// <param name="infoPtr">Pointer to a serialized <see cref="DalamudStartInfo"/> data.</param>
     /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
     public delegate void InitDelegate(IntPtr infoPtr, IntPtr mainThreadContinueEvent);
-
-    /// <summary>
-    /// A delegate used from VEH handler on exception which CoreCLR will fast fail by default.
-    /// </summary>
-    /// <returns>HGLOBAL for message.</returns>
-    public delegate IntPtr VehDelegate();
 
     /// <summary>
     /// Initialize Dalamud.
@@ -58,25 +57,9 @@ public sealed class EntryPoint
         var info = JsonConvert.DeserializeObject<DalamudStartInfo>(infoStr)!;
 
         if ((info.BootWaitMessageBox & 4) != 0)
-            MessageBoxW(IntPtr.Zero, "Press OK to continue (BeforeDalamudConstruct)", "Dalamud Boot", MessageBoxType.Ok);
+            Windows.Win32.PInvoke.MessageBox(HWND.Null, "Press OK to continue (BeforeDalamudConstruct)", "Dalamud Boot", MESSAGEBOX_STYLE.MB_OK);
 
-        new Thread(() => RunThread(info, mainThreadContinueEvent)).Start();
-    }
-
-    /// <summary>
-    /// Returns stack trace.
-    /// </summary>
-    /// <returns>HGlobal to wchar_t* stack trace c-string.</returns>
-    public static IntPtr VehCallback()
-    {
-        try
-        {
-            return Marshal.StringToHGlobalUni(new StackTrace(1).ToString());
-        }
-        catch (Exception e)
-        {
-            return Marshal.StringToHGlobalUni("Fail: " + e);
-        }
+        new Thread(() => RunThread(info, mainThreadContinueEvent)) { Name = "Dalamud EntryPoint" }.Start();
     }
 
     /// <summary>
@@ -129,19 +112,56 @@ public sealed class EntryPoint
     }
 
     /// <summary>
+    /// Sets up the global hook for the Framework.Destroy function, which is called when the game is shutting down.
+    /// We need to do this out of band here, since we block shutdown until all services are unloaded, so we can't
+    /// hook this inside a service.
+    /// Depends on the CS address resolver being set up.
+    /// </summary>
+    internal static unsafe void SetupGlobalDestroyHook()
+    {
+        try
+        {
+            globalFrameworkDestroyHook = ReloadedHooks.Instance.CreateHook<Framework.Delegates.Destroy>(
+                GlobalFrameworkDestroyDetour,
+                (long)Framework.StaticVirtualTablePointer->Destroy);
+            globalFrameworkDestroyHook.Activate();
+        }
+        catch (Exception ex)
+        {
+            HookUtility.LogHookingErrorWithAddressSpaceInformation(ex, (IntPtr)Framework.StaticVirtualTablePointer->Destroy);
+            throw;
+        }
+    }
+
+    // Log some stuff to debug hook failures
+    private static unsafe void LogAddressSpaceInfo()
+    {
+        Windows.Win32.PInvoke.GetSystemInfo(out var systemInfo);
+
+        Log.Information("lpMinimumApplicationAddress: {MinAddr:x}\tlpMaximumApplicationAddress: {MaxAddr:x}",
+            (IntPtr)systemInfo.lpMinimumApplicationAddress,
+            (IntPtr)systemInfo.lpMaximumApplicationAddress);
+    }
+
+    /// <summary>
     /// Initialize all Dalamud subsystems and start running on the main thread.
     /// </summary>
     /// <param name="info">The <see cref="DalamudStartInfo"/> containing information needed to initialize Dalamud.</param>
     /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
     private static void RunThread(DalamudStartInfo info, IntPtr mainThreadContinueEvent)
     {
+        NativeLibrary.Load(Path.Combine(info.WorkingDirectory!, "cimgui.dll"));
+
         // Setup logger
         InitLogging(info.LogPath!, info.BootShowConsole, true, info.LogName);
         SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
 
+        LogAddressSpaceInfo();
+
         // Load configuration first to get some early persistent state, like log level
         var fs = new ReliableFileStorage(Path.GetDirectoryName(info.ConfigurationPath)!);
-        var configuration = DalamudConfiguration.Load(info.ConfigurationPath!, fs);
+        var configuration = DalamudConfiguration.Load(info.ConfigurationPath!, fs)
+                                                .GetAwaiter().GetResult();
 
         // Set the appropriate logging level from the configuration
         if (!configuration.LogSynchronously)
@@ -161,8 +181,6 @@ public sealed class EntryPoint
 
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
-        var unloadFailed = false;
-
         try
         {
             if (info.DelayInitializeMs > 0)
@@ -178,37 +196,26 @@ public sealed class EntryPoint
                 throw new Exception("Working directory was invalid");
 
             Reloaded.Hooks.Tools.Utilities.FasmBasePath = new DirectoryInfo(info.WorkingDirectory);
-            
+
             // Apply common fixes for culture issues
             CultureFixes.Apply();
 
-            // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls;
-
-            if (!Util.IsWine())
+            // Currently VEH is not fully functional on WINE
+            if (info.Platform != OSPlatform.Windows)
                 InitSymbolHandler(info);
 
             var dalamud = new Dalamud(info, fs, configuration, mainThreadContinueEvent);
-            Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash} [{CsVersion}]", 
-                            Util.GetScmVersion(), 
-                            Util.GetGitHashClientStructs(), 
+            Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash} [{CsVersion}]",
+                            Versioning.GetScmVersion(),
+                            Versioning.GetGitHashClientStructs(),
                             FFXIVClientStructs.ThisAssembly.Git.Commits);
 
             dalamud.WaitForUnload();
-
-            try
-            {
-                ServiceManager.UnloadAllServices();
-            }
-            catch (Exception ex)
-            {
-                Log.Fatal(ex, "Could not unload services.");
-                unloadFailed = true;
-            }
         }
         catch (Exception ex)
         {
             Log.Fatal(ex, "Unhandled exception on main thread.");
+            ErrorHandling.ShowSystemIntegrityPolicyErrorIfApplicable(ex);
         }
         finally
         {
@@ -227,11 +234,6 @@ public sealed class EntryPoint
             Log.CloseAndFlush();
             SerilogEventSink.Instance.LogLine -= SerilogOnLogLine;
         }
-
-        // If we didn't unload services correctly, we need to kill the process.
-        // We will never signal to Framework.
-        if (unloadFailed)
-            Environment.Exit(-1);
     }
 
     private static void SerilogOnLogLine(object? sender, (string Line, LogEvent LogEvent) ev)
@@ -261,10 +263,12 @@ public sealed class EntryPoint
             var symbolPath = Path.Combine(info.AssetDirectory, "UIRes", "pdb");
             var searchPath = $".;{symbolPath}";
 
-            // Remove any existing Symbol Handler and Init a new one with our search path added
-            SymCleanup(GetCurrentProcess());
+            var currentProcess = Windows.Win32.PInvoke.GetCurrentProcess();
 
-            if (!SymInitialize(GetCurrentProcess(), searchPath, true))
+            // Remove any existing Symbol Handler and Init a new one with our search path added
+            Windows.Win32.PInvoke.SymCleanup(currentProcess);
+
+            if (!Windows.Win32.PInvoke.SymInitialize(currentProcess, searchPath, true))
                 throw new Win32Exception();
         }
         catch (Exception ex)
@@ -280,6 +284,7 @@ public sealed class EntryPoint
             case Exception ex:
                 Log.Fatal(ex, "Unhandled exception on AppDomain");
                 Troubleshooting.LogException(ex, "DalamudUnhandled");
+                ErrorHandling.ShowSystemIntegrityPolicyErrorIfApplicable(ex);
 
                 var info = "Further information could not be obtained";
                 if (ex.TargetSite != null && ex.TargetSite.DeclaringType != null)
@@ -288,7 +293,6 @@ public sealed class EntryPoint
                 }
 
                 var pluginInfo = string.Empty;
-                var supportText = ", please visit us on Discord for more help";
                 try
                 {
                     var pm = Service<PluginManager>.GetNullable();
@@ -296,9 +300,6 @@ public sealed class EntryPoint
                     if (plugin != null)
                     {
                         pluginInfo = $"Plugin that caused this:\n{plugin.Name}\n\nClick \"Yes\" and remove it.\n\n";
-
-                        if (plugin.IsThirdParty)
-                            supportText = string.Empty;
                     }
                 }
                 catch
@@ -306,31 +307,18 @@ public sealed class EntryPoint
                     // ignored
                 }
 
-                const MessageBoxType flags = NativeFunctions.MessageBoxType.YesNo | NativeFunctions.MessageBoxType.IconError | NativeFunctions.MessageBoxType.SystemModal;
-                var result = MessageBoxW(
-                    Process.GetCurrentProcess().MainWindowHandle,
-                    $"An internal error in a Dalamud plugin occurred.\nThe game must close.\n\n{ex.GetType().Name}\n{info}\n\n{pluginInfo}More information has been recorded separately{supportText}.\n\nDo you want to disable all plugins the next time you start the game?",
-                    "Dalamud",
-                    flags);
-
-                if (result == (int)User32.MessageBoxResult.IDYES)
-                {
-                    Log.Information("User chose to disable plugins on next launch...");
-                    var config = Service<DalamudConfiguration>.Get();
-                    config.PluginSafeMode = true;
-                    config.QueueSave();
-                }
-
                 Log.CloseAndFlush();
-                Environment.Exit(-1);
+
+                ErrorHandling.CrashWithContext($"{ex}\n\n{info}\n\n{pluginInfo}");
                 break;
             default:
                 Log.Fatal("Unhandled SEH object on AppDomain: {Object}", args.ExceptionObject);
 
                 Log.CloseAndFlush();
-                Environment.Exit(-1);
                 break;
         }
+
+        Environment.Exit(-1);
     }
 
     private static void OnUnhandledExceptionStallDebug(object sender, UnhandledExceptionEventArgs args)
@@ -343,5 +331,18 @@ public sealed class EntryPoint
     {
         if (!args.Observed)
             Log.Error(args.Exception, "Unobserved exception in Task.");
+    }
+
+    private static unsafe bool GlobalFrameworkDestroyDetour(Framework* thisPtr)
+    {
+        var dalamudFramework = Service<Game.Framework>.GetNullable();
+        if (dalamudFramework is { IsFrameworkUnloading: false })
+        {
+            Log.Information("Framework::Destroy!");
+            dalamudFramework.UnloadDalamud();
+        }
+
+        // Don't need to revert the hook, the game is going away now
+        return ServiceManager.IsUnloaded && globalFrameworkDestroyHook!.OriginalFunction(thisPtr);
     }
 }

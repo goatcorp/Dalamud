@@ -40,17 +40,17 @@ public unsafe class SAMGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     /// Gets a value indicating whether the Setsu Sen is active.
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
-    public bool HasSetsu => (this.Sen & Sen.SETSU) != 0;
+    public bool HasSetsu => (this.Sen & Sen.Setsu) != 0;
 
     /// <summary>
     /// Gets a value indicating whether the Getsu Sen is active.
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
-    public bool HasGetsu => (this.Sen & Sen.GETSU) != 0;
+    public bool HasGetsu => (this.Sen & Sen.Getsu) != 0;
 
     /// <summary>
     /// Gets a value indicating whether the Ka Sen is active.
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
-    public bool HasKa => (this.Sen & Sen.KA) != 0;
+    public bool HasKa => (this.Sen & Sen.Ka) != 0;
 }

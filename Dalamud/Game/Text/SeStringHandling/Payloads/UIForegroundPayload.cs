@@ -5,12 +5,14 @@ using Dalamud.Data;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 
 /// <summary>
-/// An SeString Payload representing a UI foreground color applied to following text payloads.
+/// An SeString Payload that allows text to have a specific color. The color selected will be determined by the
+/// <see cref="Lumina.Excel.Sheets.UIColor.Dark"/> theme's coloring, regardless of the active theme.
 /// </summary>
 public class UIForegroundPayload : Payload
 {
@@ -45,7 +47,7 @@ public class UIForegroundPayload : Payload
     public override PayloadType Type => PayloadType.UIForeground;
 
     /// <summary>
-    /// Gets a value indicating whether or not this payload represents applying a foreground color, or disabling one.
+    /// Gets a value indicating whether this payload represents applying a foreground color, or disabling one.
     /// </summary>
     public bool IsEnabled => this.ColorKey != 0;
 
@@ -74,13 +76,13 @@ public class UIForegroundPayload : Payload
     /// Gets the Red/Green/Blue/Alpha values for this foreground color, encoded as a typical hex color.
     /// </summary>
     [JsonIgnore]
-    public uint RGBA => this.UIColor.Value.UIForeground;
+    public uint RGBA => this.UIColor.Value.Dark;
 
     /// <summary>
     /// Gets the ABGR value for this foreground color, as ImGui requires it in PushColor.
     /// </summary>
     [JsonIgnore]
-    public uint ABGR => Interface.ColorHelpers.SwapEndianness(this.UIColor.Value.UIForeground);
+    public uint ABGR => Interface.ColorHelpers.SwapEndianness(this.UIColor.Value.Dark);
 
     /// <inheritdoc/>
     public override string ToString()
@@ -94,10 +96,10 @@ public class UIForegroundPayload : Payload
         var colorBytes = MakeInteger(this.colorKey);
         var chunkLen = colorBytes.Length + 1;
 
-        var bytes = new List<byte>(new byte[]
-        {
+        var bytes = new List<byte>(
+        [
             START_BYTE, (byte)SeStringChunkType.UIForeground, (byte)chunkLen,
-        });
+        ]);
 
         bytes.AddRange(colorBytes);
         bytes.Add(END_BYTE);

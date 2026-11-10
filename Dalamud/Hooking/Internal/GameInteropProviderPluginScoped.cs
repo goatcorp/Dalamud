@@ -1,4 +1,3 @@
-﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
 
@@ -7,7 +6,9 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 using Dalamud.Utility.Signatures;
+
 using Serilog;
 
 namespace Dalamud.Hooking.Internal;
@@ -25,7 +26,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     private readonly LocalPlugin plugin;
     private readonly SigScanner scanner;
 
-    private readonly ConcurrentBag<IDalamudHook> trackedHooks = new();
+    private readonly WeakConcurrentCollection<IDalamudHook> trackedHooks = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GameInteropProviderPluginScoped"/> class.
@@ -41,14 +42,14 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     /// <inheritdoc/>
     public void InitializeFromAttributes(object self)
     {
-        foreach (var hook in SignatureHelper.Initialize(self))
+        foreach (var hook in SignatureHelper.Initialize(self, callingAssembly: this.plugin.Assembly))
             this.trackedHooks.Add(hook);
     }
 
     /// <inheritdoc/>
     public Hook<T> HookFromFunctionPointerVariable<T>(nint address, T detour) where T : Delegate
     {
-        var hook = Hook<T>.FromFunctionPointerVariable(address, detour);
+        var hook = Hook<T>.FromFunctionPointerVariable(address, detour, this.plugin.Assembly);
         this.trackedHooks.Add(hook);
         return hook;
     }
@@ -56,7 +57,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     /// <inheritdoc/>
     public Hook<T> HookFromImport<T>(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour) where T : Delegate
     {
-        var hook = Hook<T>.FromImport(module, moduleName, functionName, hintOrOrdinal, detour);
+        var hook = Hook<T>.FromImport(module, moduleName, functionName, hintOrOrdinal, detour, this.plugin.Assembly);
         this.trackedHooks.Add(hook);
         return hook;
     }
@@ -64,7 +65,9 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     /// <inheritdoc/>
     public Hook<T> HookFromSymbol<T>(string moduleName, string exportName, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
     {
-        var hook = Hook<T>.FromSymbol(moduleName, exportName, detour, backend == IGameInteropProvider.HookBackend.MinHook);
+        WarnForDeprecatedBackend(backend);
+
+        var hook = Hook<T>.FromSymbol(moduleName, exportName, detour, callingAssembly: this.plugin.Assembly);
         this.trackedHooks.Add(hook);
         return hook;
     }
@@ -72,7 +75,9 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     /// <inheritdoc/>
     public Hook<T> HookFromAddress<T>(nint procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
     {
-        var hook = Hook<T>.FromAddress(procAddress, detour, backend == IGameInteropProvider.HookBackend.MinHook);
+        WarnForDeprecatedBackend(backend);
+
+        var hook = Hook<T>.FromAddress(procAddress, detour, callingAssembly: this.plugin.Assembly);
         this.trackedHooks.Add(hook);
         return hook;
     }
@@ -101,7 +106,17 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
             Log.Warning("\t\t\tLeaked hook at +0x{Address:X}", hook.Address.ToInt64() - this.scanner.Module.BaseAddress.ToInt64());
             hook.Dispose();
         }
-        
+
         this.trackedHooks.Clear();
+    }
+
+    private static void WarnForDeprecatedBackend(IGameInteropProvider.HookBackend backend)
+    {
+#pragma warning disable CS0618 // Type or member is obsolete
+        if (backend == IGameInteropProvider.HookBackend.MinHook)
+        {
+            Log.Warning("The MinHook backend is no longer available, and backend selection will be removed in a future version. Please specify 'Automatic' instead.");
+        }
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 }

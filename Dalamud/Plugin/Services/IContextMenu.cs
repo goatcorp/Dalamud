@@ -5,13 +5,13 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// This class provides methods for interacting with the game's context menu.
 /// </summary>
-public interface IContextMenu
+public interface IContextMenu : IDalamudService
 {
     /// <summary>
     /// A delegate type used for the <see cref="OnMenuOpened"/> event.
     /// </summary>
     /// <param name="args">Information about the currently opening menu.</param>
-    public delegate void OnMenuOpenedDelegate(IMenuOpenedArgs args);
+    delegate void OnMenuOpenedDelegate(IMenuOpenedArgs args);
 
     /// <summary>
     /// Event that gets fired whenever any context menu is opened.

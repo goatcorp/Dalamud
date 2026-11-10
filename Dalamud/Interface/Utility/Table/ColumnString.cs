@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Utility.Table;
 
@@ -10,7 +10,7 @@ public class ColumnString<TItem> : Column<TItem>
     public ColumnString()
         => this.Flags &= ~ImGuiTableColumnFlags.NoResize;
 
-    public    string FilterValue = string.Empty;
+    public string FilterValue = string.Empty;
     protected Regex? filterRegex;
 
     public virtual string ToName(TItem item)
@@ -52,6 +52,6 @@ public class ColumnString<TItem> : Column<TItem>
 
     public override void DrawColumn(TItem item, int idx)
     {
-        ImGui.TextUnformatted(this.ToName(item));
+        ImGui.Text(this.ToName(item));
     }
 }

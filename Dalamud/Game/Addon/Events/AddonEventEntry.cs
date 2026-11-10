@@ -1,5 +1,6 @@
-﻿using Dalamud.Memory;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Addon.Events;
@@ -14,9 +15,14 @@ internal unsafe class AddonEventEntry
     /// Name of an invalid addon.
     /// </summary>
     public const string InvalidAddonName = "NullAddon";
-    
+
     private string? addonName;
-    
+
+    /// <summary>
+    /// Gets the name of an invalid addon.
+    /// </summary>
+    public static ReadOnlySpan<byte> InvalidAddonNameSpan => "NullAddon"u8;
+
     /// <summary>
     /// Gets the pointer to the addons AtkUnitBase.
     /// </summary>
@@ -28,25 +34,30 @@ internal unsafe class AddonEventEntry
     public string AddonName => this.Addon == nint.Zero ? InvalidAddonName : this.addonName ??= ((AtkUnitBase*)this.Addon)->NameString;
 
     /// <summary>
+    /// Gets the name of the addon this args referrers to.
+    /// </summary>
+    public ReadOnlySpan<byte> AddonNameSpan => this.Addon == nint.Zero ? InvalidAddonNameSpan : ((AtkUnitBase*)this.Addon)->Name.BeforeNull();
+
+    /// <summary>
     /// Gets the pointer to the event source.
     /// </summary>
     public required nint Node { get; init; }
 
     /// <summary>
-    /// Gets the handler that gets called when this event is triggered.
+    /// Gets the delegate that gets called when this event is triggered.
     /// </summary>
-    public required IAddonEventManager.AddonEventHandler Handler { get; init; }
-    
+    public required IAddonEventManager.AddonEventDelegate Delegate { get; init; }
+
     /// <summary>
     /// Gets the unique id for this event.
     /// </summary>
     public required uint ParamKey { get; init; }
-    
+
     /// <summary>
     /// Gets the event type for this event.
     /// </summary>
     public required AddonEventType EventType { get; init; }
-    
+
     /// <summary>
     /// Gets the event handle for this event.
     /// </summary>

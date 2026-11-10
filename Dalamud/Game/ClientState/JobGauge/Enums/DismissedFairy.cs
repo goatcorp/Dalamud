@@ -8,10 +8,10 @@ public enum DismissedFairy : byte
     /// <summary>
     /// Dismissed fairy is Eos.
     /// </summary>
-    EOS = 6,
+    Eos = 6,
 
     /// <summary>
     /// Dismissed fairy is Selene.
     /// </summary>
-    SELENE = 7,
+    Selene = 7,
 }

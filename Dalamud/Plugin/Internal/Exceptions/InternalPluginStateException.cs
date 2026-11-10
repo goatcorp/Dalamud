@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Plugin.Internal.Exceptions;
+namespace Dalamud.Plugin.Internal.Exceptions;
 
 /// <summary>
 /// An exception to be thrown when policy blocks a plugin from loading.

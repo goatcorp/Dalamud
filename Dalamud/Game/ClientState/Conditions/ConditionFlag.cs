@@ -5,6 +5,8 @@ namespace Dalamud.Game.ClientState.Conditions;
 ///
 /// These come from LogMessage (somewhere) and directly map to each state field managed by the client. As of 5.25, it maps to
 /// LogMessage row 7700 and onwards, which can be checked by looking at the Condition sheet and looking at what column 2 maps to.
+///
+/// The first 24 conditions are the local players CharacterModes.
 /// </summary>
 public enum ConditionFlag
 {
@@ -61,6 +63,12 @@ public enum ConditionFlag
     /// <summary>
     /// Unable to execute command while mounted.
     /// </summary>
+    RidingPillion = 10,
+
+    /// <summary>
+    /// Unable to execute command while mounted.
+    /// </summary>
+    [Obsolete("Renamed to RidingPillion", true)]
     Mounted2 = 10,
 
     /// <summary>
@@ -176,12 +184,15 @@ public enum ConditionFlag
     /// <summary>
     /// Unable to execute command while occupied.
     /// </summary>
+    /// <remarks>
+    /// Observed during Materialize (Desynthesis, Materia Extraction, Aetherial Reduction) and Repair.
+    /// </remarks>
     Occupied39 = 39,
 
     /// <summary>
     /// Unable to execute command while crafting.
     /// </summary>
-    Crafting40 = 40,
+    ExecutingCraftingAction = 40,
 
     /// <summary>
     /// Unable to execute command while preparing to craft.
@@ -191,7 +202,8 @@ public enum ConditionFlag
     /// <summary>
     /// Unable to execute command while gathering.
     /// </summary>
-    Gathering42 = 42,
+    /// <remarks> Includes fishing. </remarks>
+    ExecutingGatheringAction = 42,
 
     /// <summary>
     /// Unable to execute command while fishing.
@@ -220,7 +232,7 @@ public enum ConditionFlag
     /// <summary>
     /// Unable to execute command while auto-run is active.
     /// </summary>
-    AutorunActive = 49,
+    UsingChocoboTaxi = 49,
 
     /// <summary>
     /// Unable to execute command while occupied.
@@ -261,7 +273,7 @@ public enum ConditionFlag
     /// <summary>
     /// Unable to execute command at this time.
     /// </summary>
-    Unknown57 = 57,
+    MountOrOrnamentTransition = 57,
 
     /// <summary>
     /// Unable to execute command while watching a cutscene.
@@ -331,6 +343,9 @@ public enum ConditionFlag
     /// <summary>
     /// Unable to execute command while mounting.
     /// </summary>
+    /// <remarks>
+    /// Observed in Cosmic Exploration while using the actions Astrodrill (only briefly) and Solar Flarethrower.
+    /// </remarks>
     Mounting71 = 71,
 
     /// <summary>
@@ -398,7 +413,10 @@ public enum ConditionFlag
     /// </summary>
     ParticipatingInCrossWorldPartyOrAlliance = 84,
 
-    // Unknown85 = 85,
+    /// <remarks>
+    /// Observed in Cosmic Exploration while gathering during a stellar mission.
+    /// </remarks>
+    Unknown85 = 85,
 
     /// <summary>
     /// Unable to execute command while playing duty record.
@@ -413,6 +431,12 @@ public enum ConditionFlag
     /// <summary>
     /// Unable to execute command in this state.
     /// </summary>
+    MountImmobile = 88,
+
+    /// <summary>
+    /// Unable to execute command in this state.
+    /// </summary>
+    [Obsolete("Renamed to MountImmobile", true)]
     InThisState88 = 88,
 
     /// <summary>
@@ -425,12 +449,6 @@ public enum ConditionFlag
     /// </summary>
     RolePlaying = 90,
 
-    /// <summary>
-    /// Unable to execute command while bound by duty.
-    /// </summary>
-    [Obsolete("Use InDutyQueue")]
-    BoundToDuty97 = 91,
-    
     /// <summary>
     /// Unable to execute command while bound by duty.
     /// Specifically triggered when you are in a queue for a duty but not inside a duty.
@@ -448,9 +466,9 @@ public enum ConditionFlag
     WaitingToVisitOtherWorld = 93,
 
     /// <summary>
-    /// Unable to execute command while using a parasol.
+    /// Unable to execute command while using a fashion accessory.
     /// </summary>
-    UsingParasol = 94,
+    UsingFashionAccessory = 94,
 
     /// <summary>
     /// Unable to execute command while bound by duty.
@@ -460,6 +478,9 @@ public enum ConditionFlag
     /// <summary>
     /// Cannot execute at this time.
     /// </summary>
+    /// <remarks>
+    /// Observed in Cosmic Exploration while participating in MechaEvent.
+    /// </remarks>
     Unknown96 = 96,
 
     /// <summary>
@@ -481,4 +502,35 @@ public enum ConditionFlag
     /// Unable to execute command while editing a portrait.
     /// </summary>
     EditingPortrait = 100,
+
+    /// <summary>
+    /// Cannot execute at this time.
+    /// </summary>
+    /// <remarks>
+    /// Observed in Cosmic Exploration, in mech flying to FATE or during Cosmoliner use. Maybe ClientPath related.
+    /// </remarks>
+    Unknown101 = 101,
+
+    /// <summary>
+    /// Unable to execute command while undertaking a duty.
+    /// </summary>
+    /// <remarks>
+    /// Used in Cosmic Exploration.
+    /// </remarks>
+    PilotingMech = 102,
+
+    // Unknown103 = 103,
+
+    /// <summary>
+    /// Unable to execute command while editing a strategy board.
+    /// </summary>
+    EditingStrategyBoard = 104,
+
+    // Unknown105 = 105,
+    // Unknown106 = 106,
+    // Unknown107 = 107,
+    // Unknown108 = 108,
+    // Unknown109 = 109,
+    // Unknown110 = 110,
+    // Unknown111 = 111,
 }

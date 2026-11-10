@@ -1,6 +1,8 @@
 using System.Numerics;
 using System.Text;
+using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -8,15 +10,16 @@ using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Internal;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-using ImGuiNET;
-
 using Lumina.Excel.Sheets;
 using Lumina.Text;
+using Lumina.Text.Parse;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
@@ -27,7 +30,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 {
-    private static readonly string[] ThemeNames = ["Dark", "Light", "Classic FF", "Clear Blue"];
+    private static readonly string[] ThemeNames = ["Dark", "Light", "Classic FF", "Clear Blue", "Clear White", "Clear Green"];
     private ImVectorWrapper<byte> testStringBuffer;
     private string testString = string.Empty;
     private ReadOnlySeString? logkind;
@@ -59,93 +62,95 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
-        var t2 = ImGui.ColorConvertU32ToFloat4(this.style.Color ?? ImGui.GetColorU32(ImGuiCol.Text));
+        var t2 = ImGui.ColorConvertU32ToFloat4(this.style.Color ??= ImGui.GetColorU32(ImGuiCol.Text));
         if (ImGui.ColorEdit4("Color", ref t2))
             this.style.Color = ImGui.ColorConvertFloat4ToU32(t2);
 
-        t2 = ImGui.ColorConvertU32ToFloat4(this.style.EdgeColor ?? 0xFF000000u);
+        t2 = ImGui.ColorConvertU32ToFloat4(this.style.EdgeColor ??= 0xFF000000u);
         if (ImGui.ColorEdit4("Edge Color", ref t2))
             this.style.EdgeColor = ImGui.ColorConvertFloat4ToU32(t2);
 
         ImGui.SameLine();
         var t = this.style.ForceEdgeColor;
-        if (ImGui.Checkbox("Forced", ref t))
+        if (ImGui.Checkbox("Forced"u8, ref t))
             this.style.ForceEdgeColor = t;
 
-        t2 = ImGui.ColorConvertU32ToFloat4(this.style.ShadowColor ?? 0xFF000000u);
-        if (ImGui.ColorEdit4("Shadow Color", ref t2))
+        t2 = ImGui.ColorConvertU32ToFloat4(this.style.ShadowColor ??= 0xFF000000u);
+        if (ImGui.ColorEdit4("Shadow Color"u8, ref t2))
             this.style.ShadowColor = ImGui.ColorConvertFloat4ToU32(t2);
 
-        t2 = ImGui.ColorConvertU32ToFloat4(this.style.LinkHoverBackColor ?? ImGui.GetColorU32(ImGuiCol.ButtonHovered));
-        if (ImGui.ColorEdit4("Link Hover Color", ref t2))
+        t2 = ImGui.ColorConvertU32ToFloat4(this.style.LinkHoverBackColor ??= ImGui.GetColorU32(ImGuiCol.ButtonHovered));
+        if (ImGui.ColorEdit4("Link Hover Color"u8, ref t2))
             this.style.LinkHoverBackColor = ImGui.ColorConvertFloat4ToU32(t2);
 
-        t2 = ImGui.ColorConvertU32ToFloat4(this.style.LinkActiveBackColor ?? ImGui.GetColorU32(ImGuiCol.ButtonActive));
-        if (ImGui.ColorEdit4("Link Active Color", ref t2))
+        t2 = ImGui.ColorConvertU32ToFloat4(this.style.LinkActiveBackColor ??= ImGui.GetColorU32(ImGuiCol.ButtonActive));
+        if (ImGui.ColorEdit4("Link Active Color"u8, ref t2))
             this.style.LinkActiveBackColor = ImGui.ColorConvertFloat4ToU32(t2);
 
-        var t3 = this.style.LineHeight ?? 1f;
-        if (ImGui.DragFloat("Line Height", ref t3, 0.01f, 0.4f, 3f, "%.02f"))
+        var t3 = this.style.LineHeight ??= 1f;
+        if (ImGui.DragFloat("Line Height"u8, ref t3, 0.01f, 0.4f, 3f, "%.02f"))
             this.style.LineHeight = t3;
 
-        t3 = this.style.Opacity ?? ImGui.GetStyle().Alpha;
-        if (ImGui.DragFloat("Opacity", ref t3, 0.005f, 0f, 1f, "%.02f"))
+        t3 = this.style.Opacity ??= 1f;
+        if (ImGui.DragFloat("Opacity"u8, ref t3, 0.005f, 0f, 1f, "%.02f"))
             this.style.Opacity = t3;
 
-        t3 = this.style.EdgeStrength ?? 0.25f;
-        if (ImGui.DragFloat("Edge Strength", ref t3, 0.005f, 0f, 1f, "%.02f"))
+        t3 = this.style.EdgeStrength ??= 0.25f;
+        if (ImGui.DragFloat("Edge Strength"u8, ref t3, 0.005f, 0f, 1f, "%.02f"))
             this.style.EdgeStrength = t3;
 
         t = this.style.Edge;
-        if (ImGui.Checkbox("Edge", ref t))
+        if (ImGui.Checkbox("Edge"u8, ref t))
             this.style.Edge = t;
 
         ImGui.SameLine();
         t = this.style.Bold;
-        if (ImGui.Checkbox("Bold", ref t))
+        if (ImGui.Checkbox("Bold"u8, ref t))
             this.style.Bold = t;
 
         ImGui.SameLine();
         t = this.style.Italic;
-        if (ImGui.Checkbox("Italic", ref t))
+        if (ImGui.Checkbox("Italic"u8, ref t))
             this.style.Italic = t;
 
         ImGui.SameLine();
         t = this.style.Shadow;
-        if (ImGui.Checkbox("Shadow", ref t))
+        if (ImGui.Checkbox("Shadow"u8, ref t))
             this.style.Shadow = t;
 
         ImGui.SameLine();
         var t4 = this.style.ThemeIndex ?? AtkStage.Instance()->AtkUIColorHolder->ActiveColorThemeType;
-        ImGui.PushItemWidth(ImGui.CalcTextSize("WWWWWWWWWWWWWW").X);
-        if (ImGui.Combo("##theme", ref t4, ThemeNames, ThemeNames.Length))
-            this.style.ThemeIndex = t4;
+        using (ImRaii.ItemWidth(ImGui.CalcTextSize("WWWWWWWWWWWWWW"u8).X))
+        {
+            if (ImGui.Combo("##theme", ref t4, ThemeNames))
+                this.style.ThemeIndex = t4;
+        }
 
         ImGui.SameLine();
         t = this.style.LinkUnderlineThickness > 0f;
-        if (ImGui.Checkbox("Link Underline", ref t))
+        if (ImGui.Checkbox("Link Underline"u8, ref t))
             this.style.LinkUnderlineThickness = t ? 1f : 0f;
 
         ImGui.SameLine();
         t = this.style.WrapWidth is null;
-        if (ImGui.Checkbox("Word Wrap", ref t))
+        if (ImGui.Checkbox("Word Wrap"u8, ref t))
             this.style.WrapWidth = t ? null : float.PositiveInfinity;
 
         t = this.interactable;
-        if (ImGui.Checkbox("Interactable", ref t))
+        if (ImGui.Checkbox("Interactable"u8, ref t))
             this.interactable = t;
 
         ImGui.SameLine();
         t = this.useEntity;
-        if (ImGui.Checkbox("Use Entity Replacements", ref t))
+        if (ImGui.Checkbox("Use Entity Replacements"u8, ref t))
             this.useEntity = t;
 
         ImGui.SameLine();
         t = this.alignToFramePadding;
-        if (ImGui.Checkbox("Align to Frame Padding", ref t))
+        if (ImGui.Checkbox("Align to Frame Padding"u8, ref t))
             this.alignToFramePadding = t;
 
-        if (ImGui.CollapsingHeader("LogKind Preview"))
+        if (ImGui.CollapsingHeader("LogKind Preview"u8))
         {
             if (this.logkind is null)
             {
@@ -177,23 +182,38 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
             ImGuiHelpers.SeStringWrapped(this.logkind.Value.Data.Span, this.style);
         }
 
-        if (ImGui.CollapsingHeader("Addon Table"))
+        if (ImGui.CollapsingHeader("Draw into drawlist"))
         {
-            if (ImGui.BeginTable("Addon Sheet", 3))
+            ImGuiHelpers.ScaledDummy(100);
+            ImGui.SetCursorScreenPos(ImGui.GetItemRectMin() + ImGui.GetStyle().FramePadding);
+            var clipMin = ImGui.GetItemRectMin() + ImGui.GetStyle().FramePadding;
+            var clipMax = ImGui.GetItemRectMax() - ImGui.GetStyle().FramePadding;
+            clipMin.Y = MathF.Max(clipMin.Y, ImGui.GetWindowPos().Y);
+            clipMax.Y = MathF.Min(clipMax.Y, ImGui.GetWindowPos().Y + ImGui.GetWindowHeight());
+
+            var dl = ImGui.GetWindowDrawList();
+            dl.PushClipRect(clipMin, clipMax);
+            ImGuiHelpers.CompileSeStringWrapped(
+                "<icon(1)>Test test<icon(1)>",
+                new SeStringDrawParams { Color = 0xFFFFFFFF, WrapWidth = float.MaxValue, TargetDrawList = dl });
+            dl.PopClipRect();
+        }
+
+        if (ImGui.CollapsingHeader("Addon Table"u8))
+        {
+            using var table = ImRaii.Table("Addon Sheet"u8, 3);
+            if (table.Success)
             {
                 ImGui.TableSetupScrollFreeze(0, 1);
-                ImGui.TableSetupColumn("Row ID", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("0000000").X);
-                ImGui.TableSetupColumn("Text", ImGuiTableColumnFlags.WidthStretch);
-                ImGui.TableSetupColumn(
-                    "Misc",
-                    ImGuiTableColumnFlags.WidthFixed,
-                    ImGui.CalcTextSize("AAAAAAAAAAAAAAAAA").X);
+                ImGui.TableSetupColumn("Row ID"u8, ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("0000000"u8).X);
+                ImGui.TableSetupColumn("Text"u8, ImGuiTableColumnFlags.WidthStretch);
+                ImGui.TableSetupColumn("Misc"u8, ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("AAAAAAAAAAAAAAAAA"u8).X);
                 ImGui.TableHeadersRow();
 
                 var addon = Service<DataManager>.GetNullable()?.GetExcelSheet<Addon>() ??
                             throw new InvalidOperationException("Addon sheet not loaded.");
 
-                var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+                var clipper = ImGui.ImGuiListClipper();
                 clipper.Begin(addon.Count);
                 while (clipper.Step())
                 {
@@ -202,30 +222,27 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                         var row = addon.GetRowAt(i);
 
                         ImGui.TableNextRow();
-                        ImGui.PushID(i);
+                        using var pushedId = ImRaii.PushId(i);
 
                         ImGui.TableNextColumn();
                         ImGui.AlignTextToFramePadding();
-                        ImGui.TextUnformatted($"{row.RowId}");
+                        ImGui.Text($"{row.RowId}");
 
                         ImGui.TableNextColumn();
                         ImGui.AlignTextToFramePadding();
                         ImGuiHelpers.SeStringWrapped(row.Text, this.style);
 
                         ImGui.TableNextColumn();
-                        if (ImGui.Button("Print to Chat"))
-                            Service<ChatGui>.Get().Print(row.Text.ToDalamudString());
-
-                        ImGui.PopID();
+                        if (ImGui.Button("Print to Chat"u8))
+                            Service<ChatGui>.Get().Print(row.Text);
                     }
                 }
 
                 clipper.Destroy();
-                ImGui.EndTable();
             }
         }
 
-        if (ImGui.Button("Reset Text") || this.testStringBuffer.IsDisposed)
+        if (ImGui.Button("Reset Text"u8) || this.testStringBuffer.IsDisposed)
         {
             this.testStringBuffer.Dispose();
             this.testStringBuffer = ImVectorWrapper.CreateFromSpan(
@@ -236,52 +253,68 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Print to Chat Log"))
+        if (ImGui.Button("Print to Chat Log"u8))
         {
-            Service<ChatGui>.Get().Print(
-                Game.Text.SeStringHandling.SeString.Parse(
-                    Service<SeStringRenderer>.Get().CompileAndCache(this.testString).Data.Span));
+            Service<ChatGui>.Get().Print(Service<SeStringRenderer>.Get().CompileAndCache(this.testString));
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Copy as Image"))
+        {
+            _ = Service<DevTextureSaveMenu>.Get().ShowTextureSaveMenuAsync(
+                this.DisplayName,
+                $"From {nameof(SeStringRendererTestWidget)}",
+                Task.FromResult(
+                    Service<TextureManager>.Get().CreateTextureFromSeString(
+                        ReadOnlySeString.FromMacroString(
+                            this.testString,
+                            new(ExceptionMode: MacroStringParseExceptionMode.EmbedError)),
+                        this.style with
+                        {
+                            Font = ImGui.GetFont(),
+                            FontSize = ImGui.GetFontSize(),
+                            WrapWidth = ImGui.GetContentRegionAvail().X,
+                            ThemeIndex = AtkStage.Instance()->AtkUIColorHolder->ActiveColorThemeType,
+                        })));
         }
 
         ImGuiHelpers.ScaledDummy(3);
         ImGuiHelpers.CompileSeStringWrapped(
             "Optional features implemented for the following test input:<br>" +
-            "· <colortype(506)><edgecolortype(507)>line breaks<colortype(0)><edgecolortype(0)> are automatically replaced to <colortype(502)><edgecolortype(503)>\\<br><colortype(0)><edgecolortype(0)>.<br>" +
-            "· <colortype(506)><edgecolortype(507)>D<link(0xCE)>alamud<colortype(0)><edgecolortype(0)> will display Dalamud.<br>" +
-            "· <colortype(506)><edgecolortype(507)>W<link(0xCE)>hite<colortype(0)><edgecolortype(0)> will display White.<br>" +
-            "· <colortype(506)><edgecolortype(507)>D<link(0xCE)>efaultIcon<colortype(0)><edgecolortype(0)> will display DefaultIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>D<link(0xCE)>isabledIcon<colortype(0)><edgecolortype(0)> will display DisabledIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>O<link(0xCE)>utdatedInstallableIcon<colortype(0)><edgecolortype(0)> will display OutdatedInstallableIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>T<link(0xCE)>roubleIcon<colortype(0)><edgecolortype(0)> will display TroubleIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>D<link(0xCE)>evPluginIcon<colortype(0)><edgecolortype(0)> will display DevPluginIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>U<link(0xCE)>pdateIcon<colortype(0)><edgecolortype(0)> will display UpdateIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>I<link(0xCE)>nstalledIcon<colortype(0)><edgecolortype(0)> will display InstalledIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>T<link(0xCE)>hirdIcon<colortype(0)><edgecolortype(0)> will display ThirdIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>T<link(0xCE)>hirdInst<link(0xCE)>alledIcon<colortype(0)><edgecolortype(0)> will display ThirdInstalledIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>C<link(0xCE)>hangelogApiBumpIcon<colortype(0)><edgecolortype(0)> will display ChangelogApiBumpIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>icon<link(0xCE)>(5)<colortype(0)><edgecolortype(0)> will display icon(5). This is different from \\<icon<link(0xCE)>(5)>.<br>" +
-            "· <colortype(506)><edgecolortype(507)>tex<link(0xCE)>(ui/loadingimage/-nowloading_base25_hr1.tex)<colortype(0)><edgecolortype(0)> will display tex(ui/loadingimage/-nowloading_base25_hr1.tex).",
+            "· <colortype(710)>line breaks<colortype(0)> are automatically replaced to <colortype(710)>\\<br><colortype(0)>.<br>" +
+            "· <colortype(710)>D<link(0xCE)>alamud<colortype(0)> will display Dalamud.<br>" +
+            "· <colortype(710)>W<link(0xCE)>hite<colortype(0)> will display White.<br>" +
+            "· <colortype(710)>D<link(0xCE)>efaultIcon<colortype(0)> will display DefaultIcon.<br>" +
+            "· <colortype(710)>D<link(0xCE)>isabledIcon<colortype(0)> will display DisabledIcon.<br>" +
+            "· <colortype(710)>O<link(0xCE)>utdatedInstallableIcon<colortype(0)> will display OutdatedInstallableIcon.<br>" +
+            "· <colortype(710)>T<link(0xCE)>roubleIcon<colortype(0)> will display TroubleIcon.<br>" +
+            "· <colortype(710)>D<link(0xCE)>evPluginIcon<colortype(0)> will display DevPluginIcon.<br>" +
+            "· <colortype(710)>U<link(0xCE)>pdateIcon<colortype(0)> will display UpdateIcon.<br>" +
+            "· <colortype(710)>I<link(0xCE)>nstalledIcon<colortype(0)> will display InstalledIcon.<br>" +
+            "· <colortype(710)>T<link(0xCE)>hirdIcon<colortype(0)> will display ThirdIcon.<br>" +
+            "· <colortype(710)>T<link(0xCE)>hirdInst<link(0xCE)>alledIcon<colortype(0)> will display ThirdInstalledIcon.<br>" +
+            "· <colortype(710)>C<link(0xCE)>hangelogApiBumpIcon<colortype(0)> will display ChangelogApiBumpIcon.<br>" +
+            "· <colortype(710)>icon<link(0xCE)>(5)<colortype(0)> will display icon(5). This is different from \\<icon<link(0xCE)>(5)>.<br>" +
+            "· <colortype(710)>tex<link(0xCE)>(ui/loadingimage/-nowloading_base25_hr1.tex)<colortype(0)> will display tex(ui/loadingimage/-nowloading_base25_hr1.tex).",
             this.style);
         ImGuiHelpers.ScaledDummy(3);
 
         fixed (byte* labelPtr = "Test Input"u8)
         {
-            if (ImGuiNative.igInputTextMultiline(
+            if (ImGui.InputTextMultiline(
                     labelPtr,
-                    this.testStringBuffer.Data,
-                    (uint)this.testStringBuffer.Capacity,
-                    new(ImGui.GetContentRegionAvail().X, ImGui.GetTextLineHeight() * 3),
-                    0,
-                    null,
-                    null) != 0)
+                    this.testStringBuffer.StorageSpan,
+                    new(ImGui.GetContentRegionAvail().X, ImGui.GetTextLineHeight() * 3)))
             {
                 var len = this.testStringBuffer.StorageSpan.IndexOf((byte)0);
                 if (len + 4 >= this.testStringBuffer.Capacity)
                     this.testStringBuffer.EnsureCapacityExponential(len + 4);
+
                 if (len < this.testStringBuffer.Capacity)
                 {
                     this.testStringBuffer.LengthUnsafe = len;
-                    this.testStringBuffer.StorageSpan[len] = default;
+                    this.testStringBuffer.StorageSpan[len] = 0;
                 }
 
                 this.testString = string.Empty;
@@ -306,7 +339,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                 ImGui.Separator();
                 if (this.alignToFramePadding)
                     ImGui.AlignTextToFramePadding();
-                ImGui.TextUnformatted($"Hovered[{offset}]: {new ReadOnlySeStringSpan(envelope).ToString()}; {payload}");
+                ImGui.Text($"Hovered[{offset}]: {new ReadOnlySeStringSpan(envelope).ToString()}; {payload}");
                 if (clicked && payload is DalamudLinkPayload { Plugin: "test" } dlp)
                     Util.OpenLink(dlp.ExtraString);
             }
@@ -393,7 +426,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                       .GetFromGame(Encoding.UTF8.GetString(state.Span[(byteOffset + 4)..(byteOffset + off)]))
                       .GetWrapOrEmpty();
             state.Draw(
-                tex.ImGuiHandle,
+                tex.Handle,
                 offset + new Vector2(0, (state.LineHeight - state.FontSize) / 2),
                 tex.Size * (state.FontSize / tex.Size.Y),
                 Vector2.Zero,
@@ -411,7 +444,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                       .GetFromGameIcon(parsed)
                       .GetWrapOrEmpty();
             state.Draw(
-                tex.ImGuiHandle,
+                tex.Handle,
                 offset + new Vector2(0, (state.LineHeight - state.FontSize) / 2),
                 tex.Size * (state.FontSize / tex.Size.Y),
                 Vector2.Zero,
@@ -420,7 +453,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 
         static void DrawAsset(scoped in SeStringDrawState state, Vector2 offset, DalamudAsset asset) =>
             state.Draw(
-                Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(asset).ImGuiHandle,
+                Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(asset).Handle,
                 offset + new Vector2(0, (state.LineHeight - state.FontSize) / 2),
                 new(state.FontSize, state.FontSize),
                 Vector2.Zero,

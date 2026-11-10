@@ -1,4 +1,4 @@
-﻿using Dalamud.Storage.Assets;
+using Dalamud.Storage.Assets;
 
 using TerraFX.Interop.DirectX;
 
@@ -73,7 +73,7 @@ public enum DalamudAsset
     [DalamudAsset(DalamudAssetPurpose.TextureFromPng)]
     [DalamudAssetPath("UIRes", "troubleIcon.png")]
     TroubleIcon = 1006,
-    
+
     /// <summary>
     /// <see cref="DalamudAssetPurpose.TextureFromPng"/>: The plugin trouble icon overlay.
     /// </summary>
@@ -125,20 +125,25 @@ public enum DalamudAsset
     TitleScreenMenuShade = 1013,
 
     /// <summary>
-    /// <see cref="DalamudAssetPurpose.Font"/>: Noto Sans CJK JP Medium.
+    /// <see cref="DalamudAssetPurpose.Font"/>: Noto Sans CJK Medium.
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.Font)]
-    [DalamudAssetPath("UIRes", "NotoSansCJKjp-Regular.otf")]
-    [DalamudAssetPath("UIRes", "NotoSansCJKjp-Medium.otf")]
-    NotoSansJpMedium = 2000,
+    [DalamudAssetPath("UIRes", "NotoSansCJK-Medium.ttc")]
+    NotoSansCjkMedium = 2000,
 
     /// <summary>
-    /// <see cref="DalamudAssetPurpose.Font"/>: Noto Sans CJK KR Regular.
+    /// <see cref="DalamudAssetPurpose.TextureFromPng"/>: Atlas containing badges.
+    /// </summary>
+    [DalamudAsset(DalamudAssetPurpose.TextureFromPng)]
+    [DalamudAssetPath("UIRes", "badgeAtlas.png")]
+    BadgeAtlas = 1015,
+
+    /// <summary>
+    /// <see cref="DalamudAssetPurpose.Font"/>: Noto Sans CJK Regular.
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.Font)]
-    [DalamudAssetPath("UIRes", "NotoSansCJKkr-Regular.otf")]
-    [DalamudAssetPath("UIRes", "NotoSansKR-Regular.otf")]
-    NotoSansKrRegular = 2001,
+    [DalamudAssetPath("UIRes", "NotoSansCJK-Regular.ttc")]
+    NotoSansCjkRegular = 2001,
 
     /// <summary>
     /// <see cref="DalamudAssetPurpose.Font"/>: Inconsolata Regular.
@@ -151,7 +156,7 @@ public enum DalamudAsset
     /// <see cref="DalamudAssetPurpose.Font"/>: FontAwesome Free Solid.
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.Font)]
-    [DalamudAssetPath("UIRes", "FontAwesomeFreeSolid.otf")]
+    [DalamudAssetPath("UIRes", "FontAwesome710FreeSolid.otf")]
     FontAwesomeFreeSolid = 2003,
 
     /// <summary>

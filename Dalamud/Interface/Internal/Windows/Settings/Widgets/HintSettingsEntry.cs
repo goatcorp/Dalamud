@@ -1,21 +1,22 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.Utility;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
-public class HintSettingsEntry : SettingsEntry
+internal sealed class HintSettingsEntry : SettingsEntry
 {
-    private readonly string text;
-    private readonly Vector4 color;
+    private readonly LazyLoc text;
+    private readonly Vector4? color;
 
-    public HintSettingsEntry(string text, Vector4? color = null)
+    public HintSettingsEntry(LazyLoc text, Vector4? color = null)
     {
         this.text = text;
-        this.color = color ?? ImGuiColors.DalamudGrey;
+        this.color = color;
     }
 
     public override void Load()
@@ -30,6 +31,6 @@ public class HintSettingsEntry : SettingsEntry
 
     public override void Draw()
     {
-        ImGuiHelpers.SafeTextColoredWrapped(this.color, this.text);
+        ImGui.TextColoredWrapped(this.color ?? ImGuiColors.DalamudGrey, this.text);
     }
 }

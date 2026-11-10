@@ -16,7 +16,7 @@ internal interface IFieldOrPropertyInfo
     Type ActualType { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not the field or property is nullable.
+    /// Gets a value indicating whether the field or property is nullable.
     /// </summary>
     bool IsNullable { get; }
 

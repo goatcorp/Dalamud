@@ -1,7 +1,9 @@
 using System.IO;
 
 using Dalamud.Utility;
+
 using Newtonsoft.Json;
+
 using Serilog;
 
 namespace Dalamud.Plugin.Internal.Types.Manifest;
@@ -41,31 +43,21 @@ internal record LocalPluginManifest : PluginManifest, ILocalPluginManifest
     public bool IsThirdParty => !this.InstalledFromUrl.IsNullOrEmpty() && this.InstalledFromUrl != SpecialPluginSource.MainRepo;
 
     /// <summary>
-    /// Gets the effective version of this plugin.
-    /// </summary>
-    public Version EffectiveVersion => this.Testing && this.TestingAssemblyVersion != null ? this.TestingAssemblyVersion : this.AssemblyVersion;
-
-    /// <summary>
-    /// Gets the effective API level of this plugin.
-    /// </summary>
-    public int EffectiveApiLevel => this.Testing && this.TestingDalamudApiLevel != null ? this.TestingDalamudApiLevel.Value : this.DalamudApiLevel;
-
-    /// <summary>
     /// Save a plugin manifest to file.
     /// </summary>
     /// <param name="manifestFile">Path to save at.</param>
     /// <param name="reason">The reason the manifest was saved.</param>
     public void Save(FileInfo manifestFile, string reason)
     {
-        Log.Verbose("Saving manifest for '{PluginName}' because '{Reason}'", this.InternalName, reason);
+        Log.Verbose("Saving manifest for {PluginName} because {Reason}", this.InternalName, reason);
 
         try
         {
-            Util.WriteAllTextSafe(manifestFile.FullName, JsonConvert.SerializeObject(this, Formatting.Indented));
+            FilesystemUtil.WriteAllTextSafe(manifestFile.FullName, JsonConvert.SerializeObject(this, Formatting.Indented));
         }
         catch
         {
-            Log.Error("Could not write out manifest for '{PluginName}' because '{Reason}'", this.InternalName, reason);
+            Log.Error("Could not write out manifest for {PluginName} because {Reason}", this.InternalName, reason);
             throw;
         }
     }
@@ -78,7 +70,7 @@ internal record LocalPluginManifest : PluginManifest, ILocalPluginManifest
     public static LocalPluginManifest? Load(FileInfo manifestFile) => JsonConvert.DeserializeObject<LocalPluginManifest>(File.ReadAllText(manifestFile.FullName));
 
     /// <summary>
-    /// A standardized way to get the plugin DLL name that should accompany a manifest file. May not exist.
+    /// A standardized way to get the plugin DLL name that should accompany a manifest file.
     /// </summary>
     /// <param name="dir">Manifest directory.</param>
     /// <param name="manifest">The manifest.</param>
@@ -86,7 +78,7 @@ internal record LocalPluginManifest : PluginManifest, ILocalPluginManifest
     public static FileInfo GetPluginFile(DirectoryInfo dir, PluginManifest manifest) => new(Path.Combine(dir.FullName, $"{manifest.InternalName}.dll"));
 
     /// <summary>
-    /// A standardized way to get the manifest file that should accompany a plugin DLL. May not exist.
+    /// A standardized way to get the manifest file that should accompany a plugin DLL.
     /// </summary>
     /// <param name="dllFile">The plugin DLL.</param>
     /// <returns>The <see cref="PluginManifest"/> file.</returns>

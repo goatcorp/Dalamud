@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
@@ -15,11 +16,12 @@ namespace Dalamud.Plugin.Internal.Types;
 /// This class represents a dev plugin and all facets of its lifecycle.
 /// The DLL on disk, dependencies, loaded assembly, etc.
 /// </summary>
-internal class LocalDevPlugin : LocalPlugin
+internal sealed class LocalDevPlugin : LocalPlugin
 {
-    private static readonly ModuleLog Log = new("PLUGIN");
+    private static readonly ModuleLog Log = ModuleLog.Create<LocalDevPlugin>();
 
     // Ref to Dalamud.Configuration.DevPluginSettings
+    private readonly DevPluginLocationSettings locationSettings;
     private readonly DevPluginSettings devSettings;
 
     private FileSystemWatcher? fileWatcher;
@@ -31,9 +33,12 @@ internal class LocalDevPlugin : LocalPlugin
     /// </summary>
     /// <param name="dllFile">Path to the DLL file.</param>
     /// <param name="manifest">The plugin manifest.</param>
-    public LocalDevPlugin(FileInfo dllFile, LocalPluginManifest? manifest)
-        : base(dllFile, manifest)
+    /// <param name="locationSettings">Location settings read when scanning.</param>
+    public LocalDevPlugin(FileInfo dllFile, LocalPluginManifest manifest, DevPluginLocationSettings locationSettings)
+        : base(dllFile, manifest!)
     {
+        this.locationSettings = locationSettings;
+
         var configuration = Service<DalamudConfiguration>.Get();
 
         if (!configuration.DevPluginSettings.TryGetValue(dllFile.FullName, out this.devSettings))
@@ -41,7 +46,7 @@ internal class LocalDevPlugin : LocalPlugin
             configuration.DevPluginSettings[dllFile.FullName] = this.devSettings = new DevPluginSettings();
             configuration.QueueSave();
         }
-        
+
         // Legacy dev plugins might not have this!
         if (this.devSettings.WorkingPluginId == Guid.Empty)
         {
@@ -49,6 +54,8 @@ internal class LocalDevPlugin : LocalPlugin
             Log.Verbose("{InternalName} was assigned new devPlugin GUID {Guid}", this.InternalName, this.devSettings.WorkingPluginId);
             configuration.QueueSave();
         }
+
+        this.manifest.WorkingPluginId = this.devSettings.WorkingPluginId;
 
         if (this.AutomaticReload)
         {
@@ -61,7 +68,7 @@ internal class LocalDevPlugin : LocalPlugin
     /// </summary>
     public bool StartOnBoot
     {
-        get => this.devSettings.StartOnBoot;
+        get => this.devSettings.StartOnBoot && this.manifest.DalamudApiLevel == PluginManager.DalamudApiLevel;
         set => this.devSettings.StartOnBoot = value;
     }
 
@@ -85,7 +92,17 @@ internal class LocalDevPlugin : LocalPlugin
             }
         }
     }
-    
+
+    /// <summary>
+    /// Gets or sets a value indicating whether users should be notified when this plugin
+    /// is causing errors.
+    /// </summary>
+    public bool NotifyForErrors
+    {
+        get => this.devSettings.NotifyForErrors;
+        set => this.devSettings.NotifyForErrors = value;
+    }
+
     /// <summary>
     /// Gets an ID uniquely identifying this specific instance of a devPlugin.
     /// </summary>
@@ -98,6 +115,12 @@ internal class LocalDevPlugin : LocalPlugin
     /// Gets a list of validation problems that have been dismissed by the user.
     /// </summary>
     public List<string> DismissedValidationProblems => this.devSettings.DismissedValidationProblems;
+
+    /// <summary>
+    /// Gets an optional nickname for this dev plugin, shown in the plugin list header to help
+    /// distinguish plugins that share the same internal name.
+    /// </summary>
+    public string? Nickname => this.locationSettings.Nickname;
 
     /// <inheritdoc/>
     public override ValueTask DisposeAsync()
@@ -150,9 +173,12 @@ internal class LocalDevPlugin : LocalPlugin
     {
         var manifestPath = LocalPluginManifest.GetManifestFile(this.DllFile);
         if (manifestPath.Exists)
+        {
             this.manifest = LocalPluginManifest.Load(manifestPath) ?? throw new Exception("Could not reload manifest.");
+            this.manifest.WorkingPluginId = this.devSettings.WorkingPluginId;
+        }
     }
-    
+
     /// <inheritdoc/>
     protected override void OnPreReload()
     {
@@ -195,7 +221,7 @@ internal class LocalDevPlugin : LocalPlugin
                     }
 
                     await this.ReloadAsync();
-                    notificationManager.AddNotification($"The DevPlugin '{this.Name} was reloaded successfully.", "Plugin reloaded!", NotificationType.Success);
+                    notificationManager.AddNotification($"The DevPlugin '{this.Name}' was reloaded successfully.", "Plugin reloaded!", NotificationType.Success);
                 }
                 catch (Exception ex)
                 {

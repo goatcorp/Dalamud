@@ -2,11 +2,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
-using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
-using Dalamud.Plugin.Services;
 
-using Newtonsoft.Json;
 using Serilog;
 
 // TODOs:
@@ -117,7 +114,7 @@ public abstract partial class Payload
         var chunkType = (SeStringChunkType)reader.ReadByte();
         var chunkLen = GetInteger(reader);
 
-        var packetStart = reader.BaseStream.Position;
+        var expressionsStart = reader.BaseStream.Position;
 
         // any unhandled payload types will be turned into a RawPayload with the exact same binary data
         switch (chunkType)
@@ -135,56 +132,56 @@ public abstract partial class Payload
                 break;
 
             case SeStringChunkType.Interactable:
+            {
+                var subType = (EmbeddedInfoType)reader.ReadByte();
+                switch (subType)
                 {
-                    var subType = (EmbeddedInfoType)reader.ReadByte();
-                    switch (subType)
-                    {
-                        case EmbeddedInfoType.PlayerName:
-                            payload = new PlayerPayload();
-                            break;
+                    case EmbeddedInfoType.PlayerName:
+                        payload = new PlayerPayload();
+                        break;
 
-                        case EmbeddedInfoType.ItemLink:
-                            payload = new ItemPayload();
-                            break;
+                    case EmbeddedInfoType.ItemLink:
+                        payload = new ItemPayload();
+                        break;
 
-                        case EmbeddedInfoType.MapPositionLink:
-                            payload = new MapLinkPayload();
-                            break;
+                    case EmbeddedInfoType.MapPositionLink:
+                        payload = new MapLinkPayload();
+                        break;
 
-                        case EmbeddedInfoType.Status:
-                            payload = new StatusPayload();
-                            break;
+                    case EmbeddedInfoType.Status:
+                        payload = new StatusPayload();
+                        break;
 
-                        case EmbeddedInfoType.QuestLink:
-                            payload = new QuestPayload();
-                            break;
+                    case EmbeddedInfoType.QuestLink:
+                        payload = new QuestPayload();
+                        break;
 
-                        case EmbeddedInfoType.DalamudLink:
-                            payload = new DalamudLinkPayload();
-                            break;
+                    case EmbeddedInfoType.DalamudLink:
+                        payload = new DalamudLinkPayload();
+                        break;
 
-                        case EmbeddedInfoType.PartyFinderNotificationLink:
-                        // this is handled by PartyFinderPayload, so let this fall through
-                        case EmbeddedInfoType.PartyFinderLink:
-                            payload = new PartyFinderPayload();
-                            break;
+                    case EmbeddedInfoType.PartyFinderNotificationLink:
+                    // this is handled by PartyFinderPayload, so let this fall through
+                    case EmbeddedInfoType.PartyFinderLink:
+                        payload = new PartyFinderPayload();
+                        break;
 
-                        case EmbeddedInfoType.LinkTerminator:
-                        // this has no custom handling and so needs to fallthrough to ensure it is captured
-                        default:
-                            // but I'm also tired of this log
-                            if (subType != EmbeddedInfoType.LinkTerminator)
-                            {
-                                Log.Verbose("Unhandled EmbeddedInfoType: {0}", subType);
-                            }
+                    case EmbeddedInfoType.LinkTerminator:
+                    // this has no custom handling and so needs to fallthrough to ensure it is captured
+                    default:
+                        // but I'm also tired of this log
+                        if (subType != EmbeddedInfoType.LinkTerminator)
+                        {
+                            Log.Verbose("Unhandled EmbeddedInfoType: {0}", subType);
+                        }
 
-                            // rewind so we capture the Interactable byte in the raw data
-                            reader.BaseStream.Seek(-1, SeekOrigin.Current);
-                            break;
-                    }
+                        // rewind so we capture the Interactable byte in the raw data
+                        reader.BaseStream.Seek(-1, SeekOrigin.Current);
+                        break;
                 }
 
                 break;
+            }
 
             case SeStringChunkType.AutoTranslateKey:
                 payload = new AutoTranslatePayload();
@@ -201,27 +198,25 @@ public abstract partial class Payload
             case SeStringChunkType.Icon:
                 payload = new IconPayload();
                 break;
-            
+
             default:
                 // Log.Verbose("Unhandled SeStringChunkType: {0}", chunkType);
                 break;
         }
 
         payload ??= new RawPayload((byte)chunkType);
-        payload.DecodeImpl(reader, reader.BaseStream.Position + chunkLen - 1);
+        payload.DecodeImpl(reader, reader.BaseStream.Position + chunkLen);
 
-        // read through the rest of the packet
-        var readBytes = (uint)(reader.BaseStream.Position - packetStart);
-        reader.ReadBytes((int)(chunkLen - readBytes + 1)); // +1 for the END_BYTE marker
+        // skip to the end of the payload, in case the specific payload handler didn't read everything
+        reader.BaseStream.Seek(expressionsStart + chunkLen + 1, SeekOrigin.Begin); // +1 for the END_BYTE marker
 
         return payload;
     }
 
-    private static Payload DecodeText(BinaryReader reader)
+    private static TextPayload DecodeText(BinaryReader reader)
     {
         var payload = new TextPayload();
         payload.DecodeImpl(reader, reader.BaseStream.Length);
-
         return payload;
     }
 }
@@ -246,6 +241,9 @@ public abstract partial class Payload
     /// <summary>
     /// This represents the type of embedded info in a payload.
     /// </summary>
+    /// <remarks>
+    /// This is a mirror of <see cref="Lumina.Text.Payloads.LinkMacroPayloadType"/>, offset by +1, and including <c>DalamudLink</c>.
+    /// </remarks>
     public enum EmbeddedInfoType
     {
         /// <summary>
@@ -284,9 +282,39 @@ public abstract partial class Payload
         PartyFinderLink = 0x0A,
 
         /// <summary>
+        /// An AkatsukiNote entry is linked.
+        /// </summary>
+        AkatsukiNote = 0x0B,
+
+        /// <summary>
+        /// A Description entry is linked.
+        /// </summary>
+        Description = 0x0C,
+
+        /// <summary>
+        /// A WKSPioneeringTrail entry is linked.
+        /// </summary>
+        WKSPioneeringTrail = 0x0D,
+
+        /// <summary>
+        /// A MKDLore entry is linked.
+        /// </summary>
+        MKDLore = 0x0E,
+
+        /// <summary>
+        /// A EventTutorial entry is linked.
+        /// </summary>
+        EventTutorial = 0x0F,
+
+        /// <summary>
+        /// A Emote entry is linked.
+        /// </summary>
+        Emote = 0x10,
+
+        /// <summary>
         /// A custom Dalamud link.
         /// </summary>
-        DalamudLink = 0x0F,
+        DalamudLink = LinkTerminator - 1,
 
         /// <summary>
         /// A link terminator.
@@ -306,7 +334,7 @@ public abstract partial class Payload
         /// See the <see cref="NewLinePayload"/>.
         /// </summary>
         NewLine = 0x10,
-        
+
         /// <summary>
         /// See the <see cref="IconPayload"/> class.
         /// </summary>
@@ -386,7 +414,7 @@ public abstract partial class Payload
     {
         if (value < 0xCF)
         {
-            return new byte[] { (byte)(value + 1) };
+            return [(byte)(value + 1)];
         }
 
         var bytes = BitConverter.GetBytes(value);

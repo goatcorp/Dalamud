@@ -1,9 +1,9 @@
-﻿namespace Dalamud.Plugin.Internal.Types.Manifest;
+namespace Dalamud.Plugin.Internal.Types.Manifest;
 
 /// <summary>
 /// A fake enum representing "special" sources for plugins.
 /// </summary>
-public static class SpecialPluginSource 
+public static class SpecialPluginSource
 {
     /// <summary>
     /// Indication that this plugin came from the official Dalamud repository. 

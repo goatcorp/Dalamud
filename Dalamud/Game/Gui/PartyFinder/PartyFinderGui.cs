@@ -1,15 +1,12 @@
-using System.Runtime.InteropServices;
-
-using Dalamud.Game.Gui.PartyFinder.Internal;
 using Dalamud.Game.Gui.PartyFinder.Types;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 
+using FFXIVClientStructs.FFXIV.Client.Game.Network;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
-
-using Serilog;
 
 namespace Dalamud.Game.Gui.PartyFinder;
 
@@ -19,20 +16,19 @@ namespace Dalamud.Game.Gui.PartyFinder;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class PartyFinderGui : IInternalDisposableService, IPartyFinderGui
 {
-    private readonly nint memory;
+    private static readonly ModuleLog Log = ModuleLog.Create<PartyFinderGui>();
 
     private readonly Hook<InfoProxyCrossRealm.Delegates.ReceiveListing> receiveListingHook;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PartyFinderGui"/> class.
     /// </summary>
-    /// <param name="sigScanner">Sig scanner to use.</param>
     [ServiceManager.ServiceConstructor]
-    private PartyFinderGui(TargetSigScanner sigScanner)
+    private PartyFinderGui()
     {
-        this.memory = Marshal.AllocHGlobal(PartyFinderPacket.PacketSize);
-
-        this.receiveListingHook = Hook<InfoProxyCrossRealm.Delegates.ReceiveListing>.FromAddress(InfoProxyCrossRealm.Addresses.ReceiveListing.Value, this.HandleReceiveListingDetour);
+        this.receiveListingHook = Hook<InfoProxyCrossRealm.Delegates.ReceiveListing>.FromAddress(
+            InfoProxyCrossRealm.Addresses.ReceiveListing.Value,
+            this.HandleReceiveListingDetour);
         this.receiveListingHook.Enable();
     }
 
@@ -45,18 +41,9 @@ internal sealed unsafe class PartyFinderGui : IInternalDisposableService, IParty
     void IInternalDisposableService.DisposeService()
     {
         this.receiveListingHook.Dispose();
-
-        try
-        {
-            Marshal.FreeHGlobal(this.memory);
-        }
-        catch (BadImageFormatException)
-        {
-            Log.Warning("Could not free PartyFinderGui memory.");
-        }
     }
 
-    private void HandleReceiveListingDetour(InfoProxyCrossRealm* infoProxy, nint packet)
+    private void HandleReceiveListingDetour(InfoProxyCrossRealm* infoProxy, ServerIpcSegment<CrossRealmListingSegmentPacket>* packet)
     {
         try
         {
@@ -70,49 +57,35 @@ internal sealed unsafe class PartyFinderGui : IInternalDisposableService, IParty
         this.receiveListingHook.Original(infoProxy, packet);
     }
 
-    private void HandleListingEvents(nint data)
+    private void HandleListingEvents(ServerIpcSegment<CrossRealmListingSegmentPacket>* packet)
     {
-        var dataPtr = data + 0x10;
-
-        var packet = Marshal.PtrToStructure<PartyFinderPacket>(dataPtr);
-
-        // rewriting is an expensive operation, so only do it if necessary
-        var needToRewrite = false;
-
-        for (var i = 0; i < packet.Listings.Length; i++)
+        for (var i = 0; i < packet->Payload.Entries.Length; i++)
         {
+            ref var entry = ref packet->Payload.Entries[i];
+
             // these are empty slots that are not shown to the player
-            if (packet.Listings[i].IsNull())
-            {
+            if (entry.ListingId == 0)
                 continue;
+
+            var listing = new PartyFinderListing(ref entry);
+            var args = new PartyFinderListingEventArgs(packet->Payload.SegmentIndex);
+            foreach (var d in Delegate.EnumerateInvocationList(this.ReceiveListing))
+            {
+                try
+                {
+                    d(listing, args);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception during raise of {handler}", d.Method);
+                }
             }
 
-            var listing = new PartyFinderListing(packet.Listings[i]);
-            var args = new PartyFinderListingEventArgs(packet.BatchNumber);
-            this.ReceiveListing?.Invoke(listing, args);
-
-            if (args.Visible)
+            if (!args.Visible)
             {
-                continue;
+                // hide the listing from the player by setting it to a null listing
+                packet->Payload.Entries[i] = default;
             }
-
-            // hide the listing from the player by setting it to a null listing
-            packet.Listings[i] = default;
-            needToRewrite = true;
-        }
-
-        if (!needToRewrite)
-        {
-            return;
-        }
-
-        // write our struct into the memory (doing this directly crashes the game)
-        Marshal.StructureToPtr(packet, this.memory, false);
-
-        // copy our new memory over the game's
-        unsafe
-        {
-            Buffer.MemoryCopy((void*)this.memory, (void*)dataPtr, PartyFinderPacket.PacketSize, PartyFinderPacket.PacketSize);
         }
     }
 }

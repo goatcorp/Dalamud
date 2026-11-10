@@ -1,4 +1,6 @@
-﻿using Dalamud.Configuration.Internal;
+using System.Numerics;
+
+using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
@@ -16,70 +18,84 @@ public interface IReadOnlyDtrBarEntry
     /// <summary>
     /// Gets the title of this entry.
     /// </summary>
-    public string Title { get; }
-    
+    string Title { get; }
+
     /// <summary>
     /// Gets a value indicating whether this entry has a click action.
     /// </summary>
-    public bool HasClickAction { get; }
-    
+    bool HasClickAction { get; }
+
     /// <summary>
     /// Gets the text of this entry.
     /// </summary>
-    public SeString? Text { get; }
-    
+    SeString? Text { get; }
+
     /// <summary>
     /// Gets a tooltip to be shown when the user mouses over the dtr entry.
     /// </summary>
-    public SeString? Tooltip { get; }
-    
+    SeString? Tooltip { get; }
+
     /// <summary>
     /// Gets a value indicating whether this entry should be shown.
     /// </summary>
-    public bool Shown { get; }
-    
+    bool Shown { get; }
+
     /// <summary>
-    /// Gets a value indicating whether or not the user has hidden this entry from view through the Dalamud settings.
+    /// Gets a value indicating this entry's minimum width.
     /// </summary>
-    public bool UserHidden { get; }
-    
+    ushort MinimumWidth { get; }
+
     /// <summary>
-    /// Triggers the click action of this entry.
+    /// Gets a value indicating whether the user has hidden this entry from view through the Dalamud settings.
     /// </summary>
-    /// <returns>True, if a click action was registered and executed.</returns>
-    public bool TriggerClickAction();
+    bool UserHidden { get; }
+
+    /// <summary>
+    /// Gets an action to be invoked when the user clicks on the dtr entry.
+    /// </summary>
+    Action<DtrInteractionEvent>? OnClick { get; }
+
+    /// <summary>
+    /// Gets the axis-aligned bounding box of this entry, in screen coordinates.
+    /// </summary>
+    (Vector2 Min, Vector2 Max) ScreenBounds { get; }
 }
 
 /// <summary>
 /// Interface representing an entry in the server info bar.
 /// </summary>
-public interface IDtrBarEntry : IReadOnlyDtrBarEntry
+public interface IDtrBarEntry : IReadOnlyDtrBarEntry, IDisposable
 {
     /// <summary>
     /// Gets or sets the text of this entry.
     /// </summary>
-    public new SeString? Text { get; set; }
-    
+    new SeString? Text { get; set; }
+
     /// <summary>
     /// Gets or sets a tooltip to be shown when the user mouses over the dtr entry.
     /// </summary>
-    public new SeString? Tooltip { get; set; }
-    
+    new SeString? Tooltip { get; set; }
+
     /// <summary>
     /// Gets or sets a value indicating whether this entry is visible.
     /// </summary>
-    public new bool Shown { get; set; }
-    
+    new bool Shown { get; set; }
+
     /// <summary>
-    /// Gets or sets a action to be invoked when the user clicks on the dtr entry.
+    /// Gets or sets a value specifying the requested minimum width to make this entry.
     /// </summary>
-    public Action? OnClick { get; set; }
-    
+    new ushort MinimumWidth { get; set; }
+
+    /// <summary>
+    /// Gets or sets an action to be invoked when the user clicks on the dtr entry.
+    /// </summary>
+    new Action<DtrInteractionEvent>? OnClick { get; set; }
+
     /// <summary>
     /// Remove this entry from the bar.
     /// You will need to re-acquire it from DtrBar to reuse it.
     /// </summary>
-    public void Remove();
+    void Remove();
 }
 
 /// <summary>
@@ -121,11 +137,28 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
 
     /// <inheritdoc cref="IDtrBarEntry.Tooltip" />
     public SeString? Tooltip { get; set; }
-    
-    /// <summary>
-    /// Gets or sets a action to be invoked when the user clicks on the dtr entry.
-    /// </summary>
-    public Action? OnClick { get; set; }
+
+    /// <inheritdoc cref="MinimumWidth" />
+    public ushort MinimumWidth
+    {
+        get;
+        set
+        {
+            field = value;
+            if (this.TextNode is not null)
+            {
+                if (this.TextNode->GetWidth() < value)
+                {
+                    this.TextNode->SetWidth(value);
+                }
+            }
+
+            this.Dirty = true;
+        }
+    }
+
+    /// <inheritdoc/>
+    public Action<DtrInteractionEvent>? OnClick { get; set; }
 
     /// <inheritdoc/>
     public bool HasClickAction => this.OnClick != null;
@@ -145,14 +178,25 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     }
 
     /// <inheritdoc/>
-    [Api12ToDo("Maybe make this config scoped to internalname?")]
+    [Api16ToDo("Maybe make this config scoped to internal name?")]
     public bool UserHidden => this.configuration.DtrIgnore?.Contains(this.Title) ?? false;
+
+    /// <inheritdoc/>
+    public (Vector2 Min, Vector2 Max) ScreenBounds
+        => this.TextNode switch
+        {
+            null => default,
+            var node => node->IsVisible()
+                            ? (new(node->ScreenX, node->ScreenY),
+                                  new(node->ScreenX + node->GetWidth(), node->ScreenY + node->GetHeight()))
+                            : default,
+        };
 
     /// <summary>
     /// Gets or sets the internal text node of this entry.
     /// </summary>
     internal AtkTextNode* TextNode { get; set; }
-    
+
     /// <summary>
     /// Gets or sets the storage for the text of this entry.
     /// </summary>
@@ -171,22 +215,12 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     /// <summary>
     /// Gets or sets a value indicating whether this entry has just been added.
     /// </summary>
-    internal bool Added { get; set; } 
+    internal bool Added { get; set; }
 
     /// <summary>
     /// Gets or sets the plugin that owns this entry.
     /// </summary>
     internal LocalPlugin? OwnerPlugin { get; set; }
-
-    /// <inheritdoc/>
-    public bool TriggerClickAction()
-    {
-        if (this.OnClick == null)
-            return false;
-        
-        this.OnClick.Invoke();
-        return true;
-    }
 
     /// <summary>
     /// Remove this entry from the bar.

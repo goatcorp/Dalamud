@@ -1,26 +1,28 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Memory;
+using Dalamud.Utility;
 
 using Lumina.Excel;
+
+using CSPartyMember = FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember;
 
 namespace Dalamud.Game.ClientState.Party;
 
 /// <summary>
 /// Interface representing a party member.
 /// </summary>
-public interface IPartyMember
+public interface IPartyMember : IEquatable<IPartyMember>
 {
     /// <summary>
     /// Gets the address of this party member in memory.
     /// </summary>
-    IntPtr Address { get; }
+    nint Address { get; }
 
     /// <summary>
     /// Gets a list of buffs or debuffs applied to this party member.
@@ -35,12 +37,18 @@ public interface IPartyMember
     /// <summary>
     /// Gets the content ID of the party member.
     /// </summary>
-    long ContentId { get; }
+    ulong ContentId { get; }
 
     /// <summary>
     /// Gets the actor ID of this party member.
     /// </summary>
+    [Obsolete("Renamed to EntityId")]
     uint ObjectId { get; }
+
+    /// <summary>
+    /// Gets the entity ID of this party member.
+    /// </summary>
+    uint EntityId { get; }
 
     /// <summary>
     /// Gets the actor associated with this buddy.
@@ -102,101 +110,93 @@ public interface IPartyMember
 }
 
 /// <summary>
-/// This class represents a party member in the group manager.
+/// This struct represents a party member in the group manager.
 /// </summary>
-internal unsafe class PartyMember : IPartyMember
+/// <param name="address">A pointer to the PartyMember.</param>
+internal readonly unsafe struct PartyMember(nint address) : IPartyMember
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="PartyMember"/> class.
-    /// </summary>
-    /// <param name="address">Address of the party member.</param>
-    internal PartyMember(IntPtr address)
-    {
-        this.Address = address;
-    }
+    /// <inheritdoc/>
+    public nint Address => address;
 
-    /// <summary>
-    /// Gets the address of this party member in memory.
-    /// </summary>
-    public IntPtr Address { get; }
-
-    /// <summary>
-    /// Gets a list of buffs or debuffs applied to this party member.
-    /// </summary>
+    /// <inheritdoc/>
     public StatusList Statuses => new(&this.Struct->StatusManager);
 
-    /// <summary>
-    /// Gets the position of the party member.
-    /// </summary>
-    public Vector3 Position => new(this.Struct->X, this.Struct->Y, this.Struct->Z);
+    /// <inheritdoc/>
+    public Vector3 Position => this.Struct->Position;
 
-    /// <summary>
-    /// Gets the content ID of the party member.
-    /// </summary>
-    public long ContentId => (long)this.Struct->ContentId;
+    /// <inheritdoc/>
+    public ulong ContentId => this.Struct->ContentId;
 
-    /// <summary>
-    /// Gets the actor ID of this party member.
-    /// </summary>
+    /// <inheritdoc/>
     public uint ObjectId => this.Struct->EntityId;
 
-    /// <summary>
-    /// Gets the actor associated with this buddy.
-    /// </summary>
-    /// <remarks>
-    /// This iterates the actor table, it should be used with care.
-    /// </remarks>
-    public IGameObject? GameObject => Service<ObjectTable>.Get().SearchById(this.ObjectId);
+    /// <inheritdoc/>
+    public uint EntityId => this.Struct->EntityId;
 
-    /// <summary>
-    /// Gets the current HP of this party member.
-    /// </summary>
+    /// <inheritdoc/>
+    public IGameObject? GameObject => Service<ObjectTable>.Get().SearchById(this.EntityId);
+
+    /// <inheritdoc/>
     public uint CurrentHP => this.Struct->CurrentHP;
 
-    /// <summary>
-    /// Gets the maximum HP of this party member.
-    /// </summary>
+    /// <inheritdoc/>
     public uint MaxHP => this.Struct->MaxHP;
 
-    /// <summary>
-    /// Gets the current MP of this party member.
-    /// </summary>
+    /// <inheritdoc/>
     public ushort CurrentMP => this.Struct->CurrentMP;
 
-    /// <summary>
-    /// Gets the maximum MP of this party member.
-    /// </summary>
+    /// <inheritdoc/>
     public ushort MaxMP => this.Struct->MaxMP;
 
-    /// <summary>
-    /// Gets the territory this party member is located in.
-    /// </summary>
+    /// <inheritdoc/>
     public RowRef<Lumina.Excel.Sheets.TerritoryType> Territory => LuminaUtils.CreateRef<Lumina.Excel.Sheets.TerritoryType>(this.Struct->TerritoryType);
 
-    /// <summary>
-    /// Gets the World this party member resides in.
-    /// </summary>
+    /// <inheritdoc/>
     public RowRef<Lumina.Excel.Sheets.World> World => LuminaUtils.CreateRef<Lumina.Excel.Sheets.World>(this.Struct->HomeWorld);
 
-    /// <summary>
-    /// Gets the displayname of this party member.
-    /// </summary>
+    /// <inheritdoc/>
     public SeString Name => SeString.Parse(this.Struct->Name);
 
-    /// <summary>
-    /// Gets the sex of this party member.
-    /// </summary>
+    /// <inheritdoc/>
     public byte Sex => this.Struct->Sex;
 
-    /// <summary>
-    /// Gets the classjob of this party member.
-    /// </summary>
+    /// <inheritdoc/>
     public RowRef<Lumina.Excel.Sheets.ClassJob> ClassJob => LuminaUtils.CreateRef<Lumina.Excel.Sheets.ClassJob>(this.Struct->ClassJob);
 
-    /// <summary>
-    /// Gets the level of this party member.
-    /// </summary>
+    /// <inheritdoc/>
     public byte Level => this.Struct->Level;
 
-    private FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember*)this.Address;
+    /// <summary>
+    /// Gets the underlying structure.
+    /// </summary>
+    internal CSPartyMember* Struct
+    {
+        get
+        {
+            ThreadSafety.DevModeAssertMainThread();
+            return (CSPartyMember*)address;
+        }
+    }
+
+    public static bool operator ==(PartyMember x, PartyMember y) => x.Equals(y);
+
+    public static bool operator !=(PartyMember x, PartyMember y) => !(x == y);
+
+    /// <inheritdoc/>
+    public bool Equals(IPartyMember? other)
+    {
+        return this.EntityId == other.EntityId;
+    }
+
+    /// <inheritdoc/>
+    public override bool Equals([NotNullWhen(true)] object? obj)
+    {
+        return obj is PartyMember fate && this.Equals(fate);
+    }
+
+    /// <inheritdoc/>
+    public override int GetHashCode()
+    {
+        return this.EntityId.GetHashCode();
+    }
 }

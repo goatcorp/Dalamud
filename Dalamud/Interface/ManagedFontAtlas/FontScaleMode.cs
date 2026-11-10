@@ -1,6 +1,5 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.ManagedFontAtlas;
 
@@ -15,14 +14,14 @@ public enum FontScaleMode
     /// Note that bitmap fonts and game fonts will always look blurry if they're not in their original sizes.
     /// </summary>
     Default,
-    
+
     /// <summary>
     /// Do nothing with the font. Dalamud will load the font with the size that is exactly as specified.
     /// On drawing, the font will look blurry due to stretching.
     /// Intended for use with custom scale handling.
     /// </summary>
     SkipHandling,
-    
+
     /// <summary>
     /// Stretch the glyphs of the loaded font by the inverse of the global scale.
     /// On drawing, the font will always render exactly as the requested size without blurring, as long as

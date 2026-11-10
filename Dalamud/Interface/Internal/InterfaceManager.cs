@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -10,13 +9,17 @@ using System.Threading.Tasks;
 
 using CheapLoc;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;
 using Dalamud.Hooking.WndProcHook;
+using Dalamud.Interface.ImGuiBackend;
+using Dalamud.Interface.ImGuiBackend.Delegates;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Asserts;
@@ -30,19 +33,21 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Interface.Windowing.Persistence;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Memory;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 
-using ImGuiNET;
-
-using ImGuiScene;
-
 using JetBrains.Annotations;
-
-using PInvoke;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
+
+using static TerraFX.Interop.Windows.Windows;
+
+using CSFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
+
+using DWMWINDOWATTRIBUTE = Windows.Win32.Graphics.Dwm.DWMWINDOWATTRIBUTE;
 
 // general dev notes, here because it's easiest
 
@@ -75,16 +80,19 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// </summary>
     public const float DefaultFontSizePx = (DefaultFontSizePt * 4.0f) / 3.0f;
 
-    private static readonly ModuleLog Log = new("INTERFACE");
+    private static readonly ModuleLog Log = ModuleLog.Create<InterfaceManager>();
 
-    private readonly ConcurrentBag<IDeferredDisposable> deferredDisposeTextures = new();
-    private readonly ConcurrentBag<IDisposable> deferredDisposeDisposables = new();
+    private readonly ConcurrentBag<IDeferredDisposable> deferredDisposeTextures = [];
+    private readonly ConcurrentBag<IDisposable> deferredDisposeDisposables = [];
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly ClientState clientState = Service<ClientState>.Get();
 
     // ReShadeAddonInterface requires hooks to be alive to unregister itself.
     [ServiceManager.ServiceDependency]
@@ -98,8 +106,9 @@ internal partial class InterfaceManager : IInternalDisposableService
     private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
 
     private readonly AssertHandler assertHandler = new();
+    private readonly GamepadAutoExit gamepadAutoExit = new();
 
-    private RawDX11Scene? scene;
+    private IWin32Backend? backend;
 
     private Hook<SetCursorDelegate>? setCursorHook;
     private Hook<ReShadeDxgiSwapChainPresentDelegate>? reShadeDxgiSwapChainPresentHook;
@@ -112,22 +121,24 @@ internal partial class InterfaceManager : IInternalDisposableService
     private ILockedImFont? defaultFontResourceLock;
 
     // can't access imgui IO before first present call
-    private bool lastWantCapture = false;
+    private HWND gameWindowHandle;
+    private bool lastWantCapture;
     private bool isOverrideGameCursor = true;
-    private IntPtr gameWindowHandle;
 
     [ServiceManager.ServiceConstructor]
     private InterfaceManager()
     {
+        this.framework.Update += this.FrameworkOnUpdate;
+        this.clientState.Login += this.OnLogin;
     }
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    private delegate IntPtr SetCursorDelegate(IntPtr hCursor);
+    private delegate nint SetCursorDelegate(nint hCursor);
 
     /// <summary>
     /// This event gets called each frame to facilitate ImGui drawing.
     /// </summary>
-    public event RawDX11Scene.BuildUIDelegate? Draw;
+    public event ImGuiBuildUiDelegate? Draw;
 
     /// <summary>
     /// This event gets called when ResizeBuffers is called.
@@ -138,6 +149,23 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// Gets or sets an action that is executed right after fonts are rebuilt.
     /// </summary>
     public event Action? AfterBuildFonts;
+
+    /// <summary>
+    /// Invoked when the default global scale used by ImGui has been changed through Dalamud.
+    /// </summary>
+    /// <remarks> Fonts will generally not have finished rebuilding when this is invoked, so if you need to access the font you should subscribe to <seealso cref="DefaultFontHandle"/>.ImFontChanged instead.</remarks>
+    public event Action? DefaultGlobalScaleChanged;
+
+    /// <summary>
+    /// Invoked when the default font used by ImGui has been changed through Dalamud.
+    /// </summary>
+    /// <remarks> Fonts will generally not have finished rebuilding when this is invoked, so if you need to access the font you should subscribe to <seealso cref="DefaultFontHandle"/>.ImFontChanged instead.</remarks>
+    public event Action? DefaultFontChanged;
+
+    /// <summary>
+    /// Invoked when either the currently chosen style in Dalamud or a style or color variable within the currently chosen style has been changed through Dalamud.
+    /// </summary>
+    public event Action? DefaultStyleChanged;
 
     /// <summary>
     /// Gets the default ImGui font.<br />
@@ -195,39 +223,29 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// <summary>
     /// Gets the DX11 scene.
     /// </summary>
-    public RawDX11Scene? Scene => this.scene;
+    public IImGuiBackend? Backend => this.backend;
 
     /// <summary>
-    /// Gets the D3D11 device instance.
-    /// </summary>
-    public SharpDX.Direct3D11.Device? Device => this.scene?.Device;
-
-    /// <summary>
-    /// Gets the address handle to the main process window.
-    /// </summary>
-    public IntPtr WindowHandlePtr => this.scene?.WindowHandlePtr ?? IntPtr.Zero;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether or not the game's cursor should be overridden with the ImGui cursor.
+    /// Gets or sets a value indicating whether the game's cursor should be overridden with the ImGui cursor.
     /// </summary>
     public bool OverrideGameCursor
     {
-        get => this.scene?.UpdateCursor ?? this.isOverrideGameCursor;
+        get => this.backend?.UpdateCursor ?? this.isOverrideGameCursor;
         set
         {
             this.isOverrideGameCursor = value;
-            if (this.scene != null)
-                this.scene.UpdateCursor = value;
+            if (this.backend != null)
+                this.backend.UpdateCursor = value;
         }
     }
 
     /// <summary>
     /// Gets a value indicating whether the Dalamud interface ready to use.
     /// </summary>
-    public bool IsReady => this.scene != null;
+    public bool IsReady => this.backend != null;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not Draw events should be dispatched.
+    /// Gets or sets a value indicating whether Draw events should be dispatched.
     /// </summary>
     public bool IsDispatchingEvents { get; set; } = true;
 
@@ -238,20 +256,24 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// <summary>
     /// Gets a value indicating the native handle of the game main window.
     /// </summary>
-    public IntPtr GameWindowHandle
+    public unsafe HWND GameWindowHandle
     {
         get
         {
             if (this.gameWindowHandle == 0)
             {
-                nint gwh = 0;
-                while ((gwh = NativeFunctions.FindWindowEx(0, gwh, "FFXIVGAME", 0)) != 0)
+                var gwh = default(HWND);
+                fixed (char* pClass = "FFXIVGAME")
                 {
-                    _ = User32.GetWindowThreadProcessId(gwh, out var pid);
-                    if (pid == Environment.ProcessId && User32.IsWindowVisible(gwh))
+                    while ((gwh = FindWindowExW(default, gwh, pClass, default)) != default)
                     {
-                        this.gameWindowHandle = gwh;
-                        break;
+                        uint pid;
+                        _ = GetWindowThreadProcessId(gwh, &pid);
+                        if (pid == Environment.ProcessId && IsWindowVisible(gwh))
+                        {
+                            this.gameWindowHandle = gwh;
+                            break;
+                        }
                     }
                 }
             }
@@ -291,6 +313,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// </summary>
     void IInternalDisposableService.DisposeService()
     {
+        this.clientState.Login -= this.OnLogin;
         this.assertHandler.Dispose();
 
         // Unload hooks from the framework thread if possible.
@@ -302,7 +325,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         // Framework.Destroy has never been called and thus Framework.IsFrameworkUnloading cannot be true, and this
         // function will actually run the destroy from the framework thread.
         // Otherwise, as Framework.IsFrameworkUnloading should have been set, this code should run immediately.
-        this.framework.RunOnFrameworkThread(ClearHooks).Wait();
+        this.framework.RunOnFrameworkThread(this.ClearHooks).Wait();
 
         // Below this point, hooks are guaranteed to be no longer called.
 
@@ -319,21 +342,11 @@ internal partial class InterfaceManager : IInternalDisposableService
         this.IconFontHandle?.Dispose();
         this.IconFontHandle = null;
 
+        this.IconFontFixedWidthHandle?.Dispose();
+        this.IconFontFixedWidthHandle = null;
+
         Interlocked.Exchange(ref this.dalamudAtlas, null)?.Dispose();
-        Interlocked.Exchange(ref this.scene, null)?.Dispose();
-
-        return;
-
-        void ClearHooks()
-        {
-            this.wndProcHookManager.PreWndProc -= this.WndProcHookManagerOnPreWndProc;
-            Interlocked.Exchange(ref this.setCursorHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.dxgiSwapChainPresentHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.reShadeDxgiSwapChainPresentHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.dxgiSwapChainResizeBuffersHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.dxgiSwapChainHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.reShadeAddonInterface, null)?.Dispose();
-        }
+        Interlocked.Exchange(ref this.backend, null)?.Dispose();
     }
 
     /// <summary>
@@ -455,72 +468,173 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// Get video memory information.
     /// </summary>
     /// <returns>The currently used video memory, or null if not available.</returns>
-    public (long Used, long Available)? GetD3dMemoryInfo()
+    public unsafe (long Used, long Available)? GetD3dMemoryInfo()
     {
-        if (this.Device == null)
+        if (this.backend?.DeviceHandle is 0 or null)
             return null;
 
-        try
-        {
-            var dxgiDev = this.Device.QueryInterfaceOrNull<SharpDX.DXGI.Device>();
-            var dxgiAdapter = dxgiDev?.Adapter.QueryInterfaceOrNull<SharpDX.DXGI.Adapter4>();
-            if (dxgiAdapter == null)
-                return null;
+        using var device = default(ComPtr<IDXGIDevice>);
+        using var adapter = default(ComPtr<IDXGIAdapter>);
+        using var adapter4 = default(ComPtr<IDXGIAdapter4>);
 
-            var memInfo = dxgiAdapter.QueryVideoMemoryInfo(0, SharpDX.DXGI.MemorySegmentGroup.Local);
-            return (memInfo.CurrentUsage, memInfo.CurrentReservation);
-        }
-        catch
-        {
-            // ignored
-        }
+        if (new ComPtr<IUnknown>((IUnknown*)this.backend.DeviceHandle).As(&device).FAILED)
+            return null;
 
-        return null;
+        if (device.Get()->GetAdapter(adapter.GetAddressOf()).FAILED)
+            return null;
+
+        if (adapter.As(&adapter4).FAILED)
+            return null;
+
+        var vmi = default(DXGI_QUERY_VIDEO_MEMORY_INFO);
+        adapter4.Get()->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP.DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &vmi);
+        return ((long)vmi.CurrentUsage, (long)vmi.CurrentReservation);
     }
 
     /// <summary>
-    /// Clear font, style, and color stack. Dangerous, only use when you know
-    /// no one else has something pushed they may try to pop.
+    /// Applies immersive dark mode to the game window based on the current system theme setting.
     /// </summary>
-    public void ClearStacks()
+    internal void SetImmersiveModeFromSystemTheme()
     {
-        this.scene?.ClearStacksOnContext();
+        bool useDark = this.IsSystemInDarkMode();
+        this.SetImmersiveMode(useDark);
+    }
+
+    /// <summary>
+    /// Checks whether the system use dark mode.
+    /// </summary>
+    /// <returns>Returns true if dark mode is preferred.</returns>
+    internal bool IsSystemInDarkMode()
+    {
+        try
+        {
+            using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
+            var value = key?.GetValue("AppsUseLightTheme") as int?;
+            return value != 1;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     /// <summary>
     /// Toggle Windows 11 immersive mode on the game window.
     /// </summary>
     /// <param name="enabled">Value.</param>
-    internal void SetImmersiveMode(bool enabled)
+    internal unsafe void SetImmersiveMode(bool enabled)
     {
         if (this.GameWindowHandle == 0)
             throw new InvalidOperationException("Game window is not yet ready.");
-        var value = enabled ? 1 : 0;
-        ((HRESULT)NativeFunctions.DwmSetWindowAttribute(
-                    this.GameWindowHandle,
-                    NativeFunctions.DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE,
-                    ref value,
-                    sizeof(int))).ThrowOnError();
+
+        var value = enabled ? 1u : 0u;
+        global::Windows.Win32.PInvoke.DwmSetWindowAttribute(
+            new(new IntPtr(this.GameWindowHandle.Value)),
+            DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE,
+            &value,
+            sizeof(uint)).ThrowOnFailure();
     }
+
+    /// <summary> Safely invoke <seealso cref="DefaultGlobalScaleChanged"/>. </summary>
+    internal void InvokeGlobalScaleChanged()
+        => this.DefaultGlobalScaleChanged.InvokeSafely();
+
+    /// <summary> Safely invoke <seealso cref="DefaultFontChanged"/>. </summary>
+    internal void InvokeFontChanged()
+        => this.DefaultFontChanged.InvokeSafely();
+
+    /// <summary> Safely invoke <seealso cref="DefaultStyleChanged"/>. </summary>
+    internal void InvokeStyleChanged()
+        => this.DefaultStyleChanged.InvokeSafely();
 
     private static InterfaceManager WhenFontsReady()
     {
         var im = Service<InterfaceManager>.GetNullable();
         if (im?.dalamudAtlas is not { } atlas)
-            throw new InvalidOperationException($"Tried to access fonts before {nameof(ContinueConstruction)} call.");
+            throw new InvalidOperationException($"Tried to access fonts before {nameof(SetupHooks)} call.");
 
         if (!atlas.HasBuiltAtlas)
             atlas.BuildTask.GetAwaiter().GetResult();
         return im;
     }
 
+    private void OnLogin()
+    {
+        var player = Service<Game.Player.PlayerState>.GetNullable();
+        if (player == null)
+            return;
+
+        var contentId = player.ContentId;
+        if (contentId == 0)
+            return;
+
+        var assignment = this.dalamudConfiguration.CharacterStyleAssignments
+                             .FirstOrDefault(x => x.ContentId == contentId);
+        if (assignment?.StyleName is not { Length: > 0 } styleName)
+            return;
+
+        var style = this.dalamudConfiguration.SavedStyles?.FirstOrDefault(x => x.Name == styleName);
+        if (style == null)
+        {
+            Log.Warning("Character style assignment references unknown style {StyleName}, ignoring", styleName);
+            return;
+        }
+
+        Log.Verbose("Applying character style assignment: {StyleName} for ContentId {ContentId}", styleName, contentId);
+        style.Apply();
+        this.dalamudConfiguration.ChosenStyle = styleName;
+        this.InvokeStyleChanged();
+        this.dalamudConfiguration.QueueSave();
+    }
+
+    private unsafe void FrameworkOnUpdate(IFramework framework1)
+    {
+        // We now delay hooking until Framework is set up and has fired its first update.
+        // Some graphics drivers seem to consider the game's shader cache as invalid if we hook too early.
+        // The game loads shader packages on the file thread and then compiles them. It will show the logo once it is done.
+        // This is a workaround, but it fixes an issue where the game would take a very long time to get to the title screen.
+        // NetworkModuleProxy is set up after lua scripts are loaded (EventFramework.LoadState >= 5), which can only happen
+        // after the shaders are compiled (if necessary) and loaded. AgentLobby.Update doesn't do much until this condition is met.
+        if (CSFramework.Instance()->GetNetworkModuleProxy() == null)
+            return;
+
+        this.framework.Update -= this.FrameworkOnUpdate;
+
+        try
+        {
+            this.SetupHooks(Service<FontAtlasFactory>.Get());
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not set up interface hooks");
+
+            // Fail init immediately and let service init deal with it
+            Service<InterfaceManagerWithScene>.ProvideException(ex);
+
+            // Make sure we don't get any calls from hooks, since we might have been setup half way
+            this.ClearHooks();
+        }
+    }
+
+    private void ClearHooks()
+    {
+        this.wndProcHookManager.PreWndProc -= this.WndProcHookManagerOnPreWndProc;
+        Interlocked.Exchange(ref this.setCursorHook, null)?.Dispose();
+        Interlocked.Exchange(ref this.dxgiSwapChainPresentHook, null)?.Dispose();
+        Interlocked.Exchange(ref this.reShadeDxgiSwapChainPresentHook, null)?.Dispose();
+        Interlocked.Exchange(ref this.dxgiSwapChainResizeBuffersHook, null)?.Dispose();
+        Interlocked.Exchange(ref this.dxgiSwapChainHook, null)?.Dispose();
+        Interlocked.Exchange(ref this.reShadeAddonInterface, null)?.Dispose();
+    }
+
     /// <summary>Checks if the provided swap chain is the target that Dalamud should draw its interface onto,
     /// and initializes ImGui for drawing.</summary>
     /// <param name="swapChain">The swap chain to test and initialize ImGui with if conditions are met.</param>
     /// <param name="flags">Flags passed to <see cref="IDXGISwapChain.Present"/>.</param>
-    /// <returns>An initialized instance of <see cref="RawDX11Scene"/>, or <c>null</c> if <paramref name="swapChain"/>
+    /// <returns>An initialized instance of <see cref="IDXGISwapChain"/>, or <c>null</c> if <paramref name="swapChain"/>
     /// is not the main swap chain.</returns>
-    private unsafe RawDX11Scene? RenderDalamudCheckAndInitialize(IDXGISwapChain* swapChain, uint flags)
+    private unsafe IImGuiBackend? RenderDalamudCheckAndInitialize(IDXGISwapChain* swapChain, uint flags)
     {
         // Quoting ReShade dxgi_swapchain.cpp DXGISwapChain::on_present:
         // > Some D3D11 games test presentation for timing and composition purposes
@@ -533,7 +647,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         Debug.Assert(this.dalamudAtlas is not null, "dalamudAtlas should have been set already");
 
-        var activeScene = this.scene ?? this.InitScene(swapChain);
+        var activeBackend = this.backend ?? this.InitBackend(swapChain);
 
         if (!this.dalamudAtlas!.HasBuiltAtlas)
         {
@@ -547,12 +661,12 @@ internal partial class InterfaceManager : IInternalDisposableService
             return null;
         }
 
-        return activeScene;
+        return activeBackend;
     }
 
     /// <summary>Draws Dalamud to the given scene representing the ImGui context.</summary>
-    /// <param name="activeScene">The scene to draw to.</param>
-    private void RenderDalamudDraw(RawDX11Scene activeScene)
+    /// <param name="activeBackend">The scene to draw to.</param>
+    private void RenderDalamudDraw(IImGuiBackend activeBackend)
     {
         this.CumulativePresentCalls++;
         this.IsMainThreadInPresent = true;
@@ -560,12 +674,9 @@ internal partial class InterfaceManager : IInternalDisposableService
         while (this.runBeforeImGuiRender.TryDequeue(out var action))
             action.InvokeSafely();
 
-        // Process information needed by ImGuiHelpers each frame.
-        ImGuiHelpers.NewFrame();
-
         // Enable viewports if there are no issues.
         var viewportsEnable = this.dalamudConfiguration.IsDisableViewport ||
-                              activeScene.SwapChain.IsFullScreen ||
+                              activeBackend.IsMainViewportFullScreen() ||
                               ImGui.GetPlatformIO().Monitors.Size == 1;
         if (viewportsEnable)
             ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
@@ -573,42 +684,26 @@ internal partial class InterfaceManager : IInternalDisposableService
             ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
 
         // Call drawing functions, which in turn will call Draw event.
-        activeScene.Render();
+        activeBackend.Render();
 
         this.PostImGuiRender();
         this.IsMainThreadInPresent = false;
     }
 
-    private unsafe RawDX11Scene InitScene(IDXGISwapChain* swapChain)
+    private unsafe IImGuiBackend InitBackend(IDXGISwapChain* swapChain)
     {
-        RawDX11Scene newScene;
+        IWin32Backend newBackend;
         using (Timings.Start("IM Scene Init"))
         {
             try
             {
+                newBackend = new Dx11Win32Backend(swapChain);
                 this.assertHandler.Setup();
-                newScene = new RawDX11Scene((nint)swapChain);
             }
             catch (DllNotFoundException ex)
             {
                 Service<InterfaceManagerWithScene>.ProvideException(ex);
                 Log.Error(ex, "Could not load ImGui dependencies.");
-
-                var res = User32.MessageBox(
-                    IntPtr.Zero,
-                    "Dalamud plugins require the Microsoft Visual C++ Redistributable to be installed.\nPlease install the runtime from the official Microsoft website or disable Dalamud.\n\nDo you want to download the redistributable now?",
-                    "Dalamud Error",
-                    User32.MessageBoxOptions.MB_YESNO | User32.MessageBoxOptions.MB_TOPMOST | User32.MessageBoxOptions.MB_ICONERROR);
-
-                if (res == User32.MessageBoxResult.IDYES)
-                {
-                    var psi = new ProcessStartInfo
-                    {
-                        FileName = "https://aka.ms/vs/16/release/vc_redist.x64.exe",
-                        UseShellExecute = true,
-                    };
-                    Process.Start(psi);
-                }
 
                 Environment.Exit(-1);
 
@@ -619,7 +714,8 @@ internal partial class InterfaceManager : IInternalDisposableService
             var startInfo = Service<Dalamud>.Get().StartInfo;
             var configuration = Service<DalamudConfiguration>.Get();
 
-            var iniFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath)!, "dalamudUI.ini"));
+            var iniFileInfo = new FileInfo(
+                Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath)!, "dalamudUI.ini"));
 
             try
             {
@@ -642,30 +738,32 @@ internal partial class InterfaceManager : IInternalDisposableService
                 Log.Error(ex, "Could not delete dalamudUI.ini");
             }
 
-            newScene.UpdateCursor = this.isOverrideGameCursor;
-            newScene.ImGuiIniPath = iniFileInfo.FullName;
-            newScene.OnBuildUI += this.Display;
-            newScene.OnNewInputFrame += this.OnNewInputFrame;
+            newBackend.UpdateCursor = this.isOverrideGameCursor;
+            newBackend.IniPath = iniFileInfo.FullName;
+            newBackend.BuildUi += this.Display;
+            newBackend.NewInputFrame += this.OnNewInputFrame;
 
             StyleModel.TransferOldModels();
 
-            if (configuration.SavedStyles == null || configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandard.Name))
+            StyleModelV1[] builtInStyles = [StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic, StyleModelV1.DalamudHazy];
+
+            if (configuration.SavedStyles == null ||
+                configuration.SavedStyles.All(x => x.Name != builtInStyles[0].Name))
             {
-                configuration.SavedStyles = new List<StyleModel> { StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic };
-                configuration.ChosenStyle = StyleModelV1.DalamudStandard.Name;
-            }
-            else if (configuration.SavedStyles.Count == 1)
-            {
-                configuration.SavedStyles.Add(StyleModelV1.DalamudClassic);
-            }
-            else if (configuration.SavedStyles[1].Name != StyleModelV1.DalamudClassic.Name)
-            {
-                configuration.SavedStyles.Insert(1, StyleModelV1.DalamudClassic);
+                configuration.SavedStyles = [.. builtInStyles];
+                configuration.ChosenStyle = builtInStyles[0].Name;
             }
 
-            configuration.SavedStyles[0] = StyleModelV1.DalamudStandard;
-            configuration.SavedStyles[1] = StyleModelV1.DalamudClassic;
+            // Ensure built-in styles are pinned to the start of the list
+            for (var i = 0; i < builtInStyles.Length; i++)
+            {
+                if (configuration.SavedStyles.Count <= i || configuration.SavedStyles[i].Name != builtInStyles[i].Name)
+                    configuration.SavedStyles.Insert(i, builtInStyles[i]);
+                else
+                    configuration.SavedStyles[i] = builtInStyles[i];
+            }
 
+            // Use standard if the chosen style isn't there anymore
             var style = configuration.SavedStyles.FirstOrDefault(x => x.Name == configuration.ChosenStyle);
             if (style == null)
             {
@@ -707,16 +805,28 @@ internal partial class InterfaceManager : IInternalDisposableService
             Log.Information("[IM] Scene & ImGui setup OK!");
         }
 
-        this.scene = newScene;
+        this.backend = newBackend;
         Service<InterfaceManagerWithScene>.Provide(new(this));
 
         this.wndProcHookManager.PreWndProc += this.WndProcHookManagerOnPreWndProc;
-        return newScene;
+        return newBackend;
     }
 
-    private unsafe void WndProcHookManagerOnPreWndProc(WndProcEventArgs args)
+    private void WndProcHookManagerOnPreWndProc(WndProcEventArgs args)
     {
-        var r = this.scene?.ProcessWndProcW(args.Hwnd, (User32.WindowMessage)args.Message, args.WParam, args.LParam);
+        if (args.Message == WM.WM_SETTINGCHANGE)
+        {
+            if (this.dalamudConfiguration.WindowIsImmersive)
+            {
+                if (MemoryHelper.EqualsZeroTerminatedWideString("ImmersiveColorSet", args.LParam) ||
+                    MemoryHelper.EqualsZeroTerminatedWideString("VisualStyleChanged", args.LParam))
+                {
+                    this.SetImmersiveModeFromSystemTheme();
+                }
+            }
+        }
+
+        var r = this.backend?.ProcessWndProcW(args.Hwnd, args.Message, args.WParam, args.LParam);
         if (r is not null)
             args.SuppressWithValue(r.Value);
     }
@@ -748,10 +858,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         }
     }
 
-    [ServiceManager.CallWhenServicesReady(
-        "InterfaceManager accepts event registration and stuff even when the game window is not ready.")]
-    private unsafe void ContinueConstruction(
-        TargetSigScanner sigScanner,
+    private unsafe void SetupHooks(
         FontAtlasFactory fontAtlasFactory)
     {
         this.dalamudAtlas = fontAtlasFactory
@@ -775,7 +882,7 @@ internal partial class InterfaceManager : IInternalDisposableService
                     new()
                     {
                         SizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx,
-                        GlyphRanges = new ushort[] { 0x20, 0x20, 0x00 },
+                        GlyphRanges = [0x20, 0x20, 0x00],
                     })));
             this.MonoFontHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
                 e => e.OnPreBuild(
@@ -808,14 +915,14 @@ internal partial class InterfaceManager : IInternalDisposableService
                     () =>
                     {
                         // Update the ImGui default font.
-                        ImGui.GetIO().NativePtr->FontDefault = fontLocked.ImFont;
+                        ImGui.GetIO().Handle->FontDefault = fontLocked.ImFont;
 
                         // Update the reference to the resources of the default font.
                         this.defaultFontResourceLock?.Dispose();
                         this.defaultFontResourceLock = fontLocked;
 
                         // Broadcast to auto-rebuilding instances.
-                        this.AfterBuildFonts?.Invoke();
+                        this.AfterBuildFonts.InvokeSafely();
                     });
             };
         }
@@ -832,7 +939,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         {
             // Requires that game window to be there, which will be the case once game swap chain is initialized.
             if (Service<DalamudConfiguration>.Get().WindowIsImmersive)
-                this.SetImmersiveMode(true);
+                this.SetImmersiveModeFromSystemTheme();
         }
         catch (Exception ex)
         {
@@ -939,13 +1046,6 @@ internal partial class InterfaceManager : IInternalDisposableService
                 }
 
                 Log.Information("Registered as a ReShade addon");
-                this.reShadeAddonInterface.InitSwapChain += this.ReShadeAddonInterfaceOnInitSwapChain;
-                this.reShadeAddonInterface.DestroySwapChain += this.ReShadeAddonInterfaceOnDestroySwapChain;
-                if (this.dalamudConfiguration.ReShadeHandlingMode == ReShadeHandlingMode.ReShadeAddonPresent)
-                    this.reShadeAddonInterface.Present += this.ReShadeAddonInterfaceOnPresent;
-                else
-                    this.reShadeAddonInterface.ReShadeOverlay += this.ReShadeAddonInterfaceOnReShadeOverlay;
-
                 dxgiSwapChainResizeBuffersDelegate = this.AsReShadeAddonDxgiSwapChainResizeBuffersDetour;
                 break;
 
@@ -1038,15 +1138,32 @@ internal partial class InterfaceManager : IInternalDisposableService
         this.dxgiSwapChainResizeBuffersHook.Enable();
         this.dxgiSwapChainPresentHook?.Enable();
         this.dxgiSwapChainHook?.Enable();
+
+        // Set up ReShade callbacks after we are sure we are set
+        if (this.reShadeAddonInterface is null)
+        {
+            return;
+        }
+
+        this.reShadeAddonInterface.InitSwapChain += this.ReShadeAddonInterfaceOnInitSwapChain;
+        this.reShadeAddonInterface.DestroySwapChain += this.ReShadeAddonInterfaceOnDestroySwapChain;
+        if (this.dalamudConfiguration.ReShadeHandlingMode == ReShadeHandlingMode.ReShadeAddonPresent)
+        {
+            this.reShadeAddonInterface.Present += this.ReShadeAddonInterfaceOnPresent;
+        }
+        else
+        {
+            this.reShadeAddonInterface.ReShadeOverlay += this.ReShadeAddonInterfaceOnReShadeOverlay;
+        }
     }
 
-    private IntPtr SetCursorDetour(IntPtr hCursor)
+    private nint SetCursorDetour(nint hCursor)
     {
-        if (this.lastWantCapture && (!this.scene?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
-            return IntPtr.Zero;
+        if (this.lastWantCapture && (!this.backend?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
+            return default;
 
         return this.setCursorHook?.IsDisposed is not false
-                   ? User32.SetCursor(new(hCursor, false)).DangerousGetHandle()
+                   ? SetCursor((HCURSOR)hCursor)
                    : this.setCursorHook.Original(hCursor);
     }
 
@@ -1076,15 +1193,25 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         var gamepadEnabled = (io.BackendFlags & ImGuiBackendFlags.HasGamepad) > 0;
 
+        // Plugins can enable/disable this in io state without us noticing or showing the notifier
+        gamepadState.EnableGamepadNav = (io.ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0;
+
         // NOTE (Chiv) Activate ImGui navigation  via L1+L3 press
         // (mimicking how mouse navigation is activated via L1+R3 press in game).
         if (gamepadEnabled
             && gamepadState.Raw(GamepadButtons.L1) > 0
             && gamepadState.Pressed(GamepadButtons.L3) > 0)
         {
-            io.ConfigFlags ^= ImGuiConfigFlags.NavEnableGamepad;
-            gamepadState.NavEnableGamepad ^= true;
-            dalamudInterface.ToggleGamepadModeNotifierWindow();
+            gamepadState.EnableGamepadNav ^= true;
+        }
+
+        if (!gamepadState.EnableGamepadNav || !this.dalamudConfiguration.AutoExitGamepadNavigation)
+        {
+            this.gamepadAutoExit.Reset();
+        }
+        else if (this.gamepadAutoExit.ShouldExit())
+        {
+            gamepadState.EnableGamepadNav = false;
         }
 
         if (gamepadEnabled && (io.ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0)
@@ -1136,6 +1263,9 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private void Display()
     {
+        if (this.framework.IsFrameworkUnloading)
+            return;
+
         // this is more or less part of what reshade/etc do to avoid having to manually
         // set the cursor inside the ui
         // This will just tell ImGui to draw its own software cursor instead of using the hardware cursor
@@ -1149,6 +1279,8 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         WindowSystem.HasAnyWindowSystemFocus = false;
         WindowSystem.FocusedWindowSystemNamespace = string.Empty;
+        WindowSystem.ShouldInhibitAtkCloseEvents = false;
+        WindowSystem.ShouldInhibitAtkCollisions = false;
 
         if (this.IsDispatchingEvents)
         {

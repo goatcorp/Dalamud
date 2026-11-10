@@ -4,7 +4,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
@@ -15,10 +17,6 @@ using Dalamud.Interface.Utility;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
-using ImGuiNET;
-
-using SharpDX.DXGI;
-
 using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -28,8 +26,8 @@ namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 /// </summary>
 internal sealed partial class FontAtlasFactory
 {
-    private static readonly Dictionary<ulong, List<(char Left, char Right, float Distance)>> PairAdjustmentsCache =
-        new();
+    private static readonly Dictionary<ulong, List<(char Left, char Right, float Distance)>> PairAdjustmentsCache = [];
+    private static readonly Lock PairAdjustmentsCacheLock = new();
 
     /// <summary>
     /// Implementations for <see cref="IFontAtlasBuildToolkitPreBuild"/> and
@@ -47,7 +45,7 @@ internal sealed partial class FontAtlasFactory
         private readonly GamePrebakedFontHandle.HandleSubstance gameFontHandleSubstance;
         private readonly FontAtlasFactory factory;
         private readonly FontAtlasBuiltData data;
-        private readonly List<Action> registeredPostBuildActions = new();
+        private readonly List<Action> registeredPostBuildActions = [];
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BuildToolkit"/> class.
@@ -89,7 +87,7 @@ internal sealed partial class FontAtlasFactory
         /// <summary>
         /// Gets the font scale modes.
         /// </summary>
-        private Dictionary<ImFontPtr, FontScaleMode> FontScaleModes { get; } = new();
+        private Dictionary<ImFontPtr, FontScaleMode> FontScaleModes { get; } = [];
 
         /// <inheritdoc/>
         public void Dispose() => this.disposeAfterBuild.Dispose();
@@ -119,7 +117,7 @@ internal sealed partial class FontAtlasFactory
             foreach (var s in this.data.Substances)
             {
                 var f = s.GetFontPtr(fontHandle);
-                if (!f.IsNull())
+                if (!f.IsNull)
                     return f;
             }
 
@@ -155,7 +153,7 @@ internal sealed partial class FontAtlasFactory
             Log.Verbose(
                 "[{name}] 0x{atlas:X}: {funcname}(0x{dataPointer:X}, 0x{dataSize:X}, ...) from {tag}",
                 this.data.Owner?.Name ?? "(error)",
-                (nint)this.NewImAtlas.NativePtr,
+                (nint)this.NewImAtlas.Handle,
                 nameof(this.AddFontFromImGuiHeapAllocatedMemory),
                 (nint)dataPointer,
                 dataSize,
@@ -169,30 +167,30 @@ internal sealed partial class FontAtlasFactory
                 var raw = fontConfig.Raw with
                 {
                     FontData = dataPointer,
-                    FontDataOwnedByAtlas = 1,
+                    FontDataOwnedByAtlas = true,
                     FontDataSize = dataSize,
                 };
 
                 if (fontConfig.GlyphRanges is not { Length: > 0 } ranges)
-                    ranges = new ushort[] { 1, 0xFFFE, 0 };
+                    ranges = [1, 0xFFFE, 0];
 
                 raw.GlyphRanges = (ushort*)this.DisposeAfterBuild(
                     GCHandle.Alloc(ranges, GCHandleType.Pinned)).AddrOfPinnedObject();
 
                 TrueTypeUtils.CheckImGuiCompatibleOrThrow(raw);
 
-                font = this.NewImAtlas.AddFont(&raw);
+                font = this.NewImAtlas.AddFont(raw);
 
                 var dataHash = default(HashCode);
                 dataHash.AddBytes(new(dataPointer, dataSize));
                 var hashIdent = (uint)dataHash.ToHashCode() | ((ulong)dataSize << 32);
 
                 List<(char Left, char Right, float Distance)> pairAdjustments;
-                lock (PairAdjustmentsCache)
+                using (PairAdjustmentsCacheLock.EnterScope())
                 {
                     if (!PairAdjustmentsCache.TryGetValue(hashIdent, out pairAdjustments))
                     {
-                        PairAdjustmentsCache.Add(hashIdent, pairAdjustments = new());
+                        PairAdjustmentsCache.Add(hashIdent, pairAdjustments = []);
                         try
                         {
                             pairAdjustments.AddRange(TrueTypeUtils.ExtractHorizontalPairAdjustments(raw).ToArray());
@@ -218,11 +216,11 @@ internal sealed partial class FontAtlasFactory
             }
             catch
             {
-                if (!font.IsNull())
+                if (!font.IsNull)
                 {
                     // Note that for both RemoveAt calls, corresponding destructors will be called.
 
-                    var configIndex = this.data.ConfigData.FindIndex(x => x.DstFont == font.NativePtr);
+                    var configIndex = this.data.ConfigData.FindIndex(x => x.DstFont == font.Handle);
                     if (configIndex >= 0)
                         this.data.ConfigData.RemoveAt(configIndex);
 
@@ -233,7 +231,7 @@ internal sealed partial class FontAtlasFactory
 
                 // ImFontConfig has no destructor, and does not free the data.
                 if (freeOnException)
-                    ImGuiNative.igMemFree(dataPointer);
+                    ImGui.MemFree(dataPointer);
 
                 throw;
             }
@@ -265,21 +263,21 @@ internal sealed partial class FontAtlasFactory
                 stream = ms;
             }
 
-            var length = checked((int)(uint)stream.Length);
+            var length = checked((uint)stream.Length);
             var memory = ImGuiHelpers.AllocateMemory(length);
             try
             {
-                stream.ReadExactly(new(memory, length));
+                stream.ReadExactly(new(memory, checked((int)length)));
                 return this.AddFontFromImGuiHeapAllocatedMemory(
                     memory,
-                    length,
+                    checked((int)length),
                     fontConfig,
                     false,
                     $"{nameof(this.AddFontFromStream)}({debugTag})");
             }
             catch
             {
-                ImGuiNative.igMemFree(memory);
+                ImGui.MemFree(memory);
                 throw;
             }
         }
@@ -291,7 +289,7 @@ internal sealed partial class FontAtlasFactory
             string debugTag)
         {
             var length = span.Length;
-            var memory = ImGuiHelpers.AllocateMemory(length);
+            var memory = ImGuiHelpers.AllocateMemory(checked((uint)length));
             try
             {
                 span.CopyTo(new(memory, length));
@@ -304,7 +302,7 @@ internal sealed partial class FontAtlasFactory
             }
             catch
             {
-                ImGuiNative.igMemFree(memory);
+                ImGui.MemFree(memory);
                 throw;
             }
         }
@@ -334,14 +332,14 @@ internal sealed partial class FontAtlasFactory
                 }
             }
 
-            if (font.IsNull())
+            if (font.IsNull)
             {
                 // fall back to AXIS fonts
                 font = this.AddGameGlyphs(new(GameFontFamily.Axis, sizePx), glyphRanges, default);
             }
 
             this.AttachExtraGlyphsForDalamudLanguage(new() { SizePx = sizePx, MergeFont = font });
-            if (this.Font.IsNull())
+            if (this.Font.IsNull)
                 this.Font = font;
             return font;
         }
@@ -374,10 +372,7 @@ internal sealed partial class FontAtlasFactory
                     return this.factory.AddFont(
                         this,
                         asset,
-                        fontConfig with
-                        {
-                            FontNo = 0,
-                        });
+                        fontConfig);
             }
         }
 
@@ -386,7 +381,7 @@ internal sealed partial class FontAtlasFactory
             DalamudAsset.FontAwesomeFreeSolid,
             fontConfig with
             {
-                GlyphRanges = new ushort[] { FontAwesomeIconMin, FontAwesomeIconMax, 0 },
+                GlyphRanges = [FontAwesomeIconMin, FontAwesomeIconMax, 0],
             });
 
         /// <inheritdoc/>
@@ -395,12 +390,12 @@ internal sealed partial class FontAtlasFactory
                 DalamudAsset.LodestoneGameSymbol,
                 fontConfig with
                 {
-                    GlyphRanges = new ushort[]
-                    {
+                    GlyphRanges =
+                    [
                         GamePrebakedFontHandle.SeIconCharMin,
                         GamePrebakedFontHandle.SeIconCharMax,
                         0,
-                    },
+                    ],
                 });
 
         /// <inheritdoc/>
@@ -416,9 +411,9 @@ internal sealed partial class FontAtlasFactory
             int style = (int)DWRITE_FONT_STYLE.DWRITE_FONT_STYLE_NORMAL)
         {
             var targetFont = fontConfig.MergeFont;
-            if (targetFont.IsNull())
+            if (targetFont.IsNull)
                 targetFont = this.Font;
-            if (targetFont.IsNull())
+            if (targetFont.IsNull)
                 return;
 
             // https://learn.microsoft.com/en-us/windows/apps/design/globalizing/loc-international-fonts
@@ -559,38 +554,45 @@ internal sealed partial class FontAtlasFactory
         public void AttachExtraGlyphsForDalamudLanguage(in SafeFontConfig fontConfig)
         {
             var targetFont = fontConfig.MergeFont;
-            if (targetFont.IsNull())
+            if (targetFont.IsNull)
                 targetFont = this.Font;
-            if (targetFont.IsNull())
+            if (targetFont.IsNull)
                 return;
 
             var dalamudConfiguration = Service<DalamudConfiguration>.Get();
-            if (dalamudConfiguration.EffectiveLanguage == "ko"
-                || Service<DalamudIme>.GetNullable()?.EncounteredHangul is true)
+            var ime = Service<DalamudIme>.GetNullable();
+
+            string langTag = null;
+            // fontNo: 0 = japanese, 1 = traditional chinese, 2 = simplified chinese, 3 = korean
+            int fontNo = 0;
+
+            if (dalamudConfiguration.EffectiveLanguage == "tw")
             {
-                this.AddDalamudAssetFont(
-                    DalamudAsset.NotoSansKrRegular,
-                    fontConfig with
-                    {
-                        MergeFont = targetFont,
-                        GlyphRanges = default(FluentGlyphRangeBuilder).WithLanguage("ko-kr").BuildExact(),
-                    });
+                langTag = "zh-hant";
+                fontNo = 1;
+            }
+            else if (dalamudConfiguration.EffectiveLanguage == "zh" || ime?.EncounteredHan is true)
+            {
+                langTag = "zh-hans";
+                fontNo = 2;
+            }
+            else if (dalamudConfiguration.EffectiveLanguage == "ko" || ime?.EncounteredHangul is true)
+            {
+                langTag = "ko-kr";
+                fontNo = 3;
             }
 
-            if (Service<DalamudConfiguration>.Get().EffectiveLanguage == "tw")
+            Log.Debug($"Loading extra glyphs for language tag '{langTag}' (font no {fontNo})");
+            if (langTag != null)
             {
-                this.AttachWindowsDefaultFont(CultureInfo.GetCultureInfo("zh-hant"), fontConfig with
-                {
-                    GlyphRanges = default(FluentGlyphRangeBuilder).WithLanguage("zh-hant").BuildExact(),
-                });
-            }
-            else if (Service<DalamudConfiguration>.Get().EffectiveLanguage == "zh"
-                     || Service<DalamudIme>.GetNullable()?.EncounteredHan is true)
-            {
-                this.AttachWindowsDefaultFont(CultureInfo.GetCultureInfo("zh-hans"), fontConfig with
-                {
-                    GlyphRanges = default(FluentGlyphRangeBuilder).WithLanguage("zh-hans").BuildExact(),
-                });
+                this.AddDalamudAssetFont(
+                    DalamudAsset.NotoSansCjkRegular,
+                    fontConfig with
+                    {
+                        FontNo = fontNo,
+                        MergeFont = targetFont,
+                        GlyphRanges = default(FluentGlyphRangeBuilder).WithLanguage(langTag).BuildExact(),
+                    });
             }
         }
 
@@ -632,8 +634,8 @@ internal sealed partial class FontAtlasFactory
             if (this.data.ConfigData.Length == 0)
             {
                 this.AddDalamudAssetFont(
-                    DalamudAsset.NotoSansJpMedium,
-                    new() { GlyphRanges = new ushort[] { ' ', ' ', '\0' }, SizePx = 1 });
+                    DalamudAsset.NotoSansCjkRegular,
+                    new() { GlyphRanges = [' ', ' ', '\0'], SizePx = 1 });
             }
 
             if (!this.NewImAtlas.Build())
@@ -653,7 +655,7 @@ internal sealed partial class FontAtlasFactory
                 foreach (var c in FallbackCodepoints)
                 {
                     var g = font.FindGlyphNoFallback(c);
-                    if (g.NativePtr == null)
+                    if (g == null)
                         continue;
 
                     font.UpdateFallbackChar(c);
@@ -663,7 +665,7 @@ internal sealed partial class FontAtlasFactory
                 foreach (var c in EllipsisCodepoints)
                 {
                     var g = font.FindGlyphNoFallback(c);
-                    if (g.NativePtr == null)
+                    if (g == null)
                         continue;
 
                     font.EllipsisChar = c;
@@ -699,8 +701,8 @@ internal sealed partial class FontAtlasFactory
                 {
                     ref var texture = ref textureSpan[i];
                     var name =
-                        $"{nameof(FontAtlasBuiltData)}[{this.data.Owner?.Name ?? "-"}][0x{(long)this.data.Atlas.NativePtr:X}][{i}]";
-                    if (texture.TexID != 0)
+                        $"{nameof(FontAtlasBuiltData)}[{this.data.Owner?.Name ?? "-"}][0x{(long)this.data.Atlas.Handle:X}][{i}]";
+                    if (!texture.TexID.IsNull)
                     {
                         // Nothing to do
                     }
@@ -712,7 +714,7 @@ internal sealed partial class FontAtlasFactory
                             name);
                         this.factory.TextureManager.Blame(wrap, this.data.Owner?.OwnerPlugin);
                         this.data.AddExistingTexture(wrap);
-                        texture.TexID = wrap.ImGuiHandle;
+                        texture.TexID = wrap.Handle;
                     }
                     else if (texture.TexPixelsAlpha8 is not null)
                     {
@@ -752,13 +754,13 @@ internal sealed partial class FontAtlasFactory
                             new(
                                 width,
                                 height,
-                                (int)(use4 ? Format.B4G4R4A4_UNorm : Format.B8G8R8A8_UNorm),
+                                (int)(use4 ? DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM : DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM),
                                 width * bpp),
                             buf,
                             name);
                         this.factory.TextureManager.Blame(wrap, this.data.Owner?.OwnerPlugin);
                         this.data.AddExistingTexture(wrap);
-                        texture.TexID = wrap.ImGuiHandle;
+                        texture.TexID = wrap.Handle;
                         continue;
                     }
                     else
@@ -769,9 +771,9 @@ internal sealed partial class FontAtlasFactory
                     }
 
                     if (texture.TexPixelsRGBA32 is not null)
-                        ImGuiNative.igMemFree(texture.TexPixelsRGBA32);
+                        ImGui.MemFree(texture.TexPixelsRGBA32);
                     if (texture.TexPixelsAlpha8 is not null)
-                        ImGuiNative.igMemFree(texture.TexPixelsAlpha8);
+                        ImGui.MemFree(texture.TexPixelsAlpha8);
                     texture.TexPixelsRGBA32 = null;
                     texture.TexPixelsAlpha8 = null;
                 }
@@ -795,8 +797,8 @@ internal sealed partial class FontAtlasFactory
             var targetFound = false;
             foreach (var f in this.Fonts)
             {
-                sourceFound |= f.NativePtr == source.NativePtr;
-                targetFound |= f.NativePtr == target.NativePtr;
+                sourceFound |= f.Handle == source.Handle;
+                targetFound |= f.Handle == target.Handle;
             }
 
             if (sourceFound && targetFound)
@@ -817,8 +819,8 @@ internal sealed partial class FontAtlasFactory
         public unsafe void BuildLookupTable(ImFontPtr font)
         {
             // Need to clear previous Fallback pointers before BuildLookupTable, or it may crash
-            font.NativePtr->FallbackGlyph = null;
-            font.NativePtr->FallbackHotData = null;
+            font.Handle->FallbackGlyph = null;
+            font.Handle->FallbackHotData = null;
             font.BuildLookupTable();
 
             // Need to fix our custom ImGui, so that imgui_widgets.cpp:3656 stops thinking
@@ -826,7 +828,7 @@ internal sealed partial class FontAtlasFactory
             // Otherwise, having a fallback character in ImGui.InputText gets strange.
             var indexedHotData = font.IndexedHotDataWrapped();
             var indexLookup = font.IndexLookupWrapped();
-            ref var fallbackHotData = ref *(ImGuiHelpers.ImFontGlyphHotDataReal*)font.NativePtr->FallbackHotData;
+            ref var fallbackHotData = ref *(ImGuiHelpers.ImFontGlyphHotDataReal*)font.Handle->FallbackHotData;
             for (var codepoint = 0; codepoint < indexedHotData.Length; codepoint++)
             {
                 if (indexLookup[codepoint] == ushort.MaxValue)

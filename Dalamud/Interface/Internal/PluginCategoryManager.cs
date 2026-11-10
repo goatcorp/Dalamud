@@ -3,8 +3,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using CheapLoc;
-using Dalamud.Plugin.Internal;
+
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Plugin.Internal.Types.Manifest;
 
 namespace Dalamud.Interface.Internal;
 
@@ -30,6 +31,10 @@ internal class PluginCategoryManager
         new(CategoryKind.PluginChangelogs, "special.plugins", () => Locs.Category_Plugins),
         new(CategoryKind.PluginProfiles, "special.profiles", () => Locs.Category_PluginProfiles),
         new(CategoryKind.UpdateablePlugins, "special.updateable", () => Locs.Category_UpdateablePlugins),
+        new(CategoryKind.EnabledPlugins, "special.enabled", () => Locs.Category_EnabledPlugins),
+        new(CategoryKind.DisabledPlugins, "special.disabled", () => Locs.Category_DisabledPlugins),
+        new(CategoryKind.IncompatiblePlugins, "special.incompatible", () => Locs.Category_IncompatiblePlugins),
+        new(CategoryKind.FavoritePlugins, "special.favorite", () => Locs.Category_FavoritePlugins),
 
         // Tag-driven categories
         new(CategoryKind.Other, "other", () => Locs.Category_Other),
@@ -47,7 +52,7 @@ internal class PluginCategoryManager
     private GroupInfo[] groupList =
     [
         new(GroupKind.DevTools, () => Locs.Group_DevTools, CategoryKind.DevInstalled, CategoryKind.IconTester),
-        new(GroupKind.Installed, () => Locs.Group_Installed, CategoryKind.All, CategoryKind.IsTesting, CategoryKind.UpdateablePlugins, CategoryKind.PluginProfiles),
+        new(GroupKind.Installed, () => Locs.Group_Installed, CategoryKind.All, CategoryKind.IsTesting, CategoryKind.UpdateablePlugins, CategoryKind.EnabledPlugins, CategoryKind.DisabledPlugins, CategoryKind.IncompatiblePlugins, CategoryKind.FavoritePlugins, CategoryKind.PluginProfiles),
         new(GroupKind.Available, () => Locs.Group_Available, CategoryKind.All),
         new(GroupKind.Changelog, () => Locs.Group_Changelog, CategoryKind.All, CategoryKind.DalamudChangelogs, CategoryKind.PluginChangelogs)
 
@@ -58,8 +63,8 @@ internal class PluginCategoryManager
     private CategoryKind currentCategoryKind = CategoryKind.All;
     private bool isContentDirty;
 
-    private Dictionary<PluginManifest, CategoryKind[]> mapPluginCategories = new();
-    private List<CategoryKind> highlightedCategoryKinds = new();
+    private Dictionary<PluginManifest, CategoryKind[]> mapPluginCategories = [];
+    private List<CategoryKind> highlightedCategoryKinds = [];
 
     /// <summary>
     /// Type of category group.
@@ -96,87 +101,107 @@ internal class PluginCategoryManager
         /// All plugins.
         /// </summary>
         All = 0,
-        
+
         /// <summary>
         /// Plugins currently being tested.
         /// </summary>
         IsTesting = 1,
-        
+
         /// <summary>
         /// Plugins available for testing.
         /// </summary>
         AvailableForTesting = 2,
-        
+
         /// <summary>
         /// Plugins that were hidden.
         /// </summary>
         Hidden = 3,
-        
+
         /// <summary>
         /// Installed dev plugins.
         /// </summary>
         DevInstalled = 10,
-        
+
         /// <summary>
         /// Icon tester.
         /// </summary>
         IconTester = 11,
-        
+
         /// <summary>
         /// Changelogs for Dalamud.
         /// </summary>
         DalamudChangelogs = 12,
-        
+
         /// <summary>
         /// Changelogs for plugins.
         /// </summary>
         PluginChangelogs = 13,
-        
+
         /// <summary>
         /// Change plugin profiles.
         /// </summary>
         PluginProfiles = 14,
-        
+
         /// <summary>
         /// Updateable plugins.
         /// </summary>
         UpdateablePlugins = 15,
-        
+
+        /// <summary>
+        /// Enabled plugins.
+        /// </summary>
+        EnabledPlugins = 16,
+
+        /// <summary>
+        /// Disabled plugins.
+        /// </summary>
+        DisabledPlugins = 17,
+
+        /// <summary>
+        /// Incompatible plugins.
+        /// </summary>
+        IncompatiblePlugins = 18,
+
+        /// <summary>
+        /// Favorite plugins.
+        /// </summary>
+        FavoritePlugins = 19,
+
         /// <summary>
         /// Plugins tagged as "other".
         /// </summary>
         Other = FirstTagBasedCategoryId + 0,
-        
+
         /// <summary>
         /// Plugins tagged as "jobs".
         /// </summary>
         Jobs = FirstTagBasedCategoryId + 1,
-        
+
         /// <summary>
         /// Plugins tagged as "ui".
         /// </summary>
         Ui = FirstTagBasedCategoryId + 2,
-        
+
         /// <summary>
         /// Plugins tagged as "minigames".
         /// </summary>
         MiniGames = FirstTagBasedCategoryId + 3,
-        
+
         /// <summary>
         /// Plugins tagged as "inventory".
         /// </summary>
         Inventory = FirstTagBasedCategoryId + 4,
-        
+
         /// <summary>
         /// Plugins tagged as "sound".
         /// </summary>
         Sound = FirstTagBasedCategoryId + 5,
-        
+
         /// <summary>
         /// Plugins tagged as "social".
         /// </summary>
         Social = FirstTagBasedCategoryId + 6,
-        
+
         /// <summary>
         /// Plugins tagged as "utility".
         /// </summary>
@@ -192,7 +217,7 @@ internal class PluginCategoryManager
     /// Gets the list of all known UI groups.
     /// </summary>
     public GroupInfo[] GroupList => this.groupList;
-    
+
     /// <summary>
     /// Gets or sets the current group kind.
     /// </summary>
@@ -210,12 +235,12 @@ internal class PluginCategoryManager
             }
         }
     }
-    
+
     /// <summary>
     /// Gets information about currently selected group.
     /// </summary>
     public GroupInfo CurrentGroup => this.groupList[this.currentGroupIdx];
-    
+
     /// <summary>
     /// Gets or sets the current category kind.
     /// </summary>
@@ -231,7 +256,7 @@ internal class PluginCategoryManager
             }
         }
     }
-    
+
     /// <summary>
     /// Gets information about currently selected category.
     /// </summary>
@@ -255,7 +280,7 @@ internal class PluginCategoryManager
     /// Rebuild available categories based on currently available plugins.
     /// </summary>
     /// <param name="availablePlugins">list of all available plugin manifests to install.</param>
-    public void BuildCategories(IEnumerable<PluginManifest> availablePlugins)
+    public void BuildCategories(IEnumerable<RemotePluginManifest> availablePlugins)
     {
         // rebuild map plugin name -> categoryIds
         this.mapPluginCategories.Clear();
@@ -294,7 +319,7 @@ internal class PluginCategoryManager
                 }
             }
 
-            if (PluginManager.HasTestingVersion(manifest) || manifest.IsTestingExclusive)
+            if (manifest.IsTestingExclusive || manifest.IsAvailableForTesting)
                 categoryList.Add(CategoryKind.AvailableForTesting);
 
             // always add, even if empty
@@ -315,7 +340,7 @@ internal class PluginCategoryManager
         {
             groupAvail.Categories.Add(this.CategoryList[categoryIdx].CategoryKind);
         }
-        
+
         // Hidden at the end
         groupAvail.Categories.Add(CategoryKind.Hidden);
 
@@ -386,7 +411,7 @@ internal class PluginCategoryManager
     public void SetCategoryHighlightsForPlugins(IEnumerable<PluginManifest> plugins)
     {
         ArgumentNullException.ThrowIfNull(plugins);
-        
+
         this.highlightedCategoryKinds.Clear();
 
         foreach (var entry in plugins)
@@ -467,7 +492,7 @@ internal class PluginCategoryManager
             /// Check if plugin testing is enabled.
             /// </summary>
             DoPluginTest,
-            
+
             /// <summary>
             /// Check if there are any hidden plugins.
             /// </summary>
@@ -513,8 +538,7 @@ internal class PluginCategoryManager
             this.GroupKind = groupKind;
             this.nameFunc = nameFunc;
 
-            this.Categories = new();
-            this.Categories.AddRange(categories);
+            this.Categories = [.. categories];
         }
 
         /// <summary>
@@ -547,7 +571,7 @@ internal class PluginCategoryManager
         public static string Category_AvailableForTesting => Loc.Localize("InstallerCategoryAvailableForTesting", "Testing Available");
 
         public static string Category_Hidden => Loc.Localize("InstallerCategoryHidden", "Hidden");
-        
+
         public static string Category_DevInstalled => Loc.Localize("InstallerInstalledDevPlugins", "Installed Dev Plugins");
 
         public static string Category_IconTester => "Image/Icon Tester";
@@ -555,7 +579,15 @@ internal class PluginCategoryManager
         public static string Category_PluginProfiles => Loc.Localize("InstallerCategoryPluginProfiles", "Plugin Collections");
 
         public static string Category_UpdateablePlugins => Loc.Localize("InstallerCategoryCanBeUpdated", "Can be updated");
-        
+
+        public static string Category_EnabledPlugins => Loc.Localize("InstallerCategoryEnabledPlugins", "Enabled");
+
+        public static string Category_DisabledPlugins => Loc.Localize("InstallerCategoryDisabledPlugins", "Disabled");
+
+        public static string Category_IncompatiblePlugins => Loc.Localize("InstallerCategoryIncompatiblePlugins", "Incompatible");
+
+        public static string Category_FavoritePlugins => Loc.Localize("InstallerCategoryFavoritePlugins", "Favorites");
+
         public static string Category_Other => Loc.Localize("InstallerCategoryOther", "Other");
 
         public static string Category_Jobs => Loc.Localize("InstallerCategoryJobs", "Jobs");

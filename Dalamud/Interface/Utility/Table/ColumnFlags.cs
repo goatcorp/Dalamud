@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Utility.Table;
 
@@ -24,10 +24,10 @@ public class ColumnFlags<T, TItem> : Column<TItem> where T : struct, Enum
 
     public override bool DrawFilter()
     {
-        using var id    = ImRaii.PushId(this.FilterLabel);
+        using var id = ImRaii.PushId(this.FilterLabel);
         using var style = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 0);
         ImGui.SetNextItemWidth(-Table.ArrowWidth * ImGuiHelpers.GlobalScale);
-        var       all   = this.FilterValue.HasFlag(this.AllFlags);
+        var all = this.FilterValue.HasFlag(this.AllFlags);
         using var color = ImRaii.PushColor(ImGuiCol.FrameBg, 0x803030A0, !all);
         using var combo = ImRaii.Combo(string.Empty, this.Label, ImGuiComboFlags.NoArrowButton);
 
@@ -38,7 +38,7 @@ public class ColumnFlags<T, TItem> : Column<TItem> where T : struct, Enum
         }
 
         if (!all && ImGui.IsItemHovered())
-            ImGui.SetTooltip("Right-click to clear filters.");
+            ImGui.SetTooltip("Right-click to clear filters."u8);
 
         if (!combo)
             return false;
@@ -46,7 +46,7 @@ public class ColumnFlags<T, TItem> : Column<TItem> where T : struct, Enum
         color.Pop();
 
         var ret = false;
-        if (ImGui.Checkbox("Enable All", ref all))
+        if (ImGui.Checkbox("Enable All"u8, ref all))
         {
             this.SetValue(this.AllFlags, all);
             ret = true;

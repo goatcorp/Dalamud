@@ -1,23 +1,29 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Internal;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
-using ImGuiNET;
+using Serilog;
 
 using TerraFX.Interop.DirectX;
 
@@ -30,27 +36,31 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class TexWidget : IDataWindowWidget
 {
+    private const ImGuiTableFlags TableFlags = ImGuiTableFlags.Sortable | ImGuiTableFlags.SortTristate | ImGuiTableFlags.SortMulti |
+                                               ImGuiTableFlags.Reorderable | ImGuiTableFlags.Resizable | ImGuiTableFlags.NoBordersInBodyUntilResize |
+                                               ImGuiTableFlags.NoSavedSettings;
+
     // TODO: move tracking implementation to PluginStats where applicable,
     //       and show stats over there instead of TexWidget.
     private static readonly Dictionary<
         DrawBlameTableColumnUserId,
         Func<TextureManager.IBlameableDalamudTextureWrap, IComparable>> DrawBlameTableColumnColumnComparers = new()
-    {
-        [DrawBlameTableColumnUserId.Plugins] = static x => string.Join(", ", x.OwnerPlugins.Select(y => y.Name)),
-        [DrawBlameTableColumnUserId.Name] = static x => x.Name,
-        [DrawBlameTableColumnUserId.Size] = static x => x.RawSpecs.EstimatedBytes,
-        [DrawBlameTableColumnUserId.Format] = static x => x.Format,
-        [DrawBlameTableColumnUserId.Width] = static x => x.Width,
-        [DrawBlameTableColumnUserId.Height] = static x => x.Height,
-        [DrawBlameTableColumnUserId.NativeAddress] = static x => x.ResourceAddress,
-    };
+        {
+            [DrawBlameTableColumnUserId.Plugins] = static x => string.Join(", ", x.OwnerPlugins.Select(y => y.Name)),
+            [DrawBlameTableColumnUserId.Name] = static x => x.Name,
+            [DrawBlameTableColumnUserId.Size] = static x => x.RawSpecs.EstimatedBytes,
+            [DrawBlameTableColumnUserId.Format] = static x => x.Format,
+            [DrawBlameTableColumnUserId.Width] = static x => x.Width,
+            [DrawBlameTableColumnUserId.Height] = static x => x.Height,
+            [DrawBlameTableColumnUserId.NativeAddress] = static x => x.ResourceAddress,
+        };
 
-    private readonly List<TextureEntry> addedTextures = new();
+    private readonly List<TextureEntry> addedTextures = [];
 
     private string allLoadedTexturesTableName = "##table";
     private string iconId = "18";
     private bool hiRes = true;
-    private bool hq = false;
+    private bool hq;
     private string inputTexPath = string.Empty;
     private string inputFilePath = string.Empty;
     private Assembly[]? inputManifestResourceAssemblyCandidates;
@@ -67,13 +77,16 @@ internal class TexWidget : IDataWindowWidget
 
     private ImGuiViewportTextureArgs viewportTextureArgs;
     private int viewportIndexInt;
+    private uint drawListTextureWindowId;
+    private Vector2 drawListTextureWrapScale = Vector2.One;
     private string[]? supportedRenderTargetFormatNames;
     private DXGI_FORMAT[]? supportedRenderTargetFormats;
     private int renderTargetChoiceInt;
+    private IDrawListTextureWrap? drawListBufferBackedTexture;
 
     private enum DrawBlameTableColumnUserId
     {
-        NativeAddress,
+        NativeAddress = 1,
         Actions,
         Name,
         Width,
@@ -85,7 +98,7 @@ internal class TexWidget : IDataWindowWidget
     }
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "tex", "texture" };
+    public string[]? CommandShortcuts { get; init; } = ["tex", "texture"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Tex";
@@ -111,6 +124,8 @@ internal class TexWidget : IDataWindowWidget
         this.supportedRenderTargetFormats = null;
         this.supportedRenderTargetFormatNames = null;
         this.renderTargetChoiceInt = 0;
+        this.drawListBufferBackedTexture?.Dispose();
+        this.drawListBufferBackedTexture = null;
         this.textureModificationArgs = new()
         {
             Uv0 = new(0.25f),
@@ -129,117 +144,126 @@ internal class TexWidget : IDataWindowWidget
         this.textureManager = Service<TextureManager>.Get();
         var conf = Service<DalamudConfiguration>.Get();
 
-        if (ImGui.Button("GC"))
+        if (ImGui.Button("GC"u8))
             GC.Collect();
 
         var useTexturePluginTracking = conf.UseTexturePluginTracking;
-        if (ImGui.Checkbox("Enable Texture Tracking", ref useTexturePluginTracking))
+        if (ImGui.Checkbox("Enable Texture Tracking"u8, ref useTexturePluginTracking))
         {
             conf.UseTexturePluginTracking = useTexturePluginTracking;
             conf.QueueSave();
         }
 
-        var allBlames = this.textureManager.BlameTracker;
-        lock (allBlames)
+        using (this.textureManager.BlameTrackerLock.EnterScope())
         {
-            ImGui.PushID("blames");
+            using var pushedId = ImRaii.PushId("blames"u8);
+            var allBlames = this.textureManager.BlameTracker;
             var sizeSum = allBlames.Sum(static x => Math.Max(0, x.RawSpecs.EstimatedBytes));
-            if (ImGui.CollapsingHeader(
-                    $"All Loaded Textures: {allBlames.Count:n0} ({Util.FormatBytes(sizeSum)})###header"))
+            if (ImGui.CollapsingHeader($"All Loaded Textures: {allBlames.Count:n0} ({Util.FormatBytes(sizeSum)})###header"))
                 this.DrawBlame(allBlames);
-            ImGui.PopID();
         }
 
-        ImGui.PushID("loadedGameTextures");
-        if (ImGui.CollapsingHeader(
-                $"Loaded Game Textures: {this.textureManager.Shared.ForDebugGamePathTextures.Count:n0}###header"))
-            this.DrawLoadedTextures(this.textureManager.Shared.ForDebugGamePathTextures);
-        ImGui.PopID();
-
-        ImGui.PushID("loadedFileTextures");
-        if (ImGui.CollapsingHeader(
-                $"Loaded File Textures: {this.textureManager.Shared.ForDebugFileSystemTextures.Count:n0}###header"))
-            this.DrawLoadedTextures(this.textureManager.Shared.ForDebugFileSystemTextures);
-        ImGui.PopID();
-
-        ImGui.PushID("loadedManifestResourceTextures");
-        if (ImGui.CollapsingHeader(
-                $"Loaded Manifest Resource Textures: {this.textureManager.Shared.ForDebugManifestResourceTextures.Count:n0}###header"))
-            this.DrawLoadedTextures(this.textureManager.Shared.ForDebugManifestResourceTextures);
-        ImGui.PopID();
-
-        lock (this.textureManager.Shared.ForDebugInvalidatedTextures)
+        using (ImRaii.PushId("loadedGameTextures"u8))
         {
-            ImGui.PushID("invalidatedTextures");
-            if (ImGui.CollapsingHeader(
-                    $"Invalidated: {this.textureManager.Shared.ForDebugInvalidatedTextures.Count:n0}###header"))
-            {
-                this.DrawLoadedTextures(this.textureManager.Shared.ForDebugInvalidatedTextures);
-            }
-
-            ImGui.PopID();
+            if (ImGui.CollapsingHeader($"Loaded Game Textures: {this.textureManager.Shared.ForDebugGamePathTextures.Count:n0}###header"))
+                this.DrawLoadedTextures(this.textureManager.Shared.ForDebugGamePathTextures);
         }
 
-        ImGui.Dummy(new(ImGui.GetTextLineHeightWithSpacing()));
+        using (ImRaii.PushId("loadedFileTextures"u8))
+        {
+            if (ImGui.CollapsingHeader($"Loaded File Textures: {this.textureManager.Shared.ForDebugFileSystemTextures.Count:n0}###header"))
+                this.DrawLoadedTextures(this.textureManager.Shared.ForDebugFileSystemTextures);
+        }
+
+        using (ImRaii.PushId("loadedManifestResourceTextures"u8))
+        {
+            if (ImGui.CollapsingHeader($"Loaded Manifest Resource Textures: {this.textureManager.Shared.ForDebugManifestResourceTextures.Count:n0}###header"))
+                this.DrawLoadedTextures(this.textureManager.Shared.ForDebugManifestResourceTextures);
+        }
+
+        using (this.textureManager.Shared.ForDebugInvalidatedTexturesLockScope)
+        {
+            using var pushedId = ImRaii.PushId("invalidatedTextures"u8);
+            if (ImGui.CollapsingHeader($"Invalidated: {this.textureManager.Shared.ForDebugInvalidatedTextures.Count:n0}###header"))
+                this.DrawLoadedTextures(this.textureManager.Shared.ForDebugInvalidatedTextures);
+        }
+
+        var textHeightSpacing = new Vector2(ImGui.GetTextLineHeightWithSpacing());
+        ImGui.Dummy(textHeightSpacing);
+
+        if (!this.textureManager.HasClipboardImage())
+        {
+            ImGuiComponents.DisabledButton("Paste from Clipboard");
+        }
+        else if (ImGui.Button("Paste from Clipboard"u8))
+        {
+            this.addedTextures.Add(new(Api10: this.textureManager.CreateFromClipboardAsync()));
+        }
 
         if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromGameIcon)))
         {
-            ImGui.PushID(nameof(this.DrawGetFromGameIcon));
+            using var pushedId = ImRaii.PushId(nameof(this.DrawGetFromGameIcon));
             this.DrawGetFromGameIcon();
-            ImGui.PopID();
         }
 
         if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromGame)))
         {
-            ImGui.PushID(nameof(this.DrawGetFromGame));
+            using var pushedId = ImRaii.PushId(nameof(this.DrawGetFromGame));
             this.DrawGetFromGame();
-            ImGui.PopID();
         }
 
         if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromFile)))
         {
-            ImGui.PushID(nameof(this.DrawGetFromFile));
+            using var pushedId = ImRaii.PushId(nameof(this.DrawGetFromFile));
             this.DrawGetFromFile();
-            ImGui.PopID();
         }
 
         if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromManifestResource)))
         {
-            ImGui.PushID(nameof(this.DrawGetFromManifestResource));
+            using var pushedId = ImRaii.PushId(nameof(this.DrawGetFromManifestResource));
             this.DrawGetFromManifestResource();
-            ImGui.PopID();
         }
 
         if (ImGui.CollapsingHeader(nameof(ITextureProvider.CreateFromImGuiViewportAsync)))
         {
-            ImGui.PushID(nameof(this.DrawCreateFromImGuiViewportAsync));
+            using var pushedId = ImRaii.PushId(nameof(this.DrawCreateFromImGuiViewportAsync));
             this.DrawCreateFromImGuiViewportAsync();
-            ImGui.PopID();
         }
 
-        if (ImGui.CollapsingHeader("UV"))
+        if (ImGui.CollapsingHeader(nameof(ITextureProvider.CreateDrawListTexture)))
         {
-            ImGui.PushID(nameof(this.DrawUvInput));
+            using var pushedId = ImRaii.PushId(nameof(this.DrawCreateDrawListTexture));
+            this.DrawCreateDrawListTexture();
+        }
+
+        if (ImGui.CollapsingHeader($"{nameof(ITextureProvider.CreateDrawListTexture)} + {nameof(BufferBackedImDrawData)}"))
+        {
+            using var pushedId = ImRaii.PushId(nameof(this.DrawCreateDrawListTextureWithBufferBackedImDrawData));
+            this.DrawCreateDrawListTextureWithBufferBackedImDrawData();
+        }
+
+        if (ImGui.CollapsingHeader("UV"u8))
+        {
+            using var pushedId = ImRaii.PushId(nameof(this.DrawUvInput));
             this.DrawUvInput();
-            ImGui.PopID();
         }
 
-        if (ImGui.CollapsingHeader($"CropCopy##{this.DrawExistingTextureModificationArgs}"))
+        if (ImGui.CollapsingHeader($"CropCopy##{nameof(this.DrawExistingTextureModificationArgs)}"))
         {
-            ImGui.PushID(nameof(this.DrawExistingTextureModificationArgs));
+            using var pushedId = ImRaii.PushId(nameof(this.DrawExistingTextureModificationArgs));
             this.DrawExistingTextureModificationArgs();
-            ImGui.PopID();
         }
 
-        ImGui.Dummy(new(ImGui.GetTextLineHeightWithSpacing()));
+        ImGui.Dummy(textHeightSpacing);
 
         Action? runLater = null;
         foreach (var t in this.addedTextures)
         {
-            ImGui.PushID(t.Id);
+            using var pushedId = ImRaii.PushId(t.Id);
+
             if (ImGui.CollapsingHeader($"Tex #{t.Id} {t}###header", ImGuiTreeNodeFlags.DefaultOpen))
             {
-                if (ImGui.Button("X"))
+                if (ImGui.Button("X"u8))
                 {
                     runLater = () =>
                     {
@@ -249,7 +273,7 @@ internal class TexWidget : IDataWindowWidget
                 }
 
                 ImGui.SameLine();
-                if (ImGui.Button("Save"))
+                if (ImGui.Button("Save"u8))
                 {
                     _ = Service<DevTextureSaveMenu>.Get().ShowTextureSaveMenuAsync(
                         this.DisplayName,
@@ -258,11 +282,11 @@ internal class TexWidget : IDataWindowWidget
                 }
 
                 ImGui.SameLine();
-                if (ImGui.Button("Copy Reference"))
+                if (ImGui.Button("Copy Reference"u8))
                     runLater = () => this.addedTextures.Add(t.CreateFromSharedLowLevelResource(this.textureManager));
 
                 ImGui.SameLine();
-                if (ImGui.Button("CropCopy"))
+                if (ImGui.Button("CropCopy"u8))
                 {
                     runLater = () =>
                     {
@@ -288,7 +312,7 @@ internal class TexWidget : IDataWindowWidget
                 {
                     if (t.GetTexture(this.textureManager) is { } source)
                     {
-                        var psrv = (ID3D11ShaderResourceView*)source.ImGuiHandle;
+                        var psrv = (ID3D11ShaderResourceView*)source.Handle.Handle;
                         var rcsrv = psrv->AddRef() - 1;
                         psrv->Release();
 
@@ -298,13 +322,39 @@ internal class TexWidget : IDataWindowWidget
                         pres->Release();
                         pres->Release();
 
-                        ImGui.TextUnformatted($"RC: Resource({rcres})/View({rcsrv})");
-                        ImGui.TextUnformatted(source.ToString());
+                        ImGui.Text($"RC: Resource({rcres})/View({rcsrv})");
+                        ImGui.Text($"{source.Width} x {source.Height} | {source}");
+
+                        ImGui.SameLine();
+                        if (ImGui.Button("Test ConvertToKernelTexture"))
+                        {
+                            try
+                            {
+                                var kt = Service<TextureManager>.Get().ConvertToKernelTexture(source, true);
+                                new Thread(() =>
+                                {
+                                    Thread.Sleep(1000);
+                                    kt->DecRef();
+                                }).Start();
+                                Service<NotificationManager>.Get().AddNotification(
+                                    "Test success",
+                                    "TexWidget",
+                                    NotificationType.Success);
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Error(e, "Failed to convert texture to kernel texture");
+                                Service<NotificationManager>.Get().AddNotification(
+                                    $"Failed to convert texture to kernel texture: {e.Message}",
+                                    "TexWidget",
+                                    NotificationType.Error);
+                            }
+                        }
                     }
                     else
                     {
-                        ImGui.TextUnformatted("RC: -");
-                        ImGui.TextUnformatted(" ");
+                        ImGui.Text("RC: -");
+                        ImGui.Text(string.Empty);
                     }
                 }
 
@@ -316,101 +366,101 @@ internal class TexWidget : IDataWindowWidget
                         if (this.inputTexScale != Vector2.Zero)
                             scale *= this.inputTexScale;
 
-                        ImGui.Image(tex.ImGuiHandle, scale, this.inputTexUv0, this.inputTexUv1, this.inputTintCol);
+                        ImGui.Image(tex.Handle, scale, this.inputTexUv0, this.inputTexUv1, this.inputTintCol);
                     }
                     else
                     {
-                        ImGui.TextUnformatted(t.DescribeError() ?? "Loading");
+                        ImGui.Text(t.DescribeError() ?? "Loading");
                     }
                 }
                 catch (Exception e)
                 {
-                    ImGui.TextUnformatted(e.ToString());
+                    ImGui.Text(e.ToString());
                 }
             }
-
-            ImGui.PopID();
         }
 
         runLater?.Invoke();
     }
 
+    /// <summary>Adds a texture wrap for debug display purposes.</summary>
+    /// <param name="textureTask">Task returning a texture.</param>
+    public void AddTexture(Task<IDalamudTextureWrap> textureTask) => this.addedTextures.Add(new(Api10: textureTask));
+
     private unsafe void DrawBlame(List<TextureManager.IBlameableDalamudTextureWrap> allBlames)
     {
         var im = Service<InterfaceManager>.Get();
 
-        var shouldSortAgain = ImGui.Button("Sort again");
+        var shouldSortAgain = ImGui.Button("Sort again"u8);
 
         ImGui.SameLine();
-        if (ImGui.Button("Reset Columns"))
+        if (ImGui.Button("Reset Columns"u8))
             this.allLoadedTexturesTableName = "##table" + Environment.TickCount64;
 
-        if (!ImGui.BeginTable(
-                this.allLoadedTexturesTableName,
-                (int)DrawBlameTableColumnUserId.ColumnCount,
-                ImGuiTableFlags.Sortable | ImGuiTableFlags.SortTristate | ImGuiTableFlags.SortMulti |
-                ImGuiTableFlags.Reorderable | ImGuiTableFlags.Resizable | ImGuiTableFlags.NoBordersInBodyUntilResize |
-                ImGuiTableFlags.NoSavedSettings))
+        using var table = ImRaii.Table(this.allLoadedTexturesTableName, (int)DrawBlameTableColumnUserId.ColumnCount, TableFlags);
+        if (!table.Success)
             return;
 
         const int numIcons = 1;
         float iconWidths;
         using (im.IconFontHandle?.Push())
+        {
             iconWidths = ImGui.CalcTextSize(FontAwesomeIcon.Save.ToIconString()).X;
+        }
 
         ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableSetupColumn(
-            "Address",
+            "Address"u8,
             ImGuiTableColumnFlags.WidthFixed,
-            ImGui.CalcTextSize("0x7F0000000000").X,
+            ImGui.CalcTextSize("0x7F0000000000"u8).X,
             (uint)DrawBlameTableColumnUserId.NativeAddress);
         ImGui.TableSetupColumn(
-            "Actions",
+            "Actions"u8,
             ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort,
             iconWidths +
             (ImGui.GetStyle().FramePadding.X * 2 * numIcons) +
             (ImGui.GetStyle().ItemSpacing.X * 1 * numIcons),
             (uint)DrawBlameTableColumnUserId.Actions);
         ImGui.TableSetupColumn(
-            "Name",
+            "Name"u8,
             ImGuiTableColumnFlags.WidthStretch,
             0f,
             (uint)DrawBlameTableColumnUserId.Name);
         ImGui.TableSetupColumn(
-            "Width",
+            "Width"u8,
             ImGuiTableColumnFlags.WidthFixed,
-            ImGui.CalcTextSize("000000").X,
+            ImGui.CalcTextSize("000000"u8).X,
             (uint)DrawBlameTableColumnUserId.Width);
         ImGui.TableSetupColumn(
-            "Height",
+            "Height"u8,
             ImGuiTableColumnFlags.WidthFixed,
-            ImGui.CalcTextSize("000000").X,
+            ImGui.CalcTextSize("000000"u8).X,
             (uint)DrawBlameTableColumnUserId.Height);
         ImGui.TableSetupColumn(
-            "Format",
+            "Format"u8,
             ImGuiTableColumnFlags.WidthFixed,
-            ImGui.CalcTextSize("R32G32B32A32_TYPELESS").X,
+            ImGui.CalcTextSize("R32G32B32A32_TYPELESS"u8).X,
             (uint)DrawBlameTableColumnUserId.Format);
         ImGui.TableSetupColumn(
-            "Size",
+            "Size"u8,
             ImGuiTableColumnFlags.WidthFixed,
-            ImGui.CalcTextSize("123.45 MB").X,
+            ImGui.CalcTextSize("123.45 MB"u8).X,
             (uint)DrawBlameTableColumnUserId.Size);
         ImGui.TableSetupColumn(
-            "Plugins",
+            "Plugins"u8,
             ImGuiTableColumnFlags.WidthFixed,
-            ImGui.CalcTextSize("Aaaaaaaaaa Aaaaaaaaaa Aaaaaaaaaa").X,
+            ImGui.CalcTextSize("Aaaaaaaaaa Aaaaaaaaaa Aaaaaaaaaa"u8).X,
             (uint)DrawBlameTableColumnUserId.Plugins);
         ImGui.TableHeadersRow();
 
         var sortSpecs = ImGui.TableGetSortSpecs();
-        if (sortSpecs.NativePtr is not null && (sortSpecs.SpecsDirty || shouldSortAgain))
+        if (sortSpecs.Handle is not null && (sortSpecs.SpecsDirty || shouldSortAgain))
         {
             allBlames.Sort(
                 static (a, b) =>
                 {
                     var sortSpecs = ImGui.TableGetSortSpecs();
-                    var specs = new Span<ImGuiTableColumnSortSpecs>(sortSpecs.NativePtr->Specs, sortSpecs.SpecsCount);
+                    var specs = new Span<ImGuiTableColumnSortSpecs>(sortSpecs.Handle->Specs, sortSpecs.SpecsCount);
                     Span<bool> sorted = stackalloc bool[(int)DrawBlameTableColumnUserId.ColumnCount];
                     foreach (ref var spec in specs)
                     {
@@ -442,7 +492,7 @@ internal class TexWidget : IDataWindowWidget
             sortSpecs.SpecsDirty = false;
         }
 
-        var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+        var clipper = ImGui.ImGuiListClipper();
         clipper.Begin(allBlames.Count);
 
         while (clipper.Step())
@@ -451,7 +501,8 @@ internal class TexWidget : IDataWindowWidget
             {
                 var wrap = allBlames[i];
                 ImGui.TableNextRow();
-                ImGui.PushID(i);
+
+                using var pushedId = ImRaii.PushId(i);
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
@@ -462,15 +513,14 @@ internal class TexWidget : IDataWindowWidget
                 {
                     _ = Service<DevTextureSaveMenu>.Get().ShowTextureSaveMenuAsync(
                         this.DisplayName,
-                        $"{wrap.ImGuiHandle:X16}",
+                        $"{wrap.Handle.Handle:X16}",
                         Task.FromResult(wrap.CreateWrapSharingLowLevelResource()));
                 }
 
                 if (ImGui.IsItemHovered())
                 {
-                    ImGui.BeginTooltip();
-                    ImGui.Image(wrap.ImGuiHandle, wrap.Size);
-                    ImGui.EndTooltip();
+                    using var tooltip = ImRaii.Tooltip();
+                    ImGui.Image(wrap.Handle, wrap.Size);
                 }
 
                 ImGui.TableNextColumn();
@@ -492,21 +542,19 @@ internal class TexWidget : IDataWindowWidget
                 ImGui.TableNextColumn();
                 lock (wrap.OwnerPlugins)
                     this.TextColumnCopiable(string.Join(", ", wrap.OwnerPlugins.Select(static x => x.Name)), false, true);
-
-                ImGui.PopID();
             }
         }
 
         clipper.Destroy();
-        ImGui.EndTable();
 
         ImGuiHelpers.ScaledDummy(10);
     }
 
-    private unsafe void DrawLoadedTextures(ICollection<SharedImmediateTexture> textures)
+    private void DrawLoadedTextures(ICollection<SharedImmediateTexture> textures)
     {
         var im = Service<InterfaceManager>.Get();
-        if (!ImGui.BeginTable("##table", 6))
+        using var table = ImRaii.Table("##table"u8, 6);
+        if (!table.Success)
             return;
 
         const int numIcons = 4;
@@ -519,19 +567,19 @@ internal class TexWidget : IDataWindowWidget
         }
 
         ImGui.TableSetupScrollFreeze(0, 1);
-        ImGui.TableSetupColumn("ID", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("000000").X);
-        ImGui.TableSetupColumn("Source", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.TableSetupColumn("RefCount", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("RefCount__").X);
-        ImGui.TableSetupColumn("SelfRef", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("00.000___").X);
+        ImGui.TableSetupColumn("ID"u8, ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("000000"u8).X);
+        ImGui.TableSetupColumn("Source"u8, ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("RefCount"u8, ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("RefCount__"u8).X);
+        ImGui.TableSetupColumn("SelfRef"u8, ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("00.000___"u8).X);
         ImGui.TableSetupColumn(
-            "Actions",
+            "Actions"u8,
             ImGuiTableColumnFlags.WidthFixed,
             iconWidths +
             (ImGui.GetStyle().FramePadding.X * 2 * numIcons) +
             (ImGui.GetStyle().ItemSpacing.X * 1 * numIcons));
         ImGui.TableHeadersRow();
 
-        var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+        var clipper = ImGui.ImGuiListClipper();
         clipper.Begin(textures.Count);
 
         using (var enu = textures.GetEnumerator())
@@ -559,12 +607,12 @@ internal class TexWidget : IDataWindowWidget
                         // Should not happen
                         ImGui.TableNextColumn();
                         ImGui.AlignTextToFramePadding();
-                        ImGui.TextUnformatted("?");
+                        ImGui.Text("?"u8);
                         continue;
                     }
 
                     var remain = texture.SelfReferenceExpiresInForDebug;
-                    ImGui.PushID(row);
+                    using var pushedId = ImRaii.PushId(row);
 
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
@@ -591,28 +639,26 @@ internal class TexWidget : IDataWindowWidget
 
                     if (ImGui.IsItemHovered() && texture.GetWrapOrDefault(null) is { } immediate)
                     {
-                        ImGui.BeginTooltip();
-                        ImGui.Image(immediate.ImGuiHandle, immediate.Size);
-                        ImGui.EndTooltip();
+                        using var tooltip = ImRaii.Tooltip();
+                        ImGui.Image(immediate.Handle, immediate.Size);
                     }
 
                     ImGui.SameLine();
                     if (ImGuiComponents.IconButton(FontAwesomeIcon.Sync))
-                        this.textureManager.InvalidatePaths(new[] { texture.SourcePathForDebug });
+                        this.textureManager.InvalidatePaths([texture.SourcePathForDebug]);
+
                     if (ImGui.IsItemHovered())
                         ImGui.SetTooltip($"Call {nameof(ITextureSubstitutionProvider.InvalidatePaths)}.");
 
                     ImGui.SameLine();
-                    if (remain <= 0)
-                        ImGui.BeginDisabled();
-                    if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash))
-                        texture.ReleaseSelfReference(true);
-                    if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
-                        ImGui.SetTooltip("Release self-reference immediately.");
-                    if (remain <= 0)
-                        ImGui.EndDisabled();
+                    using (ImRaii.Disabled(remain <= 0))
+                    {
+                        if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash))
+                            texture.ReleaseSelfReference(true);
 
-                    ImGui.PopID();
+                        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+                            ImGui.SetTooltip("Release self-reference immediately."u8);
+                    }
                 }
 
                 if (!valid)
@@ -621,19 +667,18 @@ internal class TexWidget : IDataWindowWidget
         }
 
         clipper.Destroy();
-        ImGui.EndTable();
 
         ImGuiHelpers.ScaledDummy(10);
     }
 
     private void DrawGetFromGameIcon()
     {
-        ImGui.InputText("Icon ID", ref this.iconId, 32);
-        ImGui.Checkbox("HQ Item", ref this.hq);
-        ImGui.Checkbox("Hi-Res", ref this.hiRes);
+        ImGui.InputText("Icon ID"u8, ref this.iconId, 32);
+        ImGui.Checkbox("HQ Item"u8, ref this.hq);
+        ImGui.Checkbox("Hi-Res"u8, ref this.hiRes);
 
         ImGui.SameLine();
-        if (ImGui.Button("Load Icon (Async)"))
+        if (ImGui.Button("Load Icon (Async)"u8))
         {
             this.addedTextures.Add(
                 new(
@@ -644,7 +689,7 @@ internal class TexWidget : IDataWindowWidget
         }
 
         ImGui.SameLine();
-        if (ImGui.Button("Load Icon (Immediate)"))
+        if (ImGui.Button("Load Icon (Immediate)"u8))
             this.addedTextures.Add(new(Api10ImmGameIcon: new(uint.Parse(this.iconId), this.hq, this.hiRes)));
 
         ImGuiHelpers.ScaledDummy(10);
@@ -652,14 +697,14 @@ internal class TexWidget : IDataWindowWidget
 
     private void DrawGetFromGame()
     {
-        ImGui.InputText("Tex Path", ref this.inputTexPath, 255);
+        ImGui.InputText("Tex Path"u8, ref this.inputTexPath, 255);
 
         ImGui.SameLine();
-        if (ImGui.Button("Load Tex (Async)"))
+        if (ImGui.Button("Load Tex (Async)"u8))
             this.addedTextures.Add(new(Api10: this.textureManager.Shared.GetFromGame(this.inputTexPath).RentAsync()));
 
         ImGui.SameLine();
-        if (ImGui.Button("Load Tex (Immediate)"))
+        if (ImGui.Button("Load Tex (Immediate)"u8))
             this.addedTextures.Add(new(Api10ImmGamePath: this.inputTexPath));
 
         ImGuiHelpers.ScaledDummy(10);
@@ -667,14 +712,14 @@ internal class TexWidget : IDataWindowWidget
 
     private void DrawGetFromFile()
     {
-        ImGui.InputText("File Path", ref this.inputFilePath, 255);
+        ImGui.InputText("File Path"u8, ref this.inputFilePath, 255);
 
         ImGui.SameLine();
-        if (ImGui.Button("Load File (Async)"))
+        if (ImGui.Button("Load File (Async)"u8))
             this.addedTextures.Add(new(Api10: this.textureManager.Shared.GetFromFile(this.inputFilePath).RentAsync()));
 
         ImGui.SameLine();
-        if (ImGui.Button("Load File (Immediate)"))
+        if (ImGui.Button("Load File (Immediate)"u8))
             this.addedTextures.Add(new(Api10ImmFile: this.inputFilePath));
 
         ImGuiHelpers.ScaledDummy(10);
@@ -702,8 +747,7 @@ internal class TexWidget : IDataWindowWidget
         if (ImGui.Combo(
                 "Assembly",
                 ref this.inputManifestResourceAssemblyIndex,
-                this.inputManifestResourceAssemblyCandidateNames,
-                this.inputManifestResourceAssemblyCandidateNames.Length))
+                this.inputManifestResourceAssemblyCandidateNames))
         {
             this.inputManifestResourceNameIndex = 0;
             this.inputManifestResourceNameCandidates = null;
@@ -720,8 +764,7 @@ internal class TexWidget : IDataWindowWidget
         ImGui.Combo(
             "Name",
             ref this.inputManifestResourceNameIndex,
-            this.inputManifestResourceNameCandidates,
-            this.inputManifestResourceNameCandidates.Length);
+            this.inputManifestResourceNameCandidates);
 
         var name =
             this.inputManifestResourceNameIndex >= 0
@@ -729,7 +772,7 @@ internal class TexWidget : IDataWindowWidget
                 ? this.inputManifestResourceNameCandidates[this.inputManifestResourceNameIndex]
                 : null;
 
-        if (ImGui.Button("Refresh Assemblies"))
+        if (ImGui.Button("Refresh Assemblies"u8))
         {
             this.inputManifestResourceAssemblyIndex = 0;
             this.inputManifestResourceAssemblyCandidates = null;
@@ -741,14 +784,11 @@ internal class TexWidget : IDataWindowWidget
         if (assembly is not null && name is not null)
         {
             ImGui.SameLine();
-            if (ImGui.Button("Load File (Async)"))
-            {
-                this.addedTextures.Add(
-                    new(Api10: this.textureManager.Shared.GetFromManifestResource(assembly, name).RentAsync()));
-            }
+            if (ImGui.Button("Load File (Async)"u8))
+                this.addedTextures.Add(new(Api10: this.textureManager.Shared.GetFromManifestResource(assembly, name).RentAsync()));
 
             ImGui.SameLine();
-            if (ImGui.Button("Load File (Immediate)"))
+            if (ImGui.Button("Load File (Immediate)"u8))
                 this.addedTextures.Add(new(Api10ImmManifestResource: (assembly, name)));
         }
 
@@ -758,21 +798,20 @@ internal class TexWidget : IDataWindowWidget
     private void DrawCreateFromImGuiViewportAsync()
     {
         var viewports = ImGui.GetPlatformIO().Viewports;
-        if (ImGui.BeginCombo(
-                nameof(this.viewportTextureArgs.ViewportId),
-                $"{this.viewportIndexInt}. {viewports[this.viewportIndexInt].ID:X08}"))
+        using (var combo = ImRaii.Combo(nameof(this.viewportTextureArgs.ViewportId), $"{this.viewportIndexInt}. {viewports[this.viewportIndexInt].ID:X08}"))
         {
-            for (var i = 0; i < viewports.Size; i++)
+            if (combo.Success)
             {
-                var sel = this.viewportIndexInt == i;
-                if (ImGui.Selectable($"#{i}: {viewports[i].ID:X08}", ref sel))
+                for (var i = 0; i < viewports.Size; i++)
                 {
-                    this.viewportIndexInt = i;
-                    ImGui.SetItemDefaultFocus();
+                    var sel = this.viewportIndexInt == i;
+                    if (ImGui.Selectable($"#{i}: {viewports[i].ID:X08}", ref sel))
+                    {
+                        this.viewportIndexInt = i;
+                        ImGui.SetItemDefaultFocus();
+                    }
                 }
             }
-
-            ImGui.EndCombo();
         }
 
         var b = this.viewportTextureArgs.KeepTransparency;
@@ -795,7 +834,7 @@ internal class TexWidget : IDataWindowWidget
         if (ImGui.InputFloat2(nameof(this.viewportTextureArgs.Uv1), ref vec2))
             this.viewportTextureArgs.Uv1 = vec2;
 
-        if (ImGui.Button("Create") && this.viewportIndexInt >= 0 && this.viewportIndexInt < viewports.Size)
+        if (ImGui.Button("Create"u8) && this.viewportIndexInt >= 0 && this.viewportIndexInt < viewports.Size)
         {
             this.addedTextures.Add(
                 new()
@@ -805,6 +844,87 @@ internal class TexWidget : IDataWindowWidget
                         null),
                 });
         }
+    }
+
+    private unsafe void DrawCreateDrawListTexture()
+    {
+        // note: do not take the snapshot of the data span here, because Combo may create a new window
+        ref var windows = ref ImGui.GetCurrentContext().Windows;
+        var selectedWindowIndex = -1;
+        var selectedWindowName = "(select one)"u8;
+        for (var i = 0; i < windows.Size; i++)
+        {
+            if (windows[i].ID == this.drawListTextureWindowId)
+            {
+                selectedWindowIndex = i;
+                selectedWindowName = GetWindowName(windows[i]);
+            }
+        }
+
+        using (var combo = ImRaii.Combo("Window"u8, selectedWindowName))
+        {
+            for (var i = combo.Success ? 0 : windows.Size; i < windows.Size; ++i)
+            {
+                var sel = i == selectedWindowIndex;
+                if (ImGui.Selectable(GetWindowName(windows[i]), ref sel))
+                {
+                    selectedWindowIndex = i;
+                    this.drawListTextureWindowId = windows[i].ID;
+                    ImGui.SetItemDefaultFocus();
+                }
+            }
+        }
+
+        ImGui.InputFloat2("Scale"u8, ref this.drawListTextureWrapScale);
+
+        if (ImGui.Button("Create"u8) && selectedWindowIndex >= 0 && selectedWindowIndex < windows.Size)
+        {
+            var dd = this.textureManager.CreateDrawListTexture();
+            dd.ResizeAndDrawWindow(windows[selectedWindowIndex], this.drawListTextureWrapScale);
+            this.addedTextures.Add(new()
+            {
+                Api10 = Task.FromResult<IDalamudTextureWrap>(dd),
+            });
+        }
+
+        return;
+
+        static ReadOnlySpan<byte> GetWindowName(ImGuiWindow* window)
+        {
+            if (window is null || window->Name is null)
+                return "(null)"u8;
+            return MemoryMarshal.CreateReadOnlySpanFromNullTerminated(window->Name);
+        }
+    }
+
+    private void DrawCreateDrawListTextureWithBufferBackedImDrawData()
+    {
+        if (ImGui.Button("Reset"u8))
+        {
+            this.drawListBufferBackedTexture?.Dispose();
+            this.drawListBufferBackedTexture = null;
+        }
+
+        if (this.drawListBufferBackedTexture is null)
+        {
+            using var drawData = BufferBackedImDrawData.Create();
+            var viewport = ImGui.GetMainViewport();
+            drawData.ListPtr.AddRectFilled(
+                Vector2.Zero,
+                viewport.Size,
+                ImGui.GetColorU32(System.Drawing.KnownColor.ForestGreen.Vector()));
+
+            drawData.DataPtr.DisplaySize = viewport.Size;
+            drawData.UpdateDrawDataStatistics();
+
+            this.drawListBufferBackedTexture = this.textureManager.CreateDrawListTexture("BufferBackedImDrawDataTest");
+            this.drawListBufferBackedTexture.Size = viewport.Size;
+            this.drawListBufferBackedTexture.Draw(drawData.DataPtr);
+        }
+
+        var tex = this.drawListBufferBackedTexture;
+        ImGui.Image(tex.Handle, tex.Size);
+        ImGuiHelpers.ScaledDummy(10);
     }
 
     private void DrawUvInput()
@@ -834,18 +954,12 @@ internal class TexWidget : IDataWindowWidget
         }
 
         this.supportedRenderTargetFormatNames ??= this.supportedRenderTargetFormats.Select(Enum.GetName).ToArray();
-        ImGui.Combo(
-            nameof(this.textureModificationArgs.DxgiFormat),
-            ref this.renderTargetChoiceInt,
-            this.supportedRenderTargetFormatNames,
-            this.supportedRenderTargetFormatNames.Length);
+        ImGui.Combo(nameof(this.textureModificationArgs.DxgiFormat), ref this.renderTargetChoiceInt, this.supportedRenderTargetFormatNames);
 
         Span<int> wh = stackalloc int[2];
         wh[0] = this.textureModificationArgs.NewWidth;
         wh[1] = this.textureModificationArgs.NewHeight;
-        if (ImGui.InputInt2(
-                $"{nameof(this.textureModificationArgs.NewWidth)}/{nameof(this.textureModificationArgs.NewHeight)}",
-                ref wh[0]))
+        if (ImGui.InputInt($"{nameof(this.textureModificationArgs.NewWidth)}/{nameof(this.textureModificationArgs.NewHeight)}", wh))
         {
             this.textureModificationArgs.NewWidth = wh[0];
             this.textureModificationArgs.NewHeight = wh[1];

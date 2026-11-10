@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
+
+using Microsoft.Extensions.ObjectPool;
 
 namespace Dalamud.Utility;
 
@@ -92,7 +95,7 @@ public static class DisposeSafety
                         new AggregateException(
                             new[] { e }.Concat(
                                 (IEnumerable<Exception>)r.Exception?.InnerExceptions
-                                ?? new[] { new OperationCanceledException() })));
+                                ?? [new OperationCanceledException()])));
                 }
             }
 
@@ -125,7 +128,7 @@ public static class DisposeSafety
                     }
                     catch (Exception de)
                     {
-                        exceptions ??= new();
+                        exceptions ??= [];
                         exceptions.Add(de);
                     }
                 }
@@ -140,7 +143,20 @@ public static class DisposeSafety
     /// </summary>
     public class ScopedFinalizer : IDisposeCallback, IAsyncDisposable
     {
-        private readonly List<object> objects = new();
+        private static readonly ObjectPool<List<object>> ListPool = ObjectPool.Create<List<object>>();
+
+        private readonly Lock objectsLock = new();
+
+        private List<object> objects;
+        private bool isDisposed;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ScopedFinalizer"/> class.
+        /// </summary>
+        public ScopedFinalizer()
+        {
+            this.objects = ListPool.Get();
+        }
 
         /// <inheritdoc/>
         public event Action<IDisposeCallback>? BeforeDispose;
@@ -151,7 +167,7 @@ public static class DisposeSafety
         /// <inheritdoc cref="Stack{T}.EnsureCapacity"/>
         public void EnsureCapacity(int capacity)
         {
-            lock (this.objects)
+            using (this.objectsLock.EnterScope())
                 this.objects.EnsureCapacity(capacity);
         }
 
@@ -162,7 +178,7 @@ public static class DisposeSafety
         {
             if (d is not null)
             {
-                lock (this.objects)
+                using (this.objectsLock.EnterScope())
                     this.objects.Add(this.CheckAdd(d));
             }
 
@@ -175,7 +191,7 @@ public static class DisposeSafety
         {
             if (d is not null)
             {
-                lock (this.objects)
+                using (this.objectsLock.EnterScope())
                     this.objects.Add(this.CheckAdd(d));
             }
 
@@ -188,7 +204,7 @@ public static class DisposeSafety
         {
             if (d is not null)
             {
-                lock (this.objects)
+                using (this.objectsLock.EnterScope())
                     this.objects.Add(this.CheckAdd(d));
             }
 
@@ -200,7 +216,7 @@ public static class DisposeSafety
         {
             if (d != default)
             {
-                lock (this.objects)
+                using (this.objectsLock.EnterScope())
                     this.objects.Add(this.CheckAdd(d));
             }
 
@@ -213,7 +229,7 @@ public static class DisposeSafety
         /// <param name="ds">Disposables.</param>
         public void AddRange(IEnumerable<IDisposable?> ds)
         {
-            lock (this.objects)
+            using (this.objectsLock.EnterScope())
                 this.objects.AddRange(ds.Where(d => d is not null).Select(d => (object)this.CheckAdd(d)));
         }
 
@@ -223,7 +239,7 @@ public static class DisposeSafety
         /// <param name="ds">Actions.</param>
         public void AddRange(IEnumerable<Action?> ds)
         {
-            lock (this.objects)
+            using (this.objectsLock.EnterScope())
                 this.objects.AddRange(ds.Where(d => d is not null).Select(d => (object)this.CheckAdd(d)));
         }
 
@@ -233,7 +249,7 @@ public static class DisposeSafety
         /// <param name="ds">Func{Task}s.</param>
         public void AddRange(IEnumerable<Func<Task>?> ds)
         {
-            lock (this.objects)
+            using (this.objectsLock.EnterScope())
                 this.objects.AddRange(ds.Where(d => d is not null).Select(d => (object)this.CheckAdd(d)));
         }
 
@@ -243,7 +259,7 @@ public static class DisposeSafety
         /// <param name="ds">GCHandles.</param>
         public void AddRange(IEnumerable<GCHandle> ds)
         {
-            lock (this.objects)
+            using (this.objectsLock.EnterScope())
                 this.objects.AddRange(ds.Select(d => (object)this.CheckAdd(d)));
         }
 
@@ -253,7 +269,7 @@ public static class DisposeSafety
         /// <remarks>Use this after successful initialization of multiple disposables.</remarks>
         public void Cancel()
         {
-            lock (this.objects)
+            using (this.objectsLock.EnterScope())
             {
                 foreach (var o in this.objects)
                     this.CheckRemove(o);
@@ -304,13 +320,16 @@ public static class DisposeSafety
         /// <inheritdoc/>
         public void Dispose()
         {
+            if (this.isDisposed)
+                return;
+
             this.BeforeDispose?.InvokeSafely(this);
 
             List<Exception>? exceptions = null;
             while (true)
             {
                 object obj;
-                lock (this.objects)
+                using (this.objectsLock.EnterScope())
                 {
                     if (this.objects.Count == 0)
                         break;
@@ -338,12 +357,12 @@ public static class DisposeSafety
                 }
                 catch (Exception ex)
                 {
-                    exceptions ??= new();
+                    exceptions ??= [];
                     exceptions.Add(ex);
                 }
             }
 
-            lock (this.objects)
+            using (this.objectsLock.EnterScope())
                 this.objects.TrimExcess();
 
             if (exceptions is not null)
@@ -360,6 +379,9 @@ public static class DisposeSafety
 
                 throw exs;
             }
+
+            ListPool.Return(this.objects);
+            this.isDisposed = true;
         }
 
         /// <inheritdoc/>
@@ -371,7 +393,7 @@ public static class DisposeSafety
             while (true)
             {
                 object obj;
-                lock (this.objects)
+                using (this.objectsLock.EnterScope())
                 {
                     if (this.objects.Count == 0)
                         break;
@@ -402,12 +424,12 @@ public static class DisposeSafety
                 }
                 catch (Exception ex)
                 {
-                    exceptions ??= new();
+                    exceptions ??= [];
                     exceptions.Add(ex);
                 }
             }
 
-            lock (this.objects)
+            using (this.objectsLock.EnterScope())
                 this.objects.TrimExcess();
 
             if (exceptions is not null)
@@ -443,7 +465,7 @@ public static class DisposeSafety
         private void OnItemDisposed(IDisposeCallback obj)
         {
             obj.BeforeDispose -= this.OnItemDisposed;
-            lock (this.objects)
+            using (this.objectsLock.EnterScope())
                 this.objects.Remove(obj);
         }
     }

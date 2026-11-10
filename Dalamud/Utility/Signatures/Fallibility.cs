@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Utility.Signatures;
+namespace Dalamud.Utility.Signatures;
 
 /// <summary>
 /// The fallibility of a signature.

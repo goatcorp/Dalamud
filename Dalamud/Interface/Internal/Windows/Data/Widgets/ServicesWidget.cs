@@ -1,14 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.IoC.Internal;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -17,18 +16,18 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class ServicesWidget : IDataWindowWidget
 {
-    private readonly Dictionary<ServiceDependencyNode, Vector4> nodeRects = new();
-    private readonly HashSet<Type> selectedNodes = new();
-    private readonly HashSet<Type> tempRelatedNodes = new();
+    private readonly Dictionary<ServiceDependencyNode, Vector4> nodeRects = [];
+    private readonly HashSet<Type> selectedNodes = [];
+    private readonly HashSet<Type> tempRelatedNodes = [];
 
     private bool includeUnloadDependencies;
     private List<List<ServiceDependencyNode>>? dependencyNodes;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "services" };
-    
+    public string[]? CommandShortcuts { get; init; } = ["services"];
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Service Container"; 
+    public string DisplayName { get; init; } = "Service Container";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -44,34 +43,33 @@ internal class ServicesWidget : IDataWindowWidget
     {
         var container = Service<ServiceContainer>.Get();
 
-        if (ImGui.CollapsingHeader("Dependencies"))
+        if (ImGui.CollapsingHeader("Dependencies"u8))
         {
-            if (ImGui.Button("Clear selection"))
+            if (ImGui.Button("Clear selection"u8))
                 this.selectedNodes.Clear();
-            
+
             ImGui.SameLine();
             switch (this.includeUnloadDependencies)
             {
-                case true when ImGui.Button("Show load-time dependencies"):
+                case true when ImGui.Button("Show load-time dependencies"u8):
                     this.includeUnloadDependencies = false;
                     this.dependencyNodes = null;
                     break;
-                case false when ImGui.Button("Show unload-time dependencies"):
+                case false when ImGui.Button("Show unload-time dependencies"u8):
                     this.includeUnloadDependencies = true;
                     this.dependencyNodes = null;
                     break;
             }
 
             this.dependencyNodes ??= ServiceDependencyNode.CreateTreeByLevel(this.includeUnloadDependencies);
-            var cellPad = ImGui.CalcTextSize("WW");
-            var margin = ImGui.CalcTextSize("W\nW\nW");
+            var cellPad = ImGui.CalcTextSize("WW"u8);
+            var margin = ImGui.CalcTextSize("W\nW\nW"u8);
             var rowHeight = cellPad.Y * 3;
             var width = ImGui.GetContentRegionAvail().X;
-            if (ImGui.BeginChild(
-                    "dependency-graph",
-                    new(width, (this.dependencyNodes.Count * (rowHeight + margin.Y)) + cellPad.Y),
-                    false,
-                    ImGuiWindowFlags.HorizontalScrollbar))
+            var childSize = new Vector2(width, (this.dependencyNodes.Count * (rowHeight + margin.Y)) + cellPad.Y);
+
+            using var child = ImRaii.Child("dependency-graph"u8, childSize, false, ImGuiWindowFlags.HorizontalScrollbar);
+            if (child.Success)
             {
                 const uint rectBaseBorderColor = 0xFFFFFFFF;
                 const uint rectHoverFillColor = 0xFF404040;
@@ -90,12 +88,12 @@ internal class ServicesWidget : IDataWindowWidget
                 var dl = ImGui.GetWindowDrawList();
                 var mouse = ImGui.GetMousePos();
                 var maxRowWidth = 0f;
-                
+
                 // 1. Layout
                 for (var level = 0; level < this.dependencyNodes.Count; level++)
                 {
                     var levelNodes = this.dependencyNodes[level];
-                    
+
                     var rowWidth = 0f;
                     foreach (var node in levelNodes)
                         rowWidth += node.DisplayedNameSize.X + cellPad.X + margin.X;
@@ -119,10 +117,8 @@ internal class ServicesWidget : IDataWindowWidget
                             hoveredNode = node;
                             if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                             {
-                                if (this.selectedNodes.Contains(node.Type))
+                                if (!this.selectedNodes.Add(node.Type))
                                     this.selectedNodes.Remove(node.Type);
-                                else
-                                    this.selectedNodes.Add(node.Type);
                             }
                         }
 
@@ -139,7 +135,7 @@ internal class ServicesWidget : IDataWindowWidget
                     {
                         var rect = this.nodeRects[node];
                         var point1 = new Vector2((rect.X + rect.Z) / 2, rect.Y);
-                        
+
                         foreach (var parent in node.InvalidParents)
                         {
                             rect = this.nodeRects[parent];
@@ -149,7 +145,7 @@ internal class ServicesWidget : IDataWindowWidget
 
                             dl.AddLine(point1, point2, lineInvalidColor, 2f * ImGuiHelpers.GlobalScale);
                         }
-                        
+
                         foreach (var parent in node.Parents)
                         {
                             rect = this.nodeRects[parent];
@@ -170,7 +166,7 @@ internal class ServicesWidget : IDataWindowWidget
                         }
                     }
                 }
-                
+
                 // 3. Draw boxes
                 foreach (var levelNodes in this.dependencyNodes)
                 {
@@ -196,13 +192,11 @@ internal class ServicesWidget : IDataWindowWidget
                             ImGui.SetTooltip(node.BlockingReason);
 
                         ImGui.SetCursorPos((new Vector2(rc.X, rc.Y) - pos) + ((cellSize - textSize) / 2));
-                        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
-                        ImGui.TextUnformatted(node.DisplayedName);
+                        using var pushedStyle = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
+                        ImGui.Text(node.DisplayedName);
                         ImGui.SameLine();
-                        ImGui.PushStyleColor(ImGuiCol.Text, node.TypeSuffixColor);
-                        ImGui.TextUnformatted(node.TypeSuffix);
-                        ImGui.PopStyleVar();
-                        ImGui.PopStyleColor();
+                        using var pushedColor = ImRaii.PushColor(ImGuiCol.Text, node.TypeSuffixColor);
+                        ImGui.Text(node.TypeSuffix);
                     }
                 }
 
@@ -231,34 +225,46 @@ internal class ServicesWidget : IDataWindowWidget
                         }
                     }
                 }
-                
+
                 ImGui.SetCursorPos(default);
                 ImGui.Dummy(new(maxRowWidth, this.dependencyNodes.Count * rowHeight));
-                ImGui.EndChild();
             }
         }
 
-        if (ImGui.CollapsingHeader("Plugin-facing Services"))
+        if (ImGui.CollapsingHeader("Singleton Services"u8))
         {
             foreach (var instance in container.Instances)
             {
-                var hasInterface = container.InterfaceToTypeMap.Values.Any(x => x == instance.Key);
                 var isPublic = instance.Key.IsPublic;
 
                 ImGui.BulletText($"{instance.Key.FullName} ({instance.Key.GetServiceKind()})");
 
-                using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed, !hasInterface))
-                {
-                    ImGui.Text(
-                        hasInterface
-                            ? $"\t => Provided via interface: {container.InterfaceToTypeMap.First(x => x.Value == instance.Key).Key.FullName}"
-                            : "\t => NO INTERFACE!!!");
-                }
-
                 if (isPublic)
                 {
-                    using var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-                    ImGui.Text("\t => PUBLIC!!!");
+                    using var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.WarningForeground);
+                    ImGui.Text("\t => PUBLIC!!!"u8);
+                }
+
+                switch (instance.Value.Visibility)
+                {
+                    case ObjectInstanceVisibility.Internal:
+                        ImGui.Text("\t => Internally resolved"u8);
+                        break;
+
+                    case ObjectInstanceVisibility.ExposedToPlugins:
+                        var hasInterface = container.InterfaceToTypeMap.Values.Any(x => x == instance.Key);
+                        using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.WarningForeground, !hasInterface))
+                        {
+                            ImGui.Text("\t => Exposed to plugins!"u8);
+                            ImGui.Text(
+                                hasInterface
+                                    ? $"\t => Provided via interface: {container.InterfaceToTypeMap.First(x => x.Value == instance.Key).Key.FullName}"
+                                    : "\t => NO INTERFACE!!!");
+                        }
+
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
 
                 ImGuiHelpers.ScaledDummy(2);
@@ -268,9 +274,9 @@ internal class ServicesWidget : IDataWindowWidget
 
     private class ServiceDependencyNode
     {
-        private readonly List<ServiceDependencyNode> parents = new();
-        private readonly List<ServiceDependencyNode> children = new();
-        private readonly List<ServiceDependencyNode> invalidParents = new();
+        private readonly List<ServiceDependencyNode> parents = [];
+        private readonly List<ServiceDependencyNode> children = [];
+        private readonly List<ServiceDependencyNode> invalidParents = [];
 
         private ServiceDependencyNode(Type t)
         {
@@ -280,19 +286,21 @@ internal class ServicesWidget : IDataWindowWidget
             this.Kind = t.GetCustomAttribute<ServiceManager.ServiceAttribute>()?.Kind ??
                         ServiceManager.ServiceKind.None;
             this.DisplayedName = this.Type.Name;
-            this.TypeSuffix = this.Kind switch {
+            this.TypeSuffix = this.Kind switch
+            {
                 ServiceManager.ServiceKind.ProvidedService => " (P)",
                 ServiceManager.ServiceKind.EarlyLoadedService => " (E)",
                 ServiceManager.ServiceKind.BlockingEarlyLoadedService => " (B)",
                 ServiceManager.ServiceKind.ScopedService => " (S)",
                 var x => $" (? {x})",
             };
-            this.TypeSuffixColor = this.Kind switch {
+            this.TypeSuffixColor = this.Kind switch
+            {
                 ServiceManager.ServiceKind.ProvidedService => ImGui.GetColorU32(ImGuiColors.DalamudGrey),
                 ServiceManager.ServiceKind.EarlyLoadedService => ImGui.GetColorU32(ImGuiColors.DalamudWhite),
                 ServiceManager.ServiceKind.BlockingEarlyLoadedService => ImGui.GetColorU32(ImGuiColors.ParsedPink),
                 ServiceManager.ServiceKind.ScopedService => ImGui.GetColorU32(ImGuiColors.ParsedGreen),
-                _ => ImGui.GetColorU32(ImGuiColors.DalamudRed),
+                _ => ImGui.GetColorU32(ImGuiColors.ErrorForeground),
             };
         }
 
@@ -301,7 +309,7 @@ internal class ServicesWidget : IDataWindowWidget
         public string DisplayedName { get; }
 
         public string TypeSuffix { get; }
-        
+
         public uint TypeSuffixColor { get; }
 
         public Vector2 DisplayedNameSize =>
@@ -319,7 +327,7 @@ internal class ServicesWidget : IDataWindowWidget
 
         public IEnumerable<ServiceDependencyNode> Relatives =>
             this.parents.Concat(this.children).Concat(this.invalidParents);
-        
+
         public int Level { get; private set; }
 
         public static List<ServiceDependencyNode> CreateTree(bool includeUnloadDependencies)
@@ -358,7 +366,7 @@ internal class ServicesWidget : IDataWindowWidget
             foreach (var n in CreateTree(includeUnloadDependencies))
             {
                 while (res.Count <= n.Level)
-                    res.Add(new());
+                    res.Add([]);
                 res[n.Level].Add(n);
             }
 

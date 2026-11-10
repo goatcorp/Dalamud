@@ -459,7 +459,7 @@ public enum BitmapFontIcon : uint
     /// The Island Sanctuary icon.
     /// </summary>
     IslandSanctuary = 116,
-    
+
     /// <summary>
     /// The Physical Damage icon.
     /// </summary>
@@ -739,4 +739,84 @@ public enum BitmapFontIcon : uint
     /// The Venture Delivery Moogle icon.
     /// </summary>
     VentureDeliveryMoogle = 172,
+
+    /// <summary>
+    /// The Watching Cutscene icon.
+    /// </summary>
+    WatchingCutscene = 173,
+
+    /// <summary>
+    /// The Away from Keyboard icon.
+    /// </summary>
+    Away = 174,
+
+    /// <summary>
+    /// The Camera Mode icon.
+    /// </summary>
+    CameraMode = 175,
+
+    /// <summary>
+    /// The Looking For Party icon.
+    /// </summary>
+    LookingForParty = 176,
+
+    /// <summary>
+    /// The Group Finder icon.
+    /// </summary>
+    GroupFinder = 177,
+
+    /// <summary>
+    /// The Party Leader icon.
+    /// </summary>
+    PartyLeader = 178,
+
+    /// <summary>
+    /// The Party Member icon.
+    /// </summary>
+    PartyMember = 179,
+
+    /// <summary>
+    /// The Cross-World Party Leader icon.
+    /// </summary>
+    CrossWorldPartyLeader = 180,
+
+    /// <summary>
+    /// The Cross-World Party Member icon.
+    /// </summary>
+    CrossWorldPartyMember = 181,
+
+    /// <summary>
+    /// The Event Tutorial icon.
+    /// </summary>
+    EventTutorial = 182,
+
+    /// <summary>
+    /// The Beastmaster icon.
+    /// </summary>
+    Beastmaster = 183,
+
+    /// <summary>
+    /// A red star icon.
+    /// </summary>
+    RedStar = 184,
+
+    /// <summary>
+    /// A blunt damage icon.
+    /// </summary>
+    BluntDamage = 185,
+
+    /// <summary>
+    /// A piecing damage icon.
+    /// </summary>
+    PiercingDamage = 186,
+
+    /// <summary>
+    /// A slashing damage icon.
+    /// </summary>
+    SlashingDamage = 187,
+
+    /// <summary>
+    /// A magical damage icon.
+    /// </summary>
+    MagicalDamage = 188,
 }

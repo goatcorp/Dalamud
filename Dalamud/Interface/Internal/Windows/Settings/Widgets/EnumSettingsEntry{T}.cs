@@ -1,14 +1,13 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
-
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-
-using ImGuiNET;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
@@ -25,8 +24,8 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
     private T valueBacking;
 
     public EnumSettingsEntry(
-        string name,
-        string description,
+        LazyLoc name,
+        LazyLoc description,
         LoadSettingDelegate load,
         SaveSettingDelegate save,
         Action<T>? change = null,
@@ -63,7 +62,7 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
         }
     }
 
-    public string Description { get; }
+    public LazyLoc Description { get; }
 
     public Action<EnumSettingsEntry<T>>? CustomDraw { get; init; }
 
@@ -81,7 +80,10 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
 
     public override void Draw()
     {
-        Debug.Assert(this.Name != null, "this.Name != null");
+        var name = this.Name.ToString();
+        var description = this.Description.ToString();
+
+        Debug.Assert(!string.IsNullOrWhiteSpace(name), "Name is empty");
 
         if (this.CustomDraw is not null)
         {
@@ -89,7 +91,7 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
         }
         else
         {
-            ImGuiHelpers.SafeTextWrapped(this.Name);
+            ImGui.TextWrapped(name);
 
             var idx = this.valueBacking;
             var values = Enum.GetValues<T>();
@@ -119,13 +121,14 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
         using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
         {
             var desc = this.FriendlyEnumDescriptionGetter(this.valueBacking);
+
             if (!string.IsNullOrWhiteSpace(desc))
             {
-                ImGuiHelpers.SafeTextWrapped(desc);
+                ImGui.TextWrapped(desc);
                 ImGuiHelpers.ScaledDummy(2);
             }
 
-            ImGuiHelpers.SafeTextWrapped(this.Description);
+            ImGui.TextWrapped(description);
         }
 
         if (this.CheckValidity != null)
@@ -135,7 +138,7 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
 
             if (!this.IsValid)
             {
-                using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
+                using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.ErrorForeground))
                 {
                     ImGui.Text(validityMsg);
                 }
@@ -150,7 +153,7 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
 
         if (warningMessage != null)
         {
-            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
+            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.ErrorForeground))
             {
                 ImGui.Text(warningMessage);
             }

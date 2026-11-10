@@ -11,37 +11,37 @@ public interface IBattleChara : ICharacter
     /// <summary>
     /// Gets the current status effects.
     /// </summary>
-    public StatusList StatusList { get; }
+    StatusList StatusList { get; }
 
     /// <summary>
     /// Gets a value indicating whether the chara is currently casting.
     /// </summary>
-    public bool IsCasting { get; }
+    bool IsCasting { get; }
 
     /// <summary>
     /// Gets a value indicating whether the cast is interruptible.
     /// </summary>
-    public bool IsCastInterruptible { get; }
+    bool IsCastInterruptible { get; }
 
     /// <summary>
     /// Gets the spell action type of the spell being cast by the actor.
     /// </summary>
-    public byte CastActionType { get; }
+    byte CastActionType { get; }
 
     /// <summary>
     /// Gets the spell action ID of the spell being cast by the actor.
     /// </summary>
-    public uint CastActionId { get; }
+    uint CastActionId { get; }
 
     /// <summary>
     /// Gets the object ID of the target currently being cast at by the chara.
     /// </summary>
-    public ulong CastTargetObjectId { get; }
+    ulong CastTargetObjectId { get; }
 
     /// <summary>
     /// Gets the current casting time of the spell being cast by the chara.
     /// </summary>
-    public float CurrentCastTime { get; }
+    float CurrentCastTime { get; }
 
     /// <summary>
     /// Gets the base casting time of the spell being cast by the chara.
@@ -50,12 +50,12 @@ public interface IBattleChara : ICharacter
     /// This can only be a portion of the total cast for some actions.
     /// Use TotalCastTime if you always need the total cast time.
     /// </remarks>
-    public float BaseCastTime { get; }
+    float BaseCastTime { get; }
 
     /// <summary>
     /// Gets the <see cref="BaseCastTime"/> plus any adjustments from the game, such as Action offset 2B. Used for display purposes.
     /// </summary>
-    public float TotalCastTime { get; }
+    float TotalCastTime { get; }
 }
 
 /// <summary>
@@ -77,10 +77,10 @@ internal unsafe class BattleChara : Character, IBattleChara
     public StatusList StatusList => new(this.Struct->GetStatusManager());
 
     /// <inheritdoc/>
-    public bool IsCasting => this.Struct->GetCastInfo()->IsCasting > 0;
+    public bool IsCasting => this.Struct->GetCastInfo()->IsCasting;
 
     /// <inheritdoc/>
-    public bool IsCastInterruptible => this.Struct->GetCastInfo()->Interruptible > 0;
+    public bool IsCastInterruptible => this.Struct->GetCastInfo()->Interruptible;
 
     /// <inheritdoc/>
     public byte CastActionType => (byte)this.Struct->GetCastInfo()->ActionType;
@@ -103,5 +103,12 @@ internal unsafe class BattleChara : Character, IBattleChara
     /// <summary>
     /// Gets the underlying structure.
     /// </summary>
-    protected internal new FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)this.Address;
+    protected internal new FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* Struct
+    {
+        get
+        {
+            ThreadSafety.DevModeAssertMainThread();
+            return (FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)this.Address;
+        }
+    }
 }

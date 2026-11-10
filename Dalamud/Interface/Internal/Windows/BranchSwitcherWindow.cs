@@ -5,14 +5,16 @@ using System.Linq;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 
-using Dalamud.Configuration.Internal;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Networking.Http;
+using Dalamud.Utility;
 
-using ImGuiNET;
 using Newtonsoft.Json;
+
+using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows;
 
@@ -45,13 +47,12 @@ public class BranchSwitcherWindow : Window
             this.branches = await client.GetFromJsonAsync<Dictionary<string, VersionEntry>>(BranchInfoUrl);
             Debug.Assert(this.branches != null, "this.branches != null");
 
-            var config = Service<DalamudConfiguration>.Get();
-            this.selectedBranchIndex = this.branches!.Any(x => x.Key == config.DalamudBetaKind) ?
-                                           this.branches.TakeWhile(x => x.Key != config.DalamudBetaKind).Count()
-                                           : 0;
-
-            if (this.branches.ElementAt(this.selectedBranchIndex).Value.Key != config.DalamudBetaKey)
+            var trackName = Versioning.GetActiveTrack();
+            this.selectedBranchIndex = this.branches.IndexOf(x => x.Value.Track == trackName);
+            if (this.selectedBranchIndex == -1)
+            {
                 this.selectedBranchIndex = 0;
+            }
         });
 
         base.OnOpen();
@@ -62,20 +63,20 @@ public class BranchSwitcherWindow : Window
     {
         if (this.branches == null)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "Loading branches...");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "Loading branches..."u8);
             return;
         }
 
         var si = Service<Dalamud>.Get().StartInfo;
 
         var itemsArray = this.branches.Select(x => x.Key).ToArray();
-        ImGui.ListBox("Branch", ref this.selectedBranchIndex, itemsArray, itemsArray.Length);
+        ImGui.ListBox("Branch", ref this.selectedBranchIndex, itemsArray);
 
         var pickedBranch = this.branches.ElementAt(this.selectedBranchIndex);
 
         if (pickedBranch.Value.SupportedGameVer != si.GameVersion)
         {
-            ImGui.TextColored(ImGuiColors.DalamudRed, "Can't pick this branch. GameVer != SupportedGameVer.");
+            ImGui.TextColored(ImGuiColors.ErrorForeground, "Can't pick this branch. GameVer != SupportedGameVer."u8);
         }
         else
         {
@@ -84,35 +85,27 @@ public class BranchSwitcherWindow : Window
 
             ImGuiHelpers.ScaledDummy(5);
 
-            void Pick()
+            if (ImGui.Button("Pick & Restart"u8))
             {
-                var config = Service<DalamudConfiguration>.Get();
-                config.DalamudBetaKind = pickedBranch.Key;
-                config.DalamudBetaKey = pickedBranch.Value.Key;
-                config.QueueSave();
-            }
-
-            if (ImGui.Button("Pick"))
-            {
-                Pick();
-                this.IsOpen = false;
-            }
-
-            ImGui.SameLine();
-
-            if (ImGui.Button("Pick & Restart"))
-            {
-                Pick();
-
-                // If we exit immediately, we need to write out the new config now
-                Service<DalamudConfiguration>.Get().ForceSave();
+                var newTrackName = pickedBranch.Key;
+                var newTrackKey = pickedBranch.Value.Key;
+                Log.Verbose("Switching to branch {Branch} with key {Key}", newTrackName, newTrackKey);
 
                 var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                var xlPath = Path.Combine(appData, "XIVLauncher", "XIVLauncher.exe");
+                var xlPath = Path.Combine(appData, "XIVLauncher", "current", "XIVLauncher.exe");
 
                 if (File.Exists(xlPath))
                 {
-                    Process.Start(xlPath);
+                    var ps = new ProcessStartInfo
+                    {
+                        FileName = xlPath,
+                        UseShellExecute = false,
+                    };
+
+                    ps.ArgumentList.Add($"--dalamud-beta-kind={newTrackName}");
+                    ps.ArgumentList.Add($"--dalamud-beta-key={(newTrackKey.IsNullOrEmpty() ? "invalid" : newTrackKey)}");
+
+                    Process.Start(ps);
                     Environment.Exit(0);
                 }
             }

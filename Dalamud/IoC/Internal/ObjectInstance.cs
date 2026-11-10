@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Dalamud.IoC.Internal;
@@ -13,9 +12,11 @@ internal class ObjectInstance
     /// </summary>
     /// <param name="instanceTask">Weak reference to the underlying instance.</param>
     /// <param name="type">Type of the underlying instance.</param>
-    public ObjectInstance(Task<WeakReference> instanceTask, Type type)
+    /// <param name="visibility">The visibility of this instance.</param>
+    public ObjectInstance(Task<WeakReference> instanceTask, Type type, ObjectInstanceVisibility visibility)
     {
         this.InstanceTask = instanceTask;
+        this.Visibility = visibility;
     }
 
     /// <summary>
@@ -23,4 +24,9 @@ internal class ObjectInstance
     /// </summary>
     /// <returns>The underlying instance.</returns>
     public Task<WeakReference> InstanceTask { get; }
+
+    /// <summary>
+    /// Gets or sets the visibility of the object instance.
+    /// </summary>
+    public ObjectInstanceVisibility Visibility { get; set; }
 }

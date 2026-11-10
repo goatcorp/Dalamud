@@ -1,12 +1,11 @@
-﻿using System.Linq;
-
-using Dalamud.Game.Network.Internal;
+using Dalamud.Game.Marketboard.Network.Internal;
 using Dalamud.Game.Network.Structures;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using static Dalamud.Plugin.Services.IMarketBoard;
 
@@ -15,6 +14,7 @@ namespace Dalamud.Game.MarketBoard;
 /// <summary>
 /// This class provides access to market board events.
 /// </summary>
+[Api16ToDo("Update all namespaces in Marketboard/Network/Structures")]
 [ServiceManager.EarlyLoadedService]
 internal class MarketBoard : IInternalDisposableService, IMarketBoard
 {
@@ -95,7 +95,7 @@ internal class MarketBoard : IInternalDisposableService, IMarketBoard
 #pragma warning restore SA1015
 internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoard
 {
-    private static readonly ModuleLog Log = new(nameof(MarketBoardPluginScoped));
+    private static readonly ModuleLog Log = ModuleLog.Create<MarketBoardPluginScoped>();
 
     [ServiceManager.ServiceDependency]
     private readonly MarketBoard marketBoardService = Service<MarketBoard>.Get();
@@ -150,9 +150,7 @@ internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoar
 
     private void OnHistoryReceived(IMarketBoardHistory history)
     {
-        if (this.HistoryReceived == null) return;
-
-        foreach (var action in this.HistoryReceived.GetInvocationList().Cast<HistoryReceivedDelegate>())
+        foreach (var action in Delegate.EnumerateInvocationList(this.HistoryReceived))
         {
             try
             {
@@ -167,9 +165,7 @@ internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoar
 
     private void OnItemPurchased(IMarketBoardPurchase purchase)
     {
-        if (this.ItemPurchased == null) return;
-
-        foreach (var action in this.ItemPurchased.GetInvocationList().Cast<ItemPurchasedDelegate>())
+        foreach (var action in Delegate.EnumerateInvocationList(this.ItemPurchased))
         {
             try
             {
@@ -184,10 +180,7 @@ internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoar
 
     private void OnOfferingsReceived(IMarketBoardCurrentOfferings currentOfferings)
     {
-        if (this.OfferingsReceived == null) return;
-
-        foreach (var action in this.OfferingsReceived.GetInvocationList()
-                                   .Cast<OfferingsReceivedDelegate>())
+        foreach (var action in Delegate.EnumerateInvocationList(this.OfferingsReceived))
         {
             try
             {
@@ -202,9 +195,7 @@ internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoar
 
     private void OnPurchaseRequested(IMarketBoardPurchaseHandler purchaseHandler)
     {
-        if (this.PurchaseRequested == null) return;
-
-        foreach (var action in this.PurchaseRequested.GetInvocationList().Cast<PurchaseRequestedDelegate>())
+        foreach (var action in Delegate.EnumerateInvocationList(this.PurchaseRequested))
         {
             try
             {
@@ -219,9 +210,7 @@ internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoar
 
     private void OnTaxRatesReceived(IMarketTaxRates taxRates)
     {
-        if (this.TaxRatesReceived == null) return;
-
-        foreach (var action in this.TaxRatesReceived.GetInvocationList().Cast<TaxRatesReceivedDelegate>())
+        foreach (var action in Delegate.EnumerateInvocationList(this.TaxRatesReceived))
         {
             try
             {

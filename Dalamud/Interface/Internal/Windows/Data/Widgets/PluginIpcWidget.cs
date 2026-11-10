@@ -1,10 +1,10 @@
-﻿using Dalamud.Game.ClientState;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Utility;
-using ImGuiNET;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -17,18 +17,18 @@ internal class PluginIpcWidget : IDataWindowWidget
     // IPC
     private ICallGateProvider<string, string>? ipcPub;
     private ICallGateSubscriber<string, string>? ipcSub;
-    
+
     // IPC
     private ICallGateProvider<ICharacter?, string>? ipcPubGo;
     private ICallGateSubscriber<ICharacter?, string>? ipcSubGo;
-    
+
     private string callGateResponse = string.Empty;
-    
+
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "ipc" };
-    
+    public string[]? CommandShortcuts { get; init; } = ["ipc"];
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Plugin IPC"; 
+    public string DisplayName { get; init; } = "Plugin IPC";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -48,12 +48,20 @@ internal class PluginIpcWidget : IDataWindowWidget
 
             this.ipcPub.RegisterAction(msg =>
             {
-                Log.Information("Data action was called: {Msg}", msg);
+                Log.Information(
+                    "Data action was called: {Msg}\n" +
+                    "    Context: {Context}",
+                    msg,
+                    this.ipcPub.GetContext());
             });
 
             this.ipcPub.RegisterFunc(msg =>
             {
-                Log.Information("Data func was called: {Msg}", msg);
+                Log.Information(
+                    "Data func was called: {Msg}\n" +
+                    "    Context: {Context}",
+                    msg,
+                    this.ipcPub.GetContext());
                 return Guid.NewGuid().ToString();
             });
         }
@@ -61,14 +69,8 @@ internal class PluginIpcWidget : IDataWindowWidget
         if (this.ipcSub == null)
         {
             this.ipcSub = new CallGatePubSub<string, string>("dataDemo1");
-            this.ipcSub.Subscribe(_ =>
-            {
-                Log.Information("PONG1");
-            });
-            this.ipcSub.Subscribe(_ =>
-            {
-                Log.Information("PONG2");
-            });
+            this.ipcSub.Subscribe(_ => { Log.Information("PONG1"); });
+            this.ipcSub.Subscribe(_ => { Log.Information("PONG2"); });
             this.ipcSub.Subscribe(_ => throw new Exception("PONG3"));
         }
 
@@ -78,12 +80,21 @@ internal class PluginIpcWidget : IDataWindowWidget
 
             this.ipcPubGo.RegisterAction(go =>
             {
-                Log.Information("Data action was called: {Name}", go?.Name);
+                Log.Information(
+                    "Data action was called: {Name}" +
+                    "\n    Context: {Context}",
+                    go?.Name,
+                    this.ipcPubGo.GetContext());
             });
 
             this.ipcPubGo.RegisterFunc(go =>
             {
-                Log.Information("Data func was called: {Name}", go?.Name);
+                Log.Information(
+                    "Data func was called: {Name}\n" +
+                    "    Context: {Context}",
+                    go?.Name,
+                    this.ipcPubGo.GetContext());
+
                 return "test";
             });
         }
@@ -94,31 +105,31 @@ internal class PluginIpcWidget : IDataWindowWidget
             this.ipcSubGo.Subscribe(go => { Log.Information("GO: {Name}", go.Name); });
         }
 
-        if (ImGui.Button("PING"))
+        if (ImGui.Button("PING"u8))
         {
             this.ipcPub.SendMessage("PING");
         }
 
-        if (ImGui.Button("Action"))
+        if (ImGui.Button("Action"u8))
         {
             this.ipcSub.InvokeAction("button1");
         }
 
-        if (ImGui.Button("Func"))
+        if (ImGui.Button("Func"u8))
         {
             this.callGateResponse = this.ipcSub.InvokeFunc("button2");
         }
-        
-        if (ImGui.Button("Action GO"))
+
+        if (ImGui.Button("Action GO"u8))
         {
-            this.ipcSubGo.InvokeAction(Service<ClientState>.Get().LocalPlayer);
+            this.ipcSubGo.InvokeAction(Service<ObjectTable>.Get().LocalPlayer);
         }
-        
-        if (ImGui.Button("Func GO"))
+
+        if (ImGui.Button("Func GO"u8))
         {
-            this.callGateResponse = this.ipcSubGo.InvokeFunc(Service<ClientState>.Get().LocalPlayer);
+            this.callGateResponse = this.ipcSubGo.InvokeFunc(Service<ObjectTable>.Get().LocalPlayer);
         }
-        
+
         if (!this.callGateResponse.IsNullOrEmpty())
             ImGui.Text($"Response: {this.callGateResponse}");
     }

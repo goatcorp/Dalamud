@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Dalamud.Utility;
 
@@ -20,12 +21,13 @@ public static class EnumExtensions
         var type = value.GetType();
         var name = Enum.GetName(type, value);
         if (name.IsNullOrEmpty())
-            return Array.Empty<TAttribute>();
+            return [];
 
-        return type.GetField(name)?
-                   .GetCustomAttributes(false)
-                   .OfType<TAttribute>()
-               ?? Array.Empty<TAttribute>();
+        var field = type.GetField(name);
+        if (field == null)
+            return [];
+
+        return field.GetCustomAttributes<TAttribute>(false);
     }
 
     /// <summary>
@@ -45,6 +47,15 @@ public static class EnumExtensions
     /// <returns>Indicator if enum has been flagged as obsolete.</returns>
     public static bool IsObsolete(this Enum value)
     {
-        return GetAttribute<ObsoleteAttribute>(value) != null;
+        var type = value.GetType();
+        var name = Enum.GetName(type, value);
+        if (name.IsNullOrEmpty())
+            return false;
+
+        var field = type.GetField(name);
+        if (field == null)
+            return false;
+
+        return Attribute.IsDefined(field, typeof(ObsoleteAttribute));
     }
 }

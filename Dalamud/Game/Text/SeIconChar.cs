@@ -48,7 +48,13 @@ public enum SeIconChar
     /// <summary>
     /// The Hydaelyn icon unicode character.
     /// </summary>
+    [Obsolete("Use SeIconChar.Hydaelyn (spelling) instead")]
     Hyadelyn = 0xE048,
+
+    /// <summary>
+    /// The Hydaelyn icon unicode character.
+    /// </summary>
+    Hydaelyn = 0xE048,
 
     /// <summary>
     /// The no mouse click icon unicode character.
@@ -637,7 +643,7 @@ public enum SeIconChar
     /// The [_A] character indicating that Japanese or Korean IME is in half-width Latin character input mode.
     /// </summary>
     ImeAlphanumericHalfWidth = 0xE024,
-    
+
     /// <summary>
     /// The [가] character indicating that the Korean IME is in Hangul input mode.
     /// </summary>
@@ -651,7 +657,7 @@ public enum SeIconChar
     /// The [中] character indicating that the Chinese IME is in Han character input mode.
     /// </summary>
     ImeChineseHan = 0xE026,
-    
+
     /// <summary>
     /// The [英] character indicating that the Chinese IME is in Latin character input mode.
     /// </summary>

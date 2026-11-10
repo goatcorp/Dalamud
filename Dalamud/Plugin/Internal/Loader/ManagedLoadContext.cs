@@ -24,7 +24,7 @@ internal class ManagedLoadContext : AssemblyLoadContext
     private readonly IReadOnlyDictionary<string, ManagedLibrary> managedAssemblies;
     private readonly IReadOnlyDictionary<string, NativeLibrary> nativeLibraries;
     private readonly IReadOnlyCollection<string> privateAssemblies;
-    private readonly ICollection<string> defaultAssemblies;
+    private readonly List<string> defaultAssemblies;
     private readonly IReadOnlyCollection<string> additionalProbingPaths;
     private readonly bool preferDefaultLoadContext;
     private readonly string[] resourceRoots;
@@ -64,8 +64,7 @@ internal class ManagedLoadContext : AssemblyLoadContext
         bool shadowCopyNativeLibraries)
         : base(Path.GetFileNameWithoutExtension(mainAssemblyPath), isCollectible)
     {
-        if (resourceProbingPaths == null)
-            throw new ArgumentNullException(nameof(resourceProbingPaths));
+        ArgumentNullException.ThrowIfNull(resourceProbingPaths);
 
         this.mainAssemblyPath = mainAssemblyPath ?? throw new ArgumentNullException(nameof(mainAssemblyPath));
         this.dependencyResolver = new AssemblyDependencyResolver(mainAssemblyPath);
@@ -243,7 +242,7 @@ internal class ManagedLoadContext : AssemblyLoadContext
                     }
 
                     // check to see if there is a library entry for the library without the file extension
-                    var trimmedName = unmanagedDllName.Substring(0, unmanagedDllName.Length - suffix.Length);
+                    var trimmedName = unmanagedDllName[..^suffix.Length];
 
                     if (this.nativeLibraries.TryGetValue(prefix + trimmedName, out library))
                     {

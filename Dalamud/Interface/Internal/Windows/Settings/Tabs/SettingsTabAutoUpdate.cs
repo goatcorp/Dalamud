@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 
 using CheapLoc;
+
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
@@ -14,14 +16,13 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Types;
 
-using ImGuiNET;
-
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
-public class SettingsTabAutoUpdates : SettingsTab
+internal sealed class SettingsTabAutoUpdates : SettingsTab
 {
     private AutoUpdateBehavior behavior;
+    private bool updateDisabledPlugins;
     private bool checkPeriodically;
     private bool chatNotification;
     private string pickerSearch = string.Empty;
@@ -31,22 +32,24 @@ public class SettingsTabAutoUpdates : SettingsTab
 
     public override string Title => Loc.Localize("DalamudSettingsAutoUpdates", "Auto-Updates");
 
+    public override SettingsOpenKind Kind => SettingsOpenKind.AutoUpdates;
+
     public override void Draw()
     {
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateHint",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateHint",
                                                 "Dalamud can update your plugins automatically, making sure that you always " +
                                                 "have the newest features and bug fixes. You can choose when and how auto-updates are run here."));
         ImGuiHelpers.ScaledDummy(2);
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer1",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer1",
                                                 "You can always update your plugins manually by clicking the update button in the plugin list. " +
                                                 "You can also opt into updates for specific plugins by right-clicking them and selecting \"Always auto-update\"."));
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer2",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer2",
                                                 "Dalamud will only notify you about updates while you are idle."));
 
         ImGuiHelpers.ScaledDummy(8);
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateBehavior",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateBehavior",
                                                 "When the game starts..."));
         var behaviorInt = (int)this.behavior;
         ImGui.RadioButton(Loc.Localize("DalamudSettingsAutoUpdateNone", "Do not check for updates automatically"), ref behaviorInt, (int)AutoUpdateBehavior.None);
@@ -61,24 +64,25 @@ public class SettingsTabAutoUpdates : SettingsTab
                 "DalamudSettingsAutoUpdateAllWarning",
                 "Warning: This will update all plugins, including those not from the main repository.\n" +
                 "These updates are not reviewed by the Dalamud team and may contain malicious code.");
-            ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudOrange, warning);
+            ImGui.TextColoredWrapped(ImGuiColors.AttentionForeground, warning);
         }
 
         ImGuiHelpers.ScaledDummy(8);
 
+        ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdateDisabledPlugins", "Auto-Update plugins that are currently disabled"), ref this.updateDisabledPlugins);
         ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdateChatMessage", "Show notification about updates available in chat"), ref this.chatNotification);
         ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdatePeriodically", "Periodically check for new updates while playing"), ref this.checkPeriodically);
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdatePeriodicallyHint",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdatePeriodicallyHint",
                                                 "Plugins won't update automatically after startup, you will only receive a notification while you are not actively playing."));
 
         ImGuiHelpers.ScaledDummy(5);
         ImGui.Separator();
         ImGuiHelpers.ScaledDummy(5);
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateOptedIn",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateOptedIn",
                                                 "Per-plugin overrides"));
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateOverrideHint",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateOverrideHint",
                                                 "Here, you can choose to receive or not to receive updates for specific plugins. " +
                                                 "This will override the settings above for the selected plugins."));
 
@@ -117,14 +121,14 @@ public class SettingsTabAutoUpdates : SettingsTab
                     pic.TryGetIcon(pmPlugin, pmPlugin.Manifest, pmPlugin.IsThirdParty, out var icon, out _);
                     icon ??= pic.DefaultIcon;
 
-                    ImGui.Image(icon.ImGuiHandle, new Vector2(pluginLineHeight));
+                    ImGui.Image(icon.Handle, new Vector2(pluginLineHeight));
 
                     if (pmPlugin.IsDev)
                     {
                         ImGui.SetCursorPos(cursorBeforeIcon);
                         using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, 0.7f))
                         {
-                            ImGui.Image(pic.DevPluginIcon.ImGuiHandle, new Vector2(pluginLineHeight));
+                            ImGui.Image(pic.DevPluginIcon.Handle, new Vector2(pluginLineHeight));
                         }
                     }
 
@@ -135,13 +139,13 @@ public class SettingsTabAutoUpdates : SettingsTab
                     var before = ImGui.GetCursorPos();
 
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (textHeight.Y / 2));
-                    ImGui.TextUnformatted(text);
+                    ImGui.Text(text);
 
                     ImGui.SetCursorPos(before);
                 }
                 else
                 {
-                    ImGui.Image(pic.DefaultIcon.ImGuiHandle, new Vector2(pluginLineHeight));
+                    ImGui.Image(pic.DefaultIcon.Handle, new Vector2(pluginLineHeight));
                     ImGui.SameLine();
 
                     var text = Loc.Localize("DalamudSettingsAutoUpdateOptInUnknownPlugin", "Unknown plugin");
@@ -149,7 +153,7 @@ public class SettingsTabAutoUpdates : SettingsTab
                     var before = ImGui.GetCursorPos();
 
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (textHeight.Y / 2));
-                    ImGui.TextUnformatted(text);
+                    ImGui.Text(text);
 
                     ImGui.SetCursorPos(before);
                 }
@@ -237,6 +241,7 @@ public class SettingsTabAutoUpdates : SettingsTab
         var configuration = Service<DalamudConfiguration>.Get();
 
         this.behavior = configuration.AutoUpdateBehavior ?? AutoUpdateBehavior.None;
+        this.updateDisabledPlugins = configuration.UpdateDisabledPlugins;
         this.chatNotification = configuration.SendUpdateNotificationToChat;
         this.checkPeriodically = configuration.CheckPeriodicallyForUpdates;
         this.autoUpdatePreferences = configuration.PluginAutoUpdatePreferences;
@@ -249,6 +254,7 @@ public class SettingsTabAutoUpdates : SettingsTab
         var configuration = Service<DalamudConfiguration>.Get();
 
         configuration.AutoUpdateBehavior = this.behavior;
+        configuration.UpdateDisabledPlugins = this.updateDisabledPlugins;
         configuration.SendUpdateNotificationToChat = this.chatNotification;
         configuration.CheckPeriodicallyForUpdates = this.checkPeriodically;
         configuration.PluginAutoUpdatePreferences = this.autoUpdatePreferences;

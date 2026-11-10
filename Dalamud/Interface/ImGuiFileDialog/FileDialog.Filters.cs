@@ -8,10 +8,11 @@ namespace Dalamud.Interface.ImGuiFileDialog;
 /// </summary>
 public partial class FileDialog
 {
-    private static Regex filterRegex = new(@"[^,{}]+(\{([^{}]*?)\})?", RegexOptions.Compiled);
-
-    private List<FilterStruct> filters = new();
+    private List<FilterStruct> filters = [];
     private FilterStruct selectedFilter;
+
+    [GeneratedRegex(@"[^,{}]+(\{([^{}]*?)\})?", RegexOptions.Compiled)]
+    private static partial Regex FilterRegex();
 
     private void ParseFilters(string filters)
     {
@@ -22,13 +23,13 @@ public partial class FileDialog
         if (filters.Length == 0) return;
 
         var currentFilterFound = false;
-        var matches = filterRegex.Matches(filters);
+        var matches = FilterRegex().Matches(filters);
         foreach (Match m in matches)
         {
             var match = m.Value;
             var filter = default(FilterStruct);
 
-            if (match.Contains("{"))
+            if (match.Contains('{'))
             {
                 var exts = m.Groups[2].Value;
                 filter = new FilterStruct
@@ -42,7 +43,7 @@ public partial class FileDialog
                 filter = new FilterStruct
                 {
                     Filter = match,
-                    CollectionFilters = new(),
+                    CollectionFilters = [],
                 };
             }
 
@@ -82,27 +83,26 @@ public partial class FileDialog
 
     private void ApplyFilteringOnFileList()
     {
-        lock (this.filesLock)
+        using var scope = this.filesLock.EnterScope();
+
+        this.filteredFiles.Clear();
+
+        foreach (var file in this.files)
         {
-            this.filteredFiles.Clear();
-
-            foreach (var file in this.files)
+            var show = true;
+            if (!string.IsNullOrEmpty(this.searchBuffer) && !file.FileName.Contains(this.searchBuffer, StringComparison.InvariantCultureIgnoreCase))
             {
-                var show = true;
-                if (!string.IsNullOrEmpty(this.searchBuffer) && !file.FileName.ToLowerInvariant().Contains(this.searchBuffer.ToLowerInvariant()))
-                {
-                    show = false;
-                }
+                show = false;
+            }
 
-                if (this.IsDirectoryMode() && file.Type != FileStructType.Directory)
-                {
-                    show = false;
-                }
+            if (this.IsDirectoryMode() && file.Type != FileStructType.Directory)
+            {
+                show = false;
+            }
 
-                if (show)
-                {
-                    this.filteredFiles.Add(file);
-                }
+            if (show)
+            {
+                this.filteredFiles.Add(file);
             }
         }
     }

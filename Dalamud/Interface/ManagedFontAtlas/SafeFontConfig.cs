@@ -1,8 +1,8 @@
-﻿using System.Numerics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.ManagedFontAtlas;
 
@@ -14,13 +14,14 @@ public struct SafeFontConfig
     /// <summary>
     /// The raw config.
     /// </summary>
-    public ImFontConfig Raw;
+    public ImFontConfigPtr Raw;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SafeFontConfig"/> struct.
     /// </summary>
-    public SafeFontConfig()
+    public unsafe SafeFontConfig()
     {
+        this.Raw.Handle = ImGui.ImFontConfig();
         this.OversampleH = 1;
         this.OversampleV = 1;
         this.PixelSnapH = true;
@@ -28,7 +29,7 @@ public struct SafeFontConfig
         this.RasterizerMultiply = 1f;
         this.RasterizerGamma = 1.7f;
         this.EllipsisChar = unchecked((char)-1);
-        this.Raw.FontDataOwnedByAtlas = 1;
+        this.Raw.FontDataOwnedByAtlas = true;
     }
 
     /// <summary>
@@ -39,16 +40,34 @@ public struct SafeFontConfig
     public unsafe SafeFontConfig(ImFontConfigPtr config)
         : this()
     {
-        if (config.NativePtr is not null)
+        if (config.Handle is not null)
         {
-            this.Raw = *config.NativePtr;
+            this.Raw = config.Handle;
             this.Raw.GlyphRanges = null;
         }
     }
 
     /// <summary>
-    /// Gets or sets the index of font within a TTF/OTF file.
+    /// Gets or sets the font face index within a TrueType Collection (TTC) file.
     /// </summary>
+    /// <remarks>
+    /// This property only applies to <see cref="DalamudAsset.NotoSansCjkRegular"/> and
+    /// <see cref="DalamudAsset.NotoSansCjkMedium"/>, which are TTC fonts bundling
+    /// multiple language-specific CJK glyph sets (Japanese, Traditional Chinese,
+    /// Simplified Chinese, Korean) into a single file.
+    /// 
+    /// The index corresponds to the font face order in the TTC:
+    /// <list type="bullet">
+    ///   <item><description>0 = Japanese</description></item>
+    ///   <item><description>1 = Traditional Chinese</description></item>
+    ///   <item><description>2 = Simplified Chinese</description></item>
+    ///   <item><description>3 = Korean</description></item>
+    /// </list>
+    /// 
+    /// This value is ignored for all other <see cref="DalamudAsset"/> entries.
+    /// Only one glyph set can be active at a time. In most cases, you can omit this—
+    /// Dalamud automatically selects the appropriate face based on the UI language.
+    /// </remarks>
     public int FontNo
     {
         get => this.Raw.FontNo;
@@ -107,8 +126,8 @@ public struct SafeFontConfig
     /// </summary>
     public bool PixelSnapH
     {
-        get => this.Raw.PixelSnapH != 0;
-        set => this.Raw.PixelSnapH = value ? (byte)1 : (byte)0;
+        get => this.Raw.PixelSnapH;
+        set => this.Raw.PixelSnapH = value;
     }
 
     /// <summary>
@@ -237,11 +256,11 @@ public struct SafeFontConfig
     /// </summary>
     public unsafe ImFontPtr MergeFont
     {
-        get => this.Raw.DstFont is not null ? this.Raw.DstFont : default;
+        get => this.Raw.DstFont.Handle != null ? this.Raw.DstFont : default;
         set
         {
-            this.Raw.MergeMode = value.NativePtr is null ? (byte)0 : (byte)1;
-            this.Raw.DstFont = value.NativePtr is null ? default : value.NativePtr;
+            this.Raw.MergeMode = value.Handle != null;
+            this.Raw.DstFont = value.Handle == null ? ImFontPtr.Null : value.Handle;
         }
     }
 

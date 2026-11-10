@@ -44,7 +44,7 @@ public static class DateTimeSpanExtensions
                 _ => Region0CultureInfo,
             };
         }
-        
+
         return when.ToString("G", culture);
     }
 
@@ -100,7 +100,7 @@ public static class DateTimeSpanExtensions
 
     private sealed class ParsedRelativeFormatStrings
     {
-        private readonly List<(float MinSeconds, string FormatString)> formatStrings = new();
+        private readonly List<(float MinSeconds, string FormatString)> formatStrings = [];
 
         public ParsedRelativeFormatStrings(string value)
         {

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -9,7 +10,6 @@ using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
-using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -18,7 +18,7 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
+using InteropGenerator.Runtime;
 
 namespace Dalamud.Game.Gui.ContextMenu;
 
@@ -28,10 +28,10 @@ namespace Dalamud.Game.Gui.ContextMenu;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextMenu
 {
-    private static readonly ModuleLog Log = new("ContextMenu");
+    private static readonly ModuleLog Log = ModuleLog.Create<ContextMenu>();
 
     private readonly Hook<AtkModuleVf22OpenAddonByAgentDelegate> atkModuleVf22OpenAddonByAgentHook;
-    private readonly Hook<AddonContextMenuOnMenuSelectedDelegate> addonContextMenuOnMenuSelectedHook;
+    private readonly Hook<AddonContextMenu.Delegates.OnMenuSelected> addonContextMenuOnMenuSelectedHook;
 
     private uint? addonContextSubNameId;
 
@@ -40,24 +40,20 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     {
         var raptureAtkModuleVtable = (nint*)RaptureAtkModule.StaticVirtualTablePointer;
         this.atkModuleVf22OpenAddonByAgentHook = Hook<AtkModuleVf22OpenAddonByAgentDelegate>.FromAddress(raptureAtkModuleVtable[22], this.AtkModuleVf22OpenAddonByAgentDetour);
-        this.addonContextMenuOnMenuSelectedHook = Hook<AddonContextMenuOnMenuSelectedDelegate>.FromAddress((nint)AddonContextMenu.StaticVirtualTablePointer->OnMenuSelected, this.AddonContextMenuOnMenuSelectedDetour);
+        this.addonContextMenuOnMenuSelectedHook = Hook<AddonContextMenu.Delegates.OnMenuSelected>.FromAddress((nint)AddonContextMenu.StaticVirtualTablePointer->OnMenuSelected, this.AddonContextMenuOnMenuSelectedDetour);
 
         this.atkModuleVf22OpenAddonByAgentHook.Enable();
         this.addonContextMenuOnMenuSelectedHook.Enable();
     }
 
-    private delegate ushort AtkModuleVf22OpenAddonByAgentDelegate(AtkModule* module, byte* addonName, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, bool a8);
-
-    private delegate bool AddonContextMenuOnMenuSelectedDelegate(AddonContextMenu* addon, int selectedIdx, byte a3);
-
-    private delegate ushort RaptureAtkModuleOpenAddonDelegate(RaptureAtkModule* a1, uint addonNameId, uint valueCount, AtkValue* values, AgentInterface* parentAgent, ulong unk, ushort parentAddonId, int unk2);
+    private delegate ushort AtkModuleVf22OpenAddonByAgentDelegate(AtkModule* module, CStringPointer addonName, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, bool a8);
 
     /// <inheritdoc/>
     public event IContextMenu.OnMenuOpenedDelegate? OnMenuOpened;
 
     private Dictionary<ContextMenuType, List<IMenuItem>> MenuItems { get; } = [];
 
-    private object MenuItemsLock { get; } = new();
+    private Lock MenuItemsLock { get; } = new();
 
     private AgentInterface* SelectedAgent { get; set; }
 
@@ -113,23 +109,23 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     /// <inheritdoc/>
     public void AddMenuItem(ContextMenuType menuType, IMenuItem item)
     {
-        lock (this.MenuItemsLock)
-        {
-            if (!this.MenuItems.TryGetValue(menuType, out var items))
-                this.MenuItems[menuType] = items = [];
-            items.Add(item);
-        }
+        using var scope = this.MenuItemsLock.EnterScope();
+
+        if (!this.MenuItems.TryGetValue(menuType, out var items))
+            this.MenuItems.TryAdd(menuType, items = []);
+
+        items.Add(item);
     }
 
     /// <inheritdoc/>
     public bool RemoveMenuItem(ContextMenuType menuType, IMenuItem item)
     {
-        lock (this.MenuItemsLock)
-        {
-            if (!this.MenuItems.TryGetValue(menuType, out var items))
-                return false;
-            return items.Remove(item);
-        }
+        using var scope = this.MenuItemsLock.EnterScope();
+
+        if (!this.MenuItems.TryGetValue(menuType, out var items))
+            return false;
+
+        return items.Remove(item);
     }
 
     /// <summary>
@@ -151,7 +147,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         if (oldValues.Length >= newSize)
             return (AtkValue*)Unsafe.AsPointer(ref oldValues[0]);
 
-        var size = (sizeof(AtkValue) * newSize) + 8;
+        var size = (AtkValue.StructSize * newSize) + 8;
         var newArray = (nint)IMemorySpace.GetUISpace()->Malloc((ulong)size, 0);
         if (newArray == nint.Zero)
             throw new OutOfMemoryException();
@@ -167,7 +163,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     }
 
     private void FreeExpandedContextMenuArray(AtkValue* newValues, int newSize) =>
-        IMemorySpace.Free((void*)((nint)newValues - 8), (ulong)((newSize * sizeof(AtkValue)) + 8));
+        IMemorySpace.Free((void*)((nint)newValues - 8), (ulong)((newSize * AtkValue.StructSize) + 8));
 
     private AtkValue* CreateEmptySubmenuContextMenuArray(SeString name, int x, int y, out int valueCount)
     {
@@ -182,22 +178,14 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
 
         valueCount = 8;
         var values = this.ExpandContextMenuArray([], valueCount);
-        values[0].ChangeType(ValueType.UInt);
-        values[0].UInt = 0;
-        values[1].ChangeType(ValueType.String);
-        values[1].SetManagedString(name.Encode().NullTerminate());
-        values[2].ChangeType(ValueType.Int);
-        values[2].Int = x;
-        values[3].ChangeType(ValueType.Int);
-        values[3].Int = y;
-        values[4].ChangeType(ValueType.Bool);
-        values[4].Byte = 0;
-        values[5].ChangeType(ValueType.UInt);
-        values[5].UInt = 0;
-        values[6].ChangeType(ValueType.UInt);
-        values[6].UInt = 0;
-        values[7].ChangeType(ValueType.UInt);
-        values[7].UInt = 1;
+        values[0].SetUInt(0);
+        values[1].SetManagedString(name.EncodeWithNullTerminator());
+        values[2].SetInt(x);
+        values[3].SetInt(y);
+        values[4].SetBool(false);
+        values[5].SetUInt(0);
+        values[6].SetUInt(0);
+        values[7].SetUInt(1);
         return values;
     }
 
@@ -240,8 +228,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
                 // enable all
                 for (var i = prefixMenuSize; i < prefixMenuSize + nativeMenuSize; ++i)
                 {
-                    disabledData[i].ChangeType(ValueType.Int);
-                    disabledData[i].Int = 0;
+                    disabledData[i].SetInt(0);
                 }
             }
         }
@@ -255,8 +242,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
 
             if (hasAnyDisabled)
             {
-                disabledData[i].ChangeType(ValueType.Int);
-                disabledData[i].Int = item.IsEnabled ? 0 : 1;
+                disabledData[i].SetInt(item.IsEnabled ? 0 : 1);
             }
 
             if (item.IsReturn)
@@ -264,8 +250,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
             if (item.IsSubmenu)
                 submenuMask |= 1u << i;
 
-            nameData[i].ChangeType(ValueType.String);
-            nameData[i].SetManagedString(this.GetPrefixedName(item).Encode().NullTerminate());
+            nameData[i].SetManagedString(this.GetPrefixedName(item).EncodeWithNullTerminator());
         }
 
         for (var i = 0; i < prefixMenuSize; ++i)
@@ -295,8 +280,9 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         // 2: UInt = Return Mask (?)
         // 3: UInt = Submenu Mask
         // 4: UInt = OpenAtCursorPosition ? 2 : 1
-        // 5: UInt = 0
-        // 6: UInt = 0
+        // 5: UInt = ?
+        // 6: UInt = ?
+        // 7: UInt = ?
 
         foreach (var item in items)
         {
@@ -312,7 +298,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
             }
         }
 
-        this.SetupGenericMenu(7, 0, 2, 3, items, ref valueCount, ref values);
+        this.SetupGenericMenu(8, 0, 2, 3, items, ref valueCount, ref values);
     }
 
     private void SetupContextSubMenu(IReadOnlyList<IMenuItem> items, ref int valueCount, ref AtkValue* values)
@@ -329,16 +315,17 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         this.SetupGenericMenu(8, 0, 6, 5, items, ref valueCount, ref values);
     }
 
-    private ushort AtkModuleVf22OpenAddonByAgentDetour(AtkModule* module, byte* addonName, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, bool a8)
+    private ushort AtkModuleVf22OpenAddonByAgentDetour(AtkModule* module, CStringPointer addonName, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, bool a8)
     {
         var oldValues = values;
+        var addonNameSpan = addonName.AsSpan();
 
-        if (MemoryHelper.EqualsZeroTerminatedString("ContextMenu", (nint)addonName))
+        if (addonNameSpan.SequenceEqual("ContextMenu"u8))
         {
             this.MenuCallbackIds.Clear();
             this.SelectedAgent = agent;
             var unitManager = RaptureAtkUnitManager.Instance();
-            this.SelectedParentAddon = unitManager->GetAddonById(unitManager->GetAddonByName(addonName)->ContextMenuParentId);
+            this.SelectedParentAddon = unitManager->GetAddonById(unitManager->GetAddonByName(addonName)->BlockedParentId);
             this.SelectedEventInterfaces.Clear();
             if (this.SelectedAgent == AgentInventoryContext.Instance())
             {
@@ -370,10 +357,10 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
 
             if (this.SelectedMenuType is { } menuType)
             {
-                lock (this.MenuItemsLock)
+                using (this.MenuItemsLock.EnterScope())
                 {
                     if (this.MenuItems.TryGetValue(menuType, out var items))
-                        this.SelectedItems = new(items);
+                        this.SelectedItems = [.. items];
                     else
                         this.SelectedItems = [];
                 }
@@ -389,7 +376,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
                 this.SelectedItems = null;
             }
         }
-        else if (MemoryHelper.EqualsZeroTerminatedString("AddonContextSub", (nint)addonName))
+        else if (addonNameSpan.SequenceEqual("AddonContextSub"u8))
         {
             this.MenuCallbackIds.Clear();
             if (this.SubmenuItems != null)
@@ -400,7 +387,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
                 Log.Verbose($"Opening {this.SelectedMenuType} submenu with {this.SubmenuItems.Count} custom items.");
             }
         }
-        else if (MemoryHelper.EqualsZeroTerminatedString("AddonContextMenuTitle", (nint)addonName))
+        else if (addonNameSpan.SequenceEqual("AddonContextMenuTitle"u8))
         {
             this.MenuCallbackIds.Clear();
         }
@@ -449,18 +436,18 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         switch (this.SelectedMenuType)
         {
             case ContextMenuType.Default:
-                {
-                    var ownerAddonId = ((AgentContext*)this.SelectedAgent)->OwnerAddon;
-                    module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, this.SelectedAgent, 71, checked((ushort)ownerAddonId), 4);
-                    break;
-                }
+            {
+                var ownerAddonId = ((AgentContext*)this.SelectedAgent)->OwnerAddon;
+                module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, &this.SelectedAgent->AtkEventInterface, 71, checked((ushort)ownerAddonId), 4);
+                break;
+            }
 
             case ContextMenuType.Inventory:
-                {
-                    var ownerAddonId = ((AgentInventoryContext*)this.SelectedAgent)->OwnerAddonId;
-                    module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, this.SelectedAgent, 0, checked((ushort)ownerAddonId), 4);
-                    break;
-                }
+            {
+                var ownerAddonId = ((AgentInventoryContext*)this.SelectedAgent)->OwnerAddonId;
+                module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, &this.SelectedAgent->AtkEventInterface, 0, checked((ushort)ownerAddonId), 4);
+                break;
+            }
 
             default:
                 Log.Warning($"Unknown context menu type (agent: {(nint)this.SelectedAgent}, cannot open submenu");
@@ -521,7 +508,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
             return false;
         }
 
-original:
+    original:
         // Eventually handled by inventory context here: 14022BBD0 (6.51)
         return this.addonContextMenuOnMenuSelectedHook.Original(addon, selectedIdx, a3);
     }
@@ -550,7 +537,7 @@ internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMen
 
     private Dictionary<ContextMenuType, List<IMenuItem>> MenuItems { get; } = [];
 
-    private object MenuItemsLock { get; } = new();
+    private Lock MenuItemsLock { get; } = new();
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -559,25 +546,24 @@ internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMen
 
         this.OnMenuOpened = null;
 
-        lock (this.MenuItemsLock)
+        using var scope = this.MenuItemsLock.EnterScope();
+
+        foreach (var (menuType, items) in this.MenuItems)
         {
-            foreach (var (menuType, items) in this.MenuItems)
-            {
-                foreach (var item in items)
-                    this.parentService.RemoveMenuItem(menuType, item);
-            }
+            foreach (var item in items)
+                this.parentService.RemoveMenuItem(menuType, item);
         }
     }
 
     /// <inheritdoc/>
     public void AddMenuItem(ContextMenuType menuType, IMenuItem item)
     {
-        lock (this.MenuItemsLock)
-        {
-            if (!this.MenuItems.TryGetValue(menuType, out var items))
-                this.MenuItems[menuType] = items = [];
-            items.Add(item);
-        }
+        using var scope = this.MenuItemsLock.EnterScope();
+
+        if (!this.MenuItems.TryGetValue(menuType, out var items))
+            this.MenuItems.TryAdd(menuType, items = []);
+
+        items.Add(item);
 
         this.parentService.AddMenuItem(menuType, item);
     }
@@ -585,11 +571,10 @@ internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMen
     /// <inheritdoc/>
     public bool RemoveMenuItem(ContextMenuType menuType, IMenuItem item)
     {
-        lock (this.MenuItemsLock)
-        {
-            if (this.MenuItems.TryGetValue(menuType, out var items))
-                items.Remove(item);
-        }
+        using var scope = this.MenuItemsLock.EnterScope();
+
+        if (this.MenuItems.TryGetValue(menuType, out var items))
+            items.Remove(item);
 
         return this.parentService.RemoveMenuItem(menuType, item);
     }

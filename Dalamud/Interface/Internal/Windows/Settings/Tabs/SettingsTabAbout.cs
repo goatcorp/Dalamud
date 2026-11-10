@@ -4,6 +4,8 @@ using System.Linq;
 using System.Numerics;
 
 using CheapLoc;
+
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.ManagedFontAtlas;
@@ -14,13 +16,13 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
-public class SettingsTabAbout : SettingsTab
+internal sealed class SettingsTabAbout : SettingsTab
 {
     private const float CreditFps = 60.0f;
     private const string ThankYouText = "Thank you!";
@@ -144,16 +146,18 @@ Blooym
 Valk
 
 
-We use these awesome libraries:
+We use code and/or assets from these awesome projects:
 
 FFXIVClientStructs ({2})
 Copyright (c) 2021 aers
 Licensed under the MIT License
 
-Lumina by Adam
+Lumina
+by Adam
 Licensed under the WTFPL v2.0
 
-Reloaded Libraries by Sewer56
+Reloaded Libraries
+by Sewer56
 Licensed under the GNU Lesser General Public License v3.0
 
 DotNetCorePlugins
@@ -164,7 +168,8 @@ json
 Copyright (c) 2013-2022 Niels Lohmann
 Licensed under the MIT License
 
-nmd by Nomade040
+nmd
+by Nomade040
 Licensed under the Unlicense
 
 MinHook
@@ -177,6 +182,27 @@ Copyright (c) 2012-2022, Nozomu Katoo
 STB Libraries
 Copyright (c) 2017 Sean Barrett
 Licensed under the MIT License
+
+WinUI 3
+Copyright (c) Microsoft Corporation
+Licensed under the MIT License
+
+Dual-Kawase-Blur-Demo
+Copyright (c) 2023 Baedrick
+Licensed under the MIT License
+
+mimalloc
+Copyright (c) 2018-2025 Microsoft Corporation, Daan Leijen
+Licensed under the MIT License
+
+libdeflate
+Copyright 2016 Eric Biggers
+Copyright 2024 Google LLC
+Licensed under the MIT License
+
+safetyhook
+by cursey
+Licensed under the Boost Software License
 
 Please see licenses.txt for more information.
 
@@ -209,9 +235,11 @@ Contribute at: https://github.com/goatcorp/Dalamud
                             .CreateFontAtlas(nameof(SettingsTabAbout), FontAtlasAutoRebuildMode.Async);
     }
 
-    public override SettingsEntry[] Entries { get; } = { };
-
     public override string Title => Loc.Localize("DalamudAbout", "About");
+
+    public override SettingsOpenKind Kind => SettingsOpenKind.About;
+
+    public override SettingsEntry[] Entries { get; } = [];
 
     /// <inheritdoc/>
     public override unsafe void OnOpen()
@@ -221,7 +249,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
                                                   .Select(plugin => $"{plugin.Manifest.Name} by {plugin.Manifest.Author}\n")
                                                   .Aggregate(string.Empty, (current, next) => $"{current}{next}");
 
-        this.creditsText = string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits, Util.GetGitHashClientStructs());
+        this.creditsText = string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits, Versioning.GetGitHashClientStructs());
 
         var gameGui = Service<GameGui>.Get();
         var playerState = PlayerState.Instance();
@@ -263,7 +291,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
     {
         var windowSize = ImGui.GetWindowSize();
 
-        using var child = ImRaii.Child("scrolling", new Vector2(-1, -10 * ImGuiHelpers.GlobalScale), false, ImGuiWindowFlags.NoScrollbar);
+        using var child = ImRaii.Child("scrolling"u8, new Vector2(-1, -10 * ImGuiHelpers.GlobalScale), false, ImGuiWindowFlags.NoScrollbar);
         if (!child)
             return;
 
@@ -281,19 +309,19 @@ Contribute at: https://github.com/goatcorp/Dalamud
             const float imageSize = 190f;
             ImGui.SameLine((ImGui.GetWindowWidth() / 2) - (imageSize / 2));
             this.logoTexture ??= Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(DalamudAsset.Logo);
-            ImGui.Image(this.logoTexture.ImGuiHandle, ImGuiHelpers.ScaledVector2(imageSize));
+            ImGui.Image(this.logoTexture.Handle, ImGuiHelpers.ScaledVector2(imageSize));
 
             ImGuiHelpers.ScaledDummy(0, 20f);
 
             var windowX = ImGui.GetWindowSize().X;
 
-            foreach (var creditsLine in this.creditsText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))
+            foreach (var creditsLine in this.creditsText.Split(["\r\n", "\r", "\n"], StringSplitOptions.None))
             {
                 var lineLenX = ImGui.CalcTextSize(creditsLine).X;
 
                 ImGui.Dummy(new Vector2((windowX / 2) - (lineLenX / 2), 0f));
                 ImGui.SameLine();
-                ImGui.TextUnformatted(creditsLine);
+                ImGui.Text(creditsLine);
             }
 
             ImGuiHelpers.ScaledDummy(0, 40f);
@@ -305,7 +333,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
                 ImGui.Dummy(new Vector2((windowX / 2) - (thankYouLenX / 2), 0f));
                 ImGui.SameLine();
-                ImGui.TextUnformatted(ThankYouText);
+                ImGui.Text(ThankYouText);
             }
 
             ImGuiHelpers.ScaledDummy(0, windowSize.Y + 50f);

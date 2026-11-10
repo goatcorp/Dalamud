@@ -3,9 +3,10 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
-using ImGuiNET;
 
 namespace Dalamud.Interface.ImGuiFileDialog;
 
@@ -53,45 +54,42 @@ public partial class FileDialog
             windowVisible = ImGui.Begin(name, ref this.visible, this.WindowFlags);
         }
 
-        bool wasClosed = false;
-        if (windowVisible)
+        var wasClosed = false;
+        if (!this.visible)
+        { // window closed (works whether the window was collapsed or not)
+            this.isOk = false;
+            wasClosed = true;
+        }
+        else if (windowVisible)
         {
-            if (!this.visible)
-            { // window closed
-                this.isOk = false;
-                wasClosed = true;
-            }
-            else
+            if (this.selectedFilter.Empty() && (this.filters.Count > 0))
             {
-                if (this.selectedFilter.Empty() && (this.filters.Count > 0))
+                this.selectedFilter = this.filters[0];
+            }
+
+            if (this.files.Count == 0)
+            {
+                if (!string.IsNullOrEmpty(this.defaultFileName))
                 {
-                    this.selectedFilter = this.filters[0];
+                    this.SetDefaultFileName();
+                    this.SetSelectedFilterWithExt(this.defaultExtension);
+                }
+                else if (this.IsDirectoryMode())
+                {
+                    this.SetDefaultFileName();
                 }
 
-                if (this.files.Count == 0)
-                {
-                    if (!string.IsNullOrEmpty(this.defaultFileName))
-                    {
-                        this.SetDefaultFileName();
-                        this.SetSelectedFilterWithExt(this.defaultExtension);
-                    }
-                    else if (this.IsDirectoryMode())
-                    {
-                        this.SetDefaultFileName();
-                    }
-
-                    this.ScanDir(this.currentPath);
-                }
-
-                this.DrawHeader();
-                this.DrawContent();
-                res = this.DrawFooter();
+                this.ScanDir(this.currentPath);
             }
 
-            if (this.isModal && !this.okResultToConfirm)
-            {
-                ImGui.EndPopup();
-            }
+            this.DrawHeader();
+            this.DrawContent();
+            res = this.DrawFooter();
+        }
+
+        if (windowVisible && this.isModal && !this.okResultToConfirm)
+        {
+            ImGui.EndPopup();
         }
 
         if (!this.isModal || this.okResultToConfirm)
@@ -121,15 +119,15 @@ public partial class FileDialog
     {
         if (iconMap == null)
         {
-            iconMap = new();
-            AddToIconMap(new[] { "mp4", "gif", "mov", "avi" }, FontAwesomeIcon.FileVideo, miscTextColor);
-            AddToIconMap(new[] { "pdf" }, FontAwesomeIcon.FilePdf, miscTextColor);
-            AddToIconMap(new[] { "png", "jpg", "jpeg", "tiff" }, FontAwesomeIcon.FileImage, imageTextColor);
-            AddToIconMap(new[] { "cs", "json", "cpp", "h", "py", "xml", "yaml", "js", "html", "css", "ts", "java" }, FontAwesomeIcon.FileCode, codeTextColor);
-            AddToIconMap(new[] { "txt", "md" }, FontAwesomeIcon.FileAlt, standardTextColor);
-            AddToIconMap(new[] { "zip", "7z", "gz", "tar" }, FontAwesomeIcon.FileArchive, miscTextColor);
-            AddToIconMap(new[] { "mp3", "m4a", "ogg", "wav" }, FontAwesomeIcon.FileAudio, miscTextColor);
-            AddToIconMap(new[] { "csv" }, FontAwesomeIcon.FileCsv, miscTextColor);
+            iconMap = [];
+            AddToIconMap(["mp4", "gif", "mov", "avi"], FontAwesomeIcon.FileVideo, miscTextColor);
+            AddToIconMap(["pdf"], FontAwesomeIcon.FilePdf, miscTextColor);
+            AddToIconMap(["png", "jpg", "jpeg", "tiff"], FontAwesomeIcon.FileImage, imageTextColor);
+            AddToIconMap(["cs", "json", "cpp", "h", "py", "xml", "yaml", "js", "html", "css", "ts", "java"], FontAwesomeIcon.FileCode, codeTextColor);
+            AddToIconMap(["txt", "md"], FontAwesomeIcon.FileAlt, standardTextColor);
+            AddToIconMap(["zip", "7z", "gz", "tar"], FontAwesomeIcon.FileArchive, miscTextColor);
+            AddToIconMap(["mp3", "m4a", "ogg", "wav"], FontAwesomeIcon.FileAudio, miscTextColor);
+            AddToIconMap(["csv"], FontAwesomeIcon.FileCsv, miscTextColor);
         }
 
         return iconMap.TryGetValue(ext.ToLowerInvariant(), out var icon) ? icon : new IconColorItem
@@ -152,7 +150,7 @@ public partial class FileDialog
 
     private void DrawPathComposer()
     {
-        ImGui.PushFont(UiBuilder.IconFont);
+        ImGui.PushFont(InterfaceManager.IconFont);
         if (ImGui.Button(this.pathInputActivated ? FontAwesomeIcon.Times.ToIconString() : FontAwesomeIcon.Edit.ToIconString()))
         {
             this.pathInputActivated = !this.pathInputActivated;
@@ -167,7 +165,7 @@ public partial class FileDialog
             if (this.pathInputActivated)
             {
                 ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
-                ImGui.InputText("##pathedit", ref this.pathInputBuffer, 255);
+                ImGui.InputText("##pathedit"u8, ref this.pathInputBuffer, 255);
             }
             else
             {
@@ -205,7 +203,7 @@ public partial class FileDialog
 
     private void DrawSearchBar()
     {
-        ImGui.PushFont(UiBuilder.IconFont);
+        ImGui.PushFont(InterfaceManager.IconFont);
         if (ImGui.Button(FontAwesomeIcon.Home.ToIconString()))
         {
             this.SetPath(".");
@@ -215,7 +213,7 @@ public partial class FileDialog
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Reset to current directory");
+            ImGui.SetTooltip("Reset to current directory"u8);
         }
 
         ImGui.SameLine();
@@ -225,10 +223,10 @@ public partial class FileDialog
         if (!this.createDirectoryMode)
         {
             ImGui.SameLine();
-            ImGui.TextUnformatted("Search :");
+            ImGui.Text("Search :"u8);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
-            if (ImGui.InputText("##InputImGuiFileDialogSearchField", ref this.searchBuffer, 255))
+            if (ImGui.InputText("##InputImGuiFileDialogSearchField"u8, ref this.searchBuffer, 255))
             {
                 this.ApplyFilteringOnFileList();
             }
@@ -239,7 +237,7 @@ public partial class FileDialog
     {
         if (this.flags.HasFlag(ImGuiFileDialogFlags.DisableCreateDirectoryButton)) return;
 
-        ImGui.PushFont(UiBuilder.IconFont);
+        ImGui.PushFont(InterfaceManager.IconFont);
         if (ImGui.Button(FontAwesomeIcon.FolderPlus.ToIconString()) && !this.createDirectoryMode)
         {
             this.createDirectoryMode = true;
@@ -250,21 +248,21 @@ public partial class FileDialog
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Create Directory");
+            ImGui.SetTooltip("Create Directory"u8);
         }
 
         if (this.createDirectoryMode)
         {
             ImGui.SameLine();
-            ImGui.TextUnformatted("New Directory Name");
+            ImGui.Text("New Directory Name"u8);
 
             ImGui.SameLine();
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - Scaled(100));
-            ImGui.InputText("##DirectoryFileName", ref this.createDirectoryBuffer, 255);
+            ImGui.InputText("##DirectoryFileName"u8, ref this.createDirectoryBuffer, 255);
 
             ImGui.SameLine();
 
-            if (ImGui.Button("Ok"))
+            if (ImGui.Button("Ok"u8))
             {
                 if (this.CreateDir(this.createDirectoryBuffer))
                 {
@@ -276,7 +274,7 @@ public partial class FileDialog
 
             ImGui.SameLine();
 
-            if (ImGui.Button("Cancel"))
+            if (ImGui.Button("Cancel"u8))
             {
                 this.createDirectoryMode = false;
             }
@@ -289,9 +287,9 @@ public partial class FileDialog
 
         if (!this.flags.HasFlag(ImGuiFileDialogFlags.HideSideBar))
         {
-            if (ImGui.BeginChild("##FileDialog_ColumnChild", size))
+            if (ImGui.BeginChild("##FileDialog_ColumnChild"u8, size))
             {
-                ImGui.Columns(2, "##FileDialog_Columns");
+                ImGui.Columns(2, "##FileDialog_Columns"u8);
 
                 this.DrawSideBar(size with { X = Scaled(150) });
 
@@ -313,7 +311,7 @@ public partial class FileDialog
 
     private void DrawSideBar(Vector2 size)
     {
-        if (ImGui.BeginChild("##FileDialog_SideBar", size))
+        if (ImGui.BeginChild("##FileDialog_SideBar"u8, size))
         {
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() + Scaled(5));
 
@@ -328,10 +326,10 @@ public partial class FileDialog
                     this.selectedSideBar = qa.Text;
                 }
 
-                ImGui.PushFont(UiBuilder.IconFont);
+                ImGui.PushFont(InterfaceManager.IconFont);
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(0);
-                ImGui.TextUnformatted(qa.Icon.ToIconString());
+                ImGui.Text(qa.Icon.ToIconString());
 
                 ImGui.PopFont();
                 ImGui.PopID();
@@ -343,14 +341,14 @@ public partial class FileDialog
 
     private unsafe void DrawFileListView(Vector2 size)
     {
-        if (!ImGui.BeginChild("##FileDialog_FileList", size))
+        if (!ImGui.BeginChild("##FileDialog_FileList"u8, size))
         {
             ImGui.EndChild();
             return;
         }
 
         const ImGuiTableFlags tableFlags = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg | ImGuiTableFlags.Hideable | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoHostExtendX;
-        if (ImGui.BeginTable("##FileTable", 4, tableFlags, size))
+        if (ImGui.BeginTable("##FileTable"u8, 4, tableFlags, size))
         {
             ImGui.TableSetupScrollFreeze(0, 1);
 
@@ -358,10 +356,10 @@ public partial class FileDialog
             var hideSize = this.flags.HasFlag(ImGuiFileDialogFlags.HideColumnSize);
             var hideDate = this.flags.HasFlag(ImGuiFileDialogFlags.HideColumnDate);
 
-            ImGui.TableSetupColumn(" File Name", ImGuiTableColumnFlags.WidthStretch, -1, 0);
-            ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthFixed | (hideType ? ImGuiTableColumnFlags.DefaultHide : ImGuiTableColumnFlags.None), -1, 1);
-            ImGui.TableSetupColumn("Size", ImGuiTableColumnFlags.WidthFixed | (hideSize ? ImGuiTableColumnFlags.DefaultHide : ImGuiTableColumnFlags.None), -1, 2);
-            ImGui.TableSetupColumn("Date", ImGuiTableColumnFlags.WidthFixed | (hideDate ? ImGuiTableColumnFlags.DefaultHide : ImGuiTableColumnFlags.None), -1, 3);
+            ImGui.TableSetupColumn(" File Name"u8, ImGuiTableColumnFlags.WidthStretch, -1, 0);
+            ImGui.TableSetupColumn("Type"u8, ImGuiTableColumnFlags.WidthFixed | (hideType ? ImGuiTableColumnFlags.DefaultHide : ImGuiTableColumnFlags.None), -1, 1);
+            ImGui.TableSetupColumn("Size"u8, ImGuiTableColumnFlags.WidthFixed | (hideSize ? ImGuiTableColumnFlags.DefaultHide : ImGuiTableColumnFlags.None), -1, 2);
+            ImGui.TableSetupColumn("Date"u8, ImGuiTableColumnFlags.WidthFixed | (hideDate ? ImGuiTableColumnFlags.DefaultHide : ImGuiTableColumnFlags.None), -1, 3);
 
             ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
             for (var column = 0; column < 4; column++)
@@ -373,95 +371,76 @@ public partial class FileDialog
                 ImGui.PopID();
                 if (ImGui.IsItemClicked())
                 {
-                    if (column == 0)
-                    {
-                        this.SortFields(SortingField.FileName, true);
-                    }
-                    else if (column == 1)
-                    {
-                        this.SortFields(SortingField.Type, true);
-                    }
-                    else if (column == 2)
-                    {
-                        this.SortFields(SortingField.Size, true);
-                    }
-                    else
-                    {
-                        this.SortFields(SortingField.Date, true);
-                    }
+                    var sorting = this.GetNewSorting(column);
+                    this.SortFields(sorting);
                 }
             }
 
             if (this.filteredFiles.Count > 0)
             {
-                ImGuiListClipperPtr clipper;
-                unsafe
-                {
-                    clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
-                }
+                using var scope = this.filesLock.EnterScope();
 
-                lock (this.filesLock)
+                var clipper = ImGui.ImGuiListClipper();
+
+                clipper.Begin(this.filteredFiles.Count);
+                while (clipper.Step())
                 {
-                    clipper.Begin(this.filteredFiles.Count);
-                    while (clipper.Step())
+                    for (var i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
                     {
-                        for (var i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+                        if (i < 0) continue;
+
+                        var file = this.filteredFiles[i];
+                        var selected = this.selectedFileNames.Contains(file.FileName);
+                        var needToBreak = false;
+
+                        var dir = file.Type == FileStructType.Directory;
+                        var item = !dir ? GetIcon(file.Ext) : new IconColorItem
                         {
-                            if (i < 0) continue;
+                            Color = dirTextColor,
+                            Icon = FontAwesomeIcon.Folder,
+                        };
 
-                            var file = this.filteredFiles[i];
-                            var selected = this.selectedFileNames.Contains(file.FileName);
-                            var needToBreak = false;
+                        ImGui.PushStyleColor(ImGuiCol.Text, selected ? selectedTextColor : item.Color);
 
-                            var dir = file.Type == FileStructType.Directory;
-                            var item = !dir ? GetIcon(file.Ext) : new IconColorItem
-                            {
-                                Color = dirTextColor,
-                                Icon = FontAwesomeIcon.Folder,
-                            };
+                        ImGui.TableNextRow();
 
-                            ImGui.PushStyleColor(ImGuiCol.Text, selected ? selectedTextColor : item.Color);
-
-                            ImGui.TableNextRow();
-
-                            if (ImGui.TableNextColumn())
-                            {
-                                needToBreak = this.SelectableItem(file, selected, item.Icon);
-                            }
-
-                            if (ImGui.TableNextColumn())
-                            {
-                                ImGui.TextUnformatted(file.Ext);
-                            }
-
-                            if (ImGui.TableNextColumn())
-                            {
-                                if (file.Type == FileStructType.File)
-                                {
-                                    ImGui.TextUnformatted(file.FormattedFileSize + " ");
-                                }
-                                else
-                                {
-                                    ImGui.TextUnformatted(" ");
-                                }
-                            }
-
-                            if (ImGui.TableNextColumn())
-                            {
-                                var sz = ImGui.CalcTextSize(file.FileModifiedDate);
-                                ImGui.SetNextItemWidth(sz.X + Scaled(5));
-                                ImGui.TextUnformatted(file.FileModifiedDate + " ");
-                            }
-
-                            ImGui.PopStyleColor();
-
-                            if (needToBreak) break;
+                        if (ImGui.TableNextColumn())
+                        {
+                            needToBreak = this.SelectableItem(file, selected, item.Icon);
                         }
-                    }
 
-                    clipper.End();
-                    clipper.Destroy();
+                        if (ImGui.TableNextColumn())
+                        {
+                            ImGui.Text(file.Ext);
+                        }
+
+                        if (ImGui.TableNextColumn())
+                        {
+                            if (file.Type == FileStructType.File)
+                            {
+                                ImGui.Text(file.FormattedFileSize + " ");
+                            }
+                            else
+                            {
+                                ImGui.Text(" "u8);
+                            }
+                        }
+
+                        if (ImGui.TableNextColumn())
+                        {
+                            var sz = ImGui.CalcTextSize(file.FileModifiedDate);
+                            ImGui.SetNextItemWidth(sz.X + Scaled(5));
+                            ImGui.Text(file.FileModifiedDate + " ");
+                        }
+
+                        ImGui.PopStyleColor();
+
+                        if (needToBreak) break;
+                    }
                 }
+
+                clipper.End();
+                clipper.Destroy();
             }
 
             if (this.pathInputActivated)
@@ -493,9 +472,9 @@ public partial class FileDialog
     {
         const ImGuiSelectableFlags flags = ImGuiSelectableFlags.AllowDoubleClick | ImGuiSelectableFlags.SpanAllColumns;
 
-        ImGui.PushFont(UiBuilder.IconFont);
+        ImGui.PushFont(InterfaceManager.IconFont);
 
-        ImGui.TextUnformatted(icon.ToIconString());
+        ImGui.Text(icon.ToIconString());
         ImGui.PopFont();
 
         ImGui.SameLine(Scaled(25f));
@@ -674,6 +653,7 @@ public partial class FileDialog
             this.fileNameBuffer = $"{this.selectedFileNames.Count} files Selected";
         }
 
+        this.SelectionChanged(this, this.GetFilePathName());
         if (setLastSelection)
         {
             this.lastSelectedFileName = name;
@@ -699,11 +679,11 @@ public partial class FileDialog
 
         if (this.IsDirectoryMode())
         {
-            ImGui.TextUnformatted("Directory Path :");
+            ImGui.Text("Directory Path :"u8);
         }
         else
         {
-            ImGui.TextUnformatted("File Name :");
+            ImGui.Text("File Name :"u8);
         }
 
         ImGui.SameLine();
@@ -718,7 +698,7 @@ public partial class FileDialog
 
         ImGui.SetNextItemWidth(width);
         if (selectOnly) ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
-        ImGui.InputText("##FileName", ref this.fileNameBuffer, 255, selectOnly ? ImGuiInputTextFlags.ReadOnly : ImGuiInputTextFlags.None);
+        ImGui.InputText("##FileName"u8, ref this.fileNameBuffer, 255, selectOnly ? ImGuiInputTextFlags.ReadOnly : ImGuiInputTextFlags.None);
         if (selectOnly) ImGui.PopStyleVar();
 
         if (this.filters.Count > 0)
@@ -727,7 +707,7 @@ public partial class FileDialog
             var needToApplyNewFilter = false;
 
             ImGui.SetNextItemWidth(Scaled(150f));
-            if (ImGui.BeginCombo("##Filters", this.selectedFilter.Filter, ImGuiComboFlags.None))
+            if (ImGui.BeginCombo("##Filters"u8, this.selectedFilter.Filter, ImGuiComboFlags.None))
             {
                 var idx = 0;
                 foreach (var filter in this.filters)
@@ -759,7 +739,7 @@ public partial class FileDialog
         var disableOk = string.IsNullOrEmpty(this.fileNameBuffer) || (selectOnly && !this.IsItemSelected());
         if (disableOk) ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
 
-        if (ImGui.Button("Ok") && !disableOk)
+        if (ImGui.Button("Ok"u8) && !disableOk)
         {
             this.isOk = true;
             res = true;
@@ -769,7 +749,7 @@ public partial class FileDialog
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Cancel"))
+        if (ImGui.Button("Cancel"u8))
         {
             this.isOk = false;
             res = true;
@@ -822,8 +802,8 @@ public partial class FileDialog
             ImGui.OpenPopup(name);
             if (ImGui.BeginPopupModal(name, ref open, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove))
             {
-                ImGui.TextUnformatted("Would you like to Overwrite it ?");
-                if (ImGui.Button("Confirm"))
+                ImGui.Text("Would you like to Overwrite it ?"u8);
+                if (ImGui.Button("Confirm"u8))
                 {
                     this.okResultToConfirm = false;
                     this.isOk = true;
@@ -832,7 +812,7 @@ public partial class FileDialog
                 }
 
                 ImGui.SameLine();
-                if (ImGui.Button("Cancel"))
+                if (ImGui.Button("Cancel"u8))
                 {
                     this.okResultToConfirm = false;
                     this.isOk = false;

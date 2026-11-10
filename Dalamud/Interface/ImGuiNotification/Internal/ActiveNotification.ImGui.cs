@@ -1,11 +1,10 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 
@@ -15,14 +14,16 @@ internal sealed partial class ActiveNotification
     /// <summary>Draws this notification.</summary>
     /// <param name="width">The maximum width of the notification window.</param>
     /// <param name="offsetY">The offset from the bottom.</param>
+    /// <param name="anchorPosition">Where notifications are anchored to on the screen.</param>
+    /// <param name="snapDirection">Direction of the screen which we are snapping to.</param>
     /// <returns>The height of the notification.</returns>
-    public float Draw(float width, float offsetY)
+    public float Draw(float width, float offsetY, Vector2 anchorPosition, NotificationSnapDirection snapDirection)
     {
         var opacity =
             Math.Clamp(
                 (float)(this.hideEasing.IsRunning
-                            ? (this.hideEasing.IsDone || ReducedMotions ? 0 : 1f - this.hideEasing.Value)
-                            : (this.showEasing.IsDone || ReducedMotions ? 1 : this.showEasing.Value)),
+                            ? (this.hideEasing.IsDone || ReducedMotions ? 0 : 1f - this.hideEasing.ValueClamped)
+                            : (this.showEasing.IsDone || ReducedMotions ? 1 : this.showEasing.ValueClamped)),
                 0f,
                 1f);
         if (opacity <= 0)
@@ -35,8 +36,8 @@ internal sealed partial class ActiveNotification
             (NotificationConstants.ScaledWindowPadding * 2);
 
         var viewport = ImGuiHelpers.MainViewport;
-        var viewportPos = viewport.WorkPos;
         var viewportSize = viewport.WorkSize;
+        var viewportPos = viewport.Pos;
 
         ImGui.PushStyleVar(ImGuiStyleVar.Alpha, opacity);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0f);
@@ -52,13 +53,78 @@ internal sealed partial class ActiveNotification
                     NotificationConstants.BackgroundOpacity));
         }
 
+        Vector2 topLeft;
+        Vector2 pivot;
+        if (snapDirection is NotificationSnapDirection.Top or NotificationSnapDirection.Bottom)
+        {
+            // Top or bottom
+            var xPos = (viewportSize.X - width) * anchorPosition.X;
+            xPos = Math.Max(NotificationConstants.ScaledViewportEdgeMargin, Math.Min(viewportSize.X - width - NotificationConstants.ScaledViewportEdgeMargin, xPos));
+
+            if (snapDirection == NotificationSnapDirection.Top)
+            {
+                // Top
+                var yPos = NotificationConstants.ScaledViewportEdgeMargin - offsetY;
+                topLeft = new Vector2(xPos, yPos);
+                pivot = new(0, 0);
+            }
+            else
+            {
+                // Bottom
+                var yPos = viewportSize.Y - offsetY - NotificationConstants.ScaledViewportEdgeMargin;
+                topLeft = new Vector2(xPos, yPos);
+                pivot = new(0, 1);
+            }
+        }
+        else
+        {
+            // Left or Right
+            var yPos = (viewportSize.Y * anchorPosition.Y) - offsetY;
+            yPos = Math.Max(
+                NotificationConstants.ScaledViewportEdgeMargin,
+                Math.Min(viewportSize.Y - offsetY - NotificationConstants.ScaledViewportEdgeMargin, yPos));
+
+            if (snapDirection == NotificationSnapDirection.Left)
+            {
+                // Left
+                var xPos = NotificationConstants.ScaledViewportEdgeMargin;
+
+                if (anchorPosition.Y > 0.5f)
+                {
+                    // Bottom
+                    topLeft = new Vector2(xPos, yPos);
+                    pivot = new(0, 1);
+                }
+                else
+                {
+                    // Top
+                    topLeft = new Vector2(xPos, yPos);
+                    pivot = new(0, 0);
+                }
+            }
+            else
+            {
+                // Right
+                var xPos = viewportSize.X - width - NotificationConstants.ScaledViewportEdgeMargin;
+
+                if (anchorPosition.Y > 0.5f)
+                {
+                    topLeft = new Vector2(xPos, yPos);
+                    pivot = new(0, 1);
+                }
+                else
+                {
+                    topLeft = new Vector2(xPos, yPos);
+                    pivot = new(0, 0);
+                }
+            }
+        }
+
         ImGuiHelpers.ForceNextWindowMainViewport();
         ImGui.SetNextWindowPos(
-            (viewportPos + viewportSize) -
-            new Vector2(NotificationConstants.ScaledViewportEdgeMargin) -
-            new Vector2(0, offsetY),
+            topLeft + viewportPos,
             ImGuiCond.Always,
-            Vector2.One);
+            pivot);
         ImGui.SetNextWindowSizeConstraints(
             new(width, actionWindowHeight),
             new(
@@ -88,7 +154,11 @@ internal sealed partial class ActiveNotification
 
         if (!isTakingKeyboardInput && !isHovered && isFocused)
         {
-            ImGui.SetWindowFocus(null);
+            unsafe
+            {
+                ImGui.SetWindowFocus((byte*)null);
+            }
+
             isFocused = false;
         }
 
@@ -106,7 +176,7 @@ internal sealed partial class ActiveNotification
         }
         else if (this.expandoEasing.IsRunning)
         {
-            var easedValue = ReducedMotions ? 1f : (float)this.expandoEasing.Value;
+            var easedValue = ReducedMotions ? 1f : (float)this.expandoEasing.ValueClamped;
             if (this.underlyingNotification.Minimized)
                 ImGui.PushStyleVar(ImGuiStyleVar.Alpha, opacity * (1f - easedValue));
             else
@@ -123,8 +193,13 @@ internal sealed partial class ActiveNotification
         {
             if (this.Click is null)
             {
-                if (this.UserDismissable && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-                    this.Minimized = !this.Minimized;
+                if (this.UserDismissable)
+                {
+                    if (ImGui.IsMouseClicked(ImGuiMouseButton.Middle))
+                        this.DismissNow(NotificationDismissReason.Manual);
+                    else if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                        this.Minimized = !this.Minimized;
+                }
             }
             else
             {
@@ -142,13 +217,13 @@ internal sealed partial class ActiveNotification
         ImGui.PopStyleColor();
         ImGui.PopStyleVar(3);
 
-        return windowSize.Y;
+        return NotificationManager.ShouldScrollDownwards(anchorPosition) ? -windowSize.Y : windowSize.Y;
     }
 
     /// <summary>Calculates the effective expiry, taking ImGui window state into account.</summary>
     /// <param name="warrantsExtension">Notification will not dismiss while this paramter is <c>true</c>.</param>
     /// <returns>The calculated effective expiry.</returns>
-    /// <remarks>Expected to be called BETWEEN <see cref="ImGui.Begin(string)"/> and <see cref="ImGui.End"/>.</remarks>
+    /// <remarks>Expected to be called BETWEEN <see cref="ImGui.Begin(ImU8String, ImGuiWindowFlags)"/> and <see cref="ImGui.End()"/>.</remarks>
     private DateTime CalculateEffectiveExpiry(ref bool warrantsExtension)
     {
         DateTime expiry;
@@ -295,8 +370,8 @@ internal sealed partial class ActiveNotification
         {
             relativeOpacity =
                 this.underlyingNotification.Minimized
-                    ? 1f - (float)this.expandoEasing.Value
-                    : (float)this.expandoEasing.Value;
+                    ? 1f - (float)this.expandoEasing.ValueClamped
+                    : (float)this.expandoEasing.ValueClamped;
         }
         else
         {
@@ -313,7 +388,7 @@ internal sealed partial class ActiveNotification
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, ImGui.GetStyle().Alpha * relativeOpacity);
             ImGui.SetCursorPos(new(NotificationConstants.ScaledWindowPadding));
             ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.WhenTextColor);
-            ImGui.TextUnformatted(
+            ImGui.Text(
                 ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByActiveItem)
                     ? this.CreatedAt.LocAbsolute()
                     : ReducedMotions
@@ -334,7 +409,7 @@ internal sealed partial class ActiveNotification
             var agoSize = ImGui.CalcTextSize(agoText);
             ImGui.SetCursorPos(new(width - ((height + agoSize.X) / 2f), NotificationConstants.ScaledWindowPadding));
             ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.WhenTextColor);
-            ImGui.TextUnformatted(agoText);
+            ImGui.Text(agoText);
             ImGui.PopStyleColor();
 
             this.DrawIcon(
@@ -345,7 +420,7 @@ internal sealed partial class ActiveNotification
                 windowPos + new Vector2(width - height, height),
                 true);
             ImGui.SetCursorPos(new(height, NotificationConstants.ScaledWindowPadding));
-            ImGui.TextUnformatted(this.EffectiveMinimizedText);
+            ImGui.Text(this.EffectiveMinimizedText);
             ImGui.PopClipRect();
 
             ImGui.PopStyleVar();
@@ -404,7 +479,7 @@ internal sealed partial class ActiveNotification
         var maxCoord = minCoord + size;
         var iconColor = this.Type.ToColor();
 
-        if (NotificationUtilities.DrawIconFrom(minCoord, maxCoord, this.IconTextureTask))
+        if (NotificationUtilities.DrawIconFrom(minCoord, maxCoord, this.IconTexture))
             return;
 
         if (this.Icon?.DrawIcon(minCoord, maxCoord, iconColor) is true)
@@ -432,13 +507,13 @@ internal sealed partial class ActiveNotification
         if ((this.Title ?? this.Type.ToTitle()) is { } title)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.TitleTextColor);
-            ImGui.TextUnformatted(title);
+            ImGui.Text(title);
             ImGui.PopStyleColor();
         }
 
         ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.BlameTextColor);
         ImGui.SetCursorPos(minCoord with { Y = ImGui.GetCursorPosY() });
-        ImGui.TextUnformatted(this.InitiatorString);
+        ImGui.Text(this.InitiatorString);
         ImGui.PopStyleColor();
 
         ImGui.PopTextWrapPos();
@@ -450,7 +525,7 @@ internal sealed partial class ActiveNotification
         ImGui.SetCursorPos(minCoord);
         ImGui.PushTextWrapPos(minCoord.X + width);
         ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.BodyTextColor);
-        ImGui.TextUnformatted(this.Content);
+        ImGui.Text(this.Content);
         ImGui.PopStyleColor();
         ImGui.PopTextWrapPos();
     }
@@ -499,7 +574,7 @@ internal sealed partial class ActiveNotification
 
         if (fillStartCw == 0 && fillEndCw == 0)
             return;
-       
+
         var radius = Math.Min(size.X, size.Y) / 3f;
         var ifrom = fillStartCw * MathF.PI * 2;
         var ito = fillEndCw * MathF.PI * 2;
@@ -529,9 +604,9 @@ internal sealed partial class ActiveNotification
             verts[vertPtr++] = lastOff;
         unsafe
         {
-            var dlist = ImGui.GetWindowDrawList().NativePtr;
+            var dlist = ImGui.GetWindowDrawList().Handle;
             fixed (Vector2* pvert = verts)
-                ImGuiNative.ImDrawList_AddConvexPolyFilled(dlist, pvert, vertPtr, color);
+                dlist->AddConvexPolyFilled(pvert, vertPtr, color);
         }
     }
 
@@ -543,7 +618,7 @@ internal sealed partial class ActiveNotification
         float barL, barR;
         if (this.DismissReason is not null)
         {
-            var v = this.hideEasing.IsDone || ReducedMotions ? 0f : 1f - (float)this.hideEasing.Value;
+            var v = this.hideEasing.IsDone || ReducedMotions ? 0f : 1f - (float)this.hideEasing.ValueClamped;
             var midpoint = (this.prevProgressL + this.prevProgressR) / 2f;
             var length = (this.prevProgressR - this.prevProgressL) / 2f;
             barL = midpoint - (length * v);

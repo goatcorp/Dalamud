@@ -1,4 +1,4 @@
-# Dalamud  [![Actions Status](https://github.com/goatcorp/Dalamud/workflows/Build%20Dalamud/badge.svg)](https://github.com/goatcorp/Dalamud/actions) [![Discord Shield](https://discordapp.com/api/guilds/581875019861328007/widget.png?style=shield)](https://discord.gg/3NMcUV5)
+# Dalamud [![Discord Shield](https://discordapp.com/api/guilds/581875019861328007/widget.png?style=shield)](https://discord.gg/3NMcUV5)
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/goatcorp/DalamudAssets/master/UIRes/logo.png" alt="Dalamud" width="200"/>
@@ -38,6 +38,9 @@ Dalamud can be loaded via DLL injection, or by rewriting a process' entrypoint.
 | *Dalamud.Boot* (C++)          | Loads the .NET Core runtime into the active process and kicks off Dalamud, or rewrites a target process' entrypoint to do so |
 | *Dalamud* (C#)                | Core API, game bindings, plugin framework                                                                                    |
 | *Dalamud.CorePlugin* (C#)     | Testbed plugin that can access Dalamud internals, to prototype new Dalamud features                                          |
+
+## AI/LLM-authored Contributions
+Dalamud and XIVLauncher do not accept contributions made using generative AI. We kindly ask that you do not interact with this repository using automated systems driven by LLMs/AI tools.
 
 <br>
 

@@ -9,19 +9,22 @@ using System.Threading.Tasks;
 using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.Hooking.Internal.Verification;
 using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
-using PInvoke;
+
 using Serilog;
+
+using Windows.Win32.Foundation;
+using Windows.Win32.Security;
 
 #if DEBUG
 [assembly: InternalsVisibleTo("Dalamud.CorePlugin")]
 #endif
 
 [assembly: InternalsVisibleTo("Dalamud.Test")]
-[assembly: InternalsVisibleTo("Dalamud.DevHelpers")]
 
 namespace Dalamud;
 
@@ -35,7 +38,7 @@ internal sealed class Dalamud : IServiceType
 
     private static int shownServiceError = 0;
     private readonly ManualResetEvent unloadSignal;
-    
+
     #endregion
 
     /// <summary>
@@ -48,15 +51,37 @@ internal sealed class Dalamud : IServiceType
     public Dalamud(DalamudStartInfo info, ReliableFileStorage fs, DalamudConfiguration configuration, IntPtr mainThreadContinueEvent)
     {
         this.StartInfo = info;
-        
+
         this.unloadSignal = new ManualResetEvent(false);
         this.unloadSignal.Reset();
-        
+
         // Directory resolved signatures(CS, our own) will be cached in
         var cacheDir = new DirectoryInfo(Path.Combine(this.StartInfo.WorkingDirectory!, "cachedSigs"));
-        if (!cacheDir.Exists)
-            cacheDir.Create();
-        
+
+        // When running sandboxed, we can't write to the working dir. Fall back to the config dir.
+        // TODO: Should this be the default?
+        try
+        {
+            if (!cacheDir.Exists)
+                cacheDir.Create();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            var configDir = Path.GetDirectoryName(this.StartInfo.ConfigurationPath!)
+                            ?? throw new DirectoryNotFoundException("Could not determine the configuration directory.");
+            var scope = new DirectoryInfo(this.StartInfo.WorkingDirectory!).Name;
+            var fallbackDir = new DirectoryInfo(Path.Combine(configDir, "cachedSigs", scope));
+
+            Log.Information(
+                "Signature cache directory {Path} is not writable, falling back to {Fallback}",
+                cacheDir.FullName,
+                fallbackDir.FullName);
+
+            cacheDir = fallbackDir;
+            if (!cacheDir.Exists)
+                cacheDir.Create();
+        }
+
         // Set up the SigScanner for our target module
         TargetSigScanner scanner;
         using (Timings.Start("SigScanner Init"))
@@ -71,26 +96,37 @@ internal sealed class Dalamud : IServiceType
             configuration,
             scanner,
             Localization.FromAssets(info.AssetDirectory!, configuration.LanguageOverride));
-        
+
         // Set up FFXIVClientStructs
         this.SetupClientStructsResolver(cacheDir);
-        
+
+        // Initialize global framework destroy hook
+        EntryPoint.SetupGlobalDestroyHook();
+
+        // Set up hook verification if Developer Mode is enabled. It takes a little while at the moment
+        if (configuration.DevMode == true)
+        {
+            using var t = Timings.Start("HookVerifier Init");
+            HookVerifier.Initialize();
+        }
+
         void KickoffGameThread()
         {
             Log.Verbose("=============== GAME THREAD KICKOFF ===============");
             Timings.Event("Game thread kickoff");
-            NativeFunctions.SetEvent(mainThreadContinueEvent);
+            Windows.Win32.PInvoke.SetEvent(new HANDLE(mainThreadContinueEvent));
         }
 
         void HandleServiceInitFailure(Task t)
         {
             Log.Error(t.Exception!, "Service initialization failure");
-            
+
             if (Interlocked.CompareExchange(ref shownServiceError, 1, 0) != 0)
                 return;
 
+            ErrorHandling.ShowSystemIntegrityPolicyErrorIfApplicable(t.Exception);
             Util.Fatal(
-                "Dalamud failed to load all necessary services.\n\nThe game will continue, but you may not be able to use plugins.",
+                $"Dalamud failed to load all necessary services.\nThe game will continue, but you may not be able to use plugins.\n\n{t.Exception}",
                 "Dalamud", false);
         }
 
@@ -116,15 +152,14 @@ internal sealed class Dalamud : IServiceType
                 HandleServiceInitFailure(t);
             });
 
-        this.DefaultExceptionFilter = NativeFunctions.SetUnhandledExceptionFilter(nint.Zero);
-        NativeFunctions.SetUnhandledExceptionFilter(this.DefaultExceptionFilter);
-        Log.Debug($"SE default exception filter at {this.DefaultExceptionFilter.ToInt64():X}");
+        this.DefaultExceptionFilter = SetExceptionHandler(nint.Zero);
+        SetExceptionHandler(this.DefaultExceptionFilter);
+        Log.Debug($"SE default exception filter at {new IntPtr(this.DefaultExceptionFilter):X}");
 
-        var debugSig = "40 55 53 57 48 8D AC 24 70 AD FF FF";
-        this.DebugExceptionFilter = Service<TargetSigScanner>.Get().ScanText(debugSig);
+        this.DebugExceptionFilter = scanner.ScanText("40 55 53 57 48 8D AC 24 70 AD FF FF");
         Log.Debug($"SE debug exception filter at {this.DebugExceptionFilter.ToInt64():X}");
     }
-    
+
     /// <summary>
     /// Gets the start information for this Dalamud instance.
     /// </summary>
@@ -170,11 +205,17 @@ internal sealed class Dalamud : IServiceType
         if (!reportCrashesSetting && !pmHasDevPlugins)
         {
             // Leaking on purpose for now
-            var attribs = Kernel32.SECURITY_ATTRIBUTES.Create();
-            Kernel32.CreateMutex(attribs, false, "DALAMUD_CRASHES_NO_MORE");
+            var attribs = default(SECURITY_ATTRIBUTES);
+            attribs.nLength = (uint)Unsafe.SizeOf<SECURITY_ATTRIBUTES>();
+            Windows.Win32.PInvoke.CreateMutex(attribs, false, "DALAMUD_CRASHES_NO_MORE");
         }
 
-        this.unloadSignal.Set();
+        Task.Run(() =>
+        {
+            ServiceManager.UnloadAllServices();
+
+            this.unloadSignal.Set();
+        });
     }
 
     /// <summary>
@@ -183,33 +224,36 @@ internal sealed class Dalamud : IServiceType
     public void WaitForUnload()
     {
         this.unloadSignal.WaitOne();
+        this.unloadSignal.Dispose();
     }
 
     /// <summary>
     /// Replace the current exception handler with the default one.
     /// </summary>
-    internal void UseDefaultExceptionHandler() => 
-        this.SetExceptionHandler(this.DefaultExceptionFilter);
+    internal void UseDefaultExceptionHandler() =>
+        SetExceptionHandler(this.DefaultExceptionFilter);
 
     /// <summary>
     /// Replace the current exception handler with a debug one.
     /// </summary>
     internal void UseDebugExceptionHandler() =>
-        this.SetExceptionHandler(this.DebugExceptionFilter);
+        SetExceptionHandler(this.DebugExceptionFilter);
 
     /// <summary>
     /// Disable the current exception handler.
     /// </summary>
     internal void UseNoExceptionHandler() =>
-        this.SetExceptionHandler(nint.Zero);
+        SetExceptionHandler(nint.Zero);
 
     /// <summary>
     /// Helper function to set the exception handler.
     /// </summary>
-    private void SetExceptionHandler(nint newFilter)
+    private static unsafe nint SetExceptionHandler(nint newFilter)
     {
-        var oldFilter = NativeFunctions.SetUnhandledExceptionFilter(newFilter);
-        Log.Debug("Set ExceptionFilter to {0}, old: {1}", newFilter, oldFilter);
+        var oldFilter =
+            Windows.Win32.PInvoke.SetUnhandledExceptionFilter((delegate* unmanaged[Stdcall]<global::Windows.Win32.System.Diagnostics.Debug.EXCEPTION_POINTERS*, int>)newFilter);
+        Log.Debug("Set ExceptionFilter to {0}, old: {1}", newFilter, (nint)oldFilter);
+        return (nint)oldFilter;
     }
 
     private void SetupClientStructsResolver(DirectoryInfo cacheDir)

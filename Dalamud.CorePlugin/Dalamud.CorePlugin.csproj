@@ -1,9 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <AssemblyName>Dalamud.CorePlugin</AssemblyName>
-        <TargetFramework>net8.0-windows</TargetFramework>
         <Platforms>x64</Platforms>
-        <LangVersion>10.0</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -11,7 +9,6 @@
     </PropertyGroup>
 
     <PropertyGroup Label="Documentation">
-        <DocumentationFile></DocumentationFile>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
@@ -27,10 +24,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Lumina" Version="$(LuminaVersion)" />
-        <PackageReference Include="Lumina.Excel" Version="$(LuminaExcelVersion)" />
-        <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-        <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.333">
+        <PackageReference Include="Lumina" />
+        <PackageReference Include="Newtonsoft.Json" />
+        <PackageReference Include="StyleCop.Analyzers">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -40,16 +36,13 @@
         <ProjectReference Include="..\Dalamud\Dalamud.csproj">
             <Private>false</Private>
         </ProjectReference>
-        <ProjectReference Include="..\lib\ImGuiScene\deps\ImGui.NET\src\ImGui.NET-472\ImGui.NET-472.csproj">
-            <Private>false</Private>
-        </ProjectReference>
-        <ProjectReference Include="..\lib\ImGuiScene\ImGuiScene\ImGuiScene.csproj">
-            <Private>false</Private>
-        </ProjectReference>
-        <ProjectReference Include="..\lib\ImGuiScene\deps\SDL2-CS\SDL2-CS.csproj">
-            <Private>false</Private>
-        </ProjectReference>
     </ItemGroup>
+
+    <Target Name="ClearReferenceCopyLocalPaths" AfterTargets="ResolveReferences">
+        <ItemGroup>
+            <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" />
+        </ItemGroup>
+    </Target>
 
     <ItemGroup>
         <None Update="Dalamud.CorePlugin.json">

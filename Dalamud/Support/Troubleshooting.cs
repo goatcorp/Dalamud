@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
@@ -8,7 +11,9 @@ using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Utility;
+
 using Newtonsoft.Json;
+
 using Serilog;
 
 namespace Dalamud.Support;
@@ -18,6 +23,9 @@ namespace Dalamud.Support;
 /// </summary>
 public static class Troubleshooting
 {
+    private static PendingTroubleshootingWrite? pendingTroubleshootingWrite;
+    private static int isTroubleshootingWriteRunning;
+
     /// <summary>
     /// Gets the most recent exception to occur.
     /// </summary>
@@ -32,7 +40,7 @@ public static class Troubleshooting
     {
         LastException = exception;
 
-        var fixedContext = context?.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        var fixedContext = context?.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
 
         try
         {
@@ -66,27 +74,68 @@ public static class Troubleshooting
         {
             var payload = new TroubleshootingPayload
             {
+                Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                 LoadedPlugins = pluginManager?.InstalledPlugins?.Select(x => x.Manifest as LocalPluginManifest)?.OrderByDescending(x => x.InternalName).ToArray(),
                 PluginStates = pluginManager?.InstalledPlugins?.Where(x => !x.IsDev).ToDictionary(x => x.Manifest.InternalName, x => x.IsBanned ? "Banned" : x.State.ToString()),
                 EverStartedLoadingPlugins = pluginManager?.InstalledPlugins.Where(x => x.HasEverStartedLoad).Select(x => x.InternalName).ToList(),
-                DalamudVersion = Util.GetScmVersion(),
-                DalamudGitHash = Util.GetGitHash() ?? "Unknown",
+                DalamudVersion = Versioning.GetScmVersion(),
+                DalamudGitHash = Versioning.GetGitHash() ?? "Unknown",
                 GameVersion = startInfo.GameVersion?.ToString() ?? "Unknown",
                 Language = startInfo.Language.ToString(),
-                BetaKey = configuration.DalamudBetaKey,
+                BetaKey = Versioning.GetActiveTrack(),
                 DoPluginTest = configuration.DoPluginTest,
-                LoadAllApiLevels = pluginManager?.LoadAllApiLevels == true,
+                LoadAllApiLevels = false,
                 InterfaceLoaded = interfaceManager?.IsReady ?? false,
                 HasThirdRepo = configuration.ThirdRepoList is { Count: > 0 },
-                ForcedMinHook = EnvironmentConfiguration.DalamudForceMinHook,
+                UsingSafetyHook = EnvironmentConfiguration.DalamudUseSafetyHook,
             };
 
             var encodedPayload = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload)));
             Log.Information($"TROUBLESHOOTING:{encodedPayload}");
+
+            // Queue the latest payload for async file writing; only one writer task runs at a time.
+            Interlocked.Exchange(
+                ref pendingTroubleshootingWrite,
+                new PendingTroubleshootingWrite(
+                    Path.Join(startInfo.LogPath, "dalamud.troubleshooting.json"),
+                    JsonConvert.SerializeObject(payload, Formatting.Indented)));
+
+            if (Interlocked.CompareExchange(ref isTroubleshootingWriteRunning, 1, 0) == 0)
+            {
+                _ = Task.Run(WriteTroubleshootingFileAsync);
+            }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Could not print troubleshooting.");
+        }
+    }
+
+    private static async Task WriteTroubleshootingFileAsync()
+    {
+        while (true)
+        {
+            var write = Interlocked.Exchange(ref pendingTroubleshootingWrite, null);
+            if (write is null)
+                break;
+
+            try
+            {
+                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                await File.WriteAllTextAsync(write.Path, (string)write.Json, cts.Token).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not write troubleshooting file.");
+            }
+        }
+
+        Interlocked.Exchange(ref isTroubleshootingWriteRunning, 0);
+
+        if (Volatile.Read(ref pendingTroubleshootingWrite) is not null &&
+            Interlocked.CompareExchange(ref isTroubleshootingWriteRunning, 1, 0) == 0)
+        {
+            await WriteTroubleshootingFileAsync();
         }
     }
 
@@ -101,6 +150,8 @@ public static class Troubleshooting
 
     private class TroubleshootingPayload
     {
+        public long Timestamp { get; set; }
+
         public LocalPluginManifest[]? LoadedPlugins { get; set; }
 
         public Dictionary<string, string>? PluginStates { get; set; }
@@ -125,10 +176,12 @@ public static class Troubleshooting
 
         public bool InterfaceLoaded { get; set; }
 
-        public bool ForcedMinHook { get; set; }
+        public bool UsingSafetyHook { get; set; }
 
-        public List<ThirdPartyRepoSettings> ThirdRepo => new();
+        public List<ThirdPartyRepoSettings> ThirdRepo => [];
 
         public bool HasThirdRepo { get; set; }
     }
+
+    private record PendingTroubleshootingWrite(string Path, string Json);
 }

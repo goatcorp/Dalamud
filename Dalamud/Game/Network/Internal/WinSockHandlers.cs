@@ -55,4 +55,37 @@ internal sealed class WinSockHandlers : IInternalDisposableService
 
         return socket;
     }
+
+    /// <summary>
+    /// Native ws2_32 functions.
+    /// </summary>
+    private static class NativeFunctions
+    {
+        /// <summary>
+        /// See https://docs.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-setsockopt.
+        /// The setsockopt function sets a socket option.
+        /// </summary>
+        /// <param name="socket">
+        /// A descriptor that identifies a socket.
+        /// </param>
+        /// <param name="level">
+        /// The level at which the option is defined (for example, SOL_SOCKET).
+        /// </param>
+        /// <param name="optName">
+        /// The socket option for which the value is to be set (for example, SO_BROADCAST). The optname parameter must be a
+        /// socket option defined within the specified level, or behavior is undefined.
+        /// </param>
+        /// <param name="optVal">
+        /// A pointer to the buffer in which the value for the requested option is specified.
+        /// </param>
+        /// <param name="optLen">
+        /// The size, in bytes, of the buffer pointed to by the optval parameter.
+        /// </param>
+        /// <returns>
+        /// If no error occurs, setsockopt returns zero. Otherwise, a value of SOCKET_ERROR is returned, and a specific error
+        /// code can be retrieved by calling WSAGetLastError.
+        /// </returns>
+        [DllImport("ws2_32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "setsockopt")]
+        public static extern int SetSockOpt(IntPtr socket, SocketOptionLevel level, SocketOptionName optName, ref IntPtr optVal, int optLen);
+    }
 }

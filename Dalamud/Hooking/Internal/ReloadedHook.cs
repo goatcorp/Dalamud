@@ -21,17 +21,16 @@ internal class ReloadedHook<T> : Hook<T> where T : Delegate
     internal ReloadedHook(IntPtr address, T detour, Assembly callingAssembly)
         : base(address)
     {
-        lock (HookManager.HookEnableSyncRoot)
-        {
-            var unhooker = HookManager.RegisterUnhooker(address);
-            this.hookImpl = ReloadedHooks.Instance.CreateHook<T>(detour, address.ToInt64());
-            this.hookImpl.Activate();
-            this.hookImpl.Disable();
+        using var scope = HookManager.HookEnableSyncRoot.EnterScope();
 
-            unhooker.TrimAfterHook();
+        var unhooker = HookManager.RegisterUnhooker(address);
+        this.hookImpl = ReloadedHooks.Instance.CreateHook<T>(detour, address.ToInt64());
+        this.hookImpl.Activate();
+        this.hookImpl.Disable();
 
-            HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, detour, callingAssembly));
-        }
+        unhooker.TrimAfterHook();
+
+        HookManager.TrackedHooks.TryAdd(this.HookId, new HookInfo(this, detour, callingAssembly));
     }
 
     /// <inheritdoc/>
@@ -45,14 +44,7 @@ internal class ReloadedHook<T> : Hook<T> where T : Delegate
     }
 
     /// <inheritdoc/>
-    public override bool IsEnabled
-    {
-        get
-        {
-            this.CheckDisposed();
-            return this.hookImpl.IsHookEnabled;
-        }
-    }
+    public override bool IsEnabled => !this.IsDisposed && this.hookImpl.IsHookEnabled;
 
     /// <inheritdoc/>
     public override string BackendName => "Reloaded";
@@ -63,6 +55,10 @@ internal class ReloadedHook<T> : Hook<T> where T : Delegate
         if (this.IsDisposed)
             return;
 
+        using var scope = HookManager.HookEnableSyncRoot.EnterScope();
+
+        HookManager.TrackedHooks.TryRemove(this.HookId, out _);
+
         this.Disable();
 
         base.Dispose();
@@ -71,27 +67,26 @@ internal class ReloadedHook<T> : Hook<T> where T : Delegate
     /// <inheritdoc/>
     public override void Enable()
     {
+        using var scope = HookManager.HookEnableSyncRoot.EnterScope();
+
         this.CheckDisposed();
 
-        lock (HookManager.HookEnableSyncRoot)
-        {
-            if (!this.hookImpl.IsHookEnabled)
-                this.hookImpl.Enable();
-        }
+        if (!this.hookImpl.IsHookEnabled)
+            this.hookImpl.Enable();
     }
 
     /// <inheritdoc/>
     public override void Disable()
     {
-        this.CheckDisposed();
+        using var scope = HookManager.HookEnableSyncRoot.EnterScope();
 
-        lock (HookManager.HookEnableSyncRoot)
-        {
-            if (!this.hookImpl.IsHookActivated)
-                return;
+        if (this.IsDisposed)
+            return;
 
-            if (this.hookImpl.IsHookEnabled)
-                this.hookImpl.Disable();
-        }
+        if (!this.hookImpl.IsHookActivated)
+            return;
+
+        if (this.hookImpl.IsHookEnabled)
+            this.hookImpl.Disable();
     }
 }

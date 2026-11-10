@@ -3,9 +3,9 @@ using System.Linq;
 using System.Numerics;
 using System.Reflection;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows;
 
@@ -46,13 +46,23 @@ internal sealed class ColorDemoWindow : Window
             ("ParsedOrange", ImGuiColors.ParsedOrange),
             ("ParsedPink", ImGuiColors.ParsedPink),
             ("ParsedGold", ImGuiColors.ParsedGold),
+            ("InfoForeground", ImGuiColors.InfoForeground),
+            ("InfoBackground", ImGuiColors.InfoBackground),
+            ("SuccessForeground", ImGuiColors.SuccessForeground),
+            ("SuccessBackground", ImGuiColors.SuccessBackground),
+            ("WarningForeground", ImGuiColors.WarningForeground),
+            ("WarningBackground", ImGuiColors.WarningBackground),
+            ("ErrorForeground", ImGuiColors.ErrorForeground),
+            ("ErrorBackground", ImGuiColors.ErrorBackground),
+            ("AttentionForeground", ImGuiColors.AttentionForeground),
+            ("AttentionBackground", ImGuiColors.AttentionBackground),
         }.OrderBy(colorDemo => colorDemo.Name).ToList();
     }
 
     /// <inheritdoc/>
     public override void Draw()
     {
-        ImGui.Text("This is a collection of UI colors you can use in your plugin.");
+        ImGui.Text("This is a collection of UI colors you can use in your plugin."u8);
 
         ImGui.Separator();
 

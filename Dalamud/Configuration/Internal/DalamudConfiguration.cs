@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -14,13 +15,17 @@ using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing.Persistence;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Storage;
 using Dalamud.Utility;
+
 using Newtonsoft.Json;
-using Serilog;
+
 using Serilog.Events;
+
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Dalamud.Configuration.Internal;
 
@@ -34,6 +39,8 @@ namespace Dalamud.Configuration.Internal;
 #pragma warning restore SA1015
 internal sealed class DalamudConfiguration : IInternalDisposableService
 {
+    private static readonly ModuleLog Log = ModuleLog.Create<DalamudConfiguration>();
+
     private static readonly JsonSerializerSettings SerializerSettings = new()
     {
         TypeNameHandling = TypeNameHandling.All,
@@ -66,12 +73,12 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public List<string>? BadWords { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the taskbar should flash once a duty is found.
+    /// Gets or sets a value indicating whether the taskbar should flash once a duty is found.
     /// </summary>
     public bool DutyFinderTaskbarFlash { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not a message should be sent in chat once a duty is found.
+    /// Gets or sets a value indicating whether a message should be sent in chat once a duty is found.
     /// </summary>
     public bool DutyFinderChatMessage { get; set; } = true;
 
@@ -88,7 +95,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// <summary>
     /// Gets or sets a dictionary of seen FTUE levels.
     /// </summary>
-    public Dictionary<string, int> SeenFtueLevels { get; set; } = new();
+    public Dictionary<string, int> SeenFtueLevels { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the last loaded Dalamud version.
@@ -101,34 +108,44 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public XivChatType GeneralChatType { get; set; } = XivChatType.Debug;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not plugin testing builds should be shown.
+    /// Gets or sets a value indicating whether plugin testing builds should be shown.
     /// </summary>
     public bool DoPluginTest { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a key to opt into Dalamud staging builds.
-    /// </summary>
-    public string? DalamudBetaKey { get; set; } = null;
-
-    /// <summary>
     /// Gets or sets a list of custom repos.
     /// </summary>
-    public List<ThirdPartyRepoSettings> ThirdRepoList { get; set; } = new();
+    public List<ThirdPartyRepoSettings> ThirdRepoList { get; set; } = [];
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not a disclaimer regarding third-party repos has been dismissed.
+    /// Gets or sets a value indicating whether a disclaimer regarding third-party repos has been dismissed.
     /// </summary>
     public bool? ThirdRepoSpeedbumpDismissed { get; set; } = null;
 
     /// <summary>
     /// Gets or sets a list of hidden plugins.
     /// </summary>
-    public List<string> HiddenPluginInternalName { get; set; } = new();
+    public List<string> HiddenPluginInternalName { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets a list of favorite plugins.
+    /// </summary>
+    public List<string> FavoritePluginInternalName { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets a list of pinned plugins.
+    /// </summary>
+    public List<string> PinnedPluginInternalName { get; set; } = [];
 
     /// <summary>
     /// Gets or sets a list of seen plugins.
     /// </summary>
-    public List<string> SeenPluginInternalName { get; set; } = new();
+    public List<string> SeenPluginInternalName { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets a value indicating whether developer mode is enabled.
+    /// </summary>
+    public bool? DevMode { get; set; }
 
     /// <summary>
     /// Gets or sets a list of additional settings for devPlugins. The key is the absolute path
@@ -136,14 +153,14 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// However by specifiying this value manually, you can add arbitrary files outside the normal
     /// file paths.
     /// </summary>
-    public Dictionary<string, DevPluginSettings> DevPluginSettings { get; set; } = new();
+    public Dictionary<string, DevPluginSettings> DevPluginSettings { get; set; } = [];
 
     /// <summary>
     /// Gets or sets a list of additional locations that dev plugins should be loaded from. This can
     /// be either a DLL or folder, but should be the absolute path, or a path relative to the currently
     /// injected Dalamud instance.
     /// </summary>
-    public List<DevPluginLocationSettings> DevPluginLoadLocations { get; set; } = new();
+    public List<DevPluginLocationSettings> DevPluginLoadLocations { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the global UI scale.
@@ -151,21 +168,9 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public float GlobalUiScale { get; set; } = 1.0f;
 
     /// <summary>
-    /// Gets or sets a value indicating whether to use AXIS fonts from the game.
-    /// </summary>
-    [Obsolete($"See {nameof(DefaultFontSpec)}")]
-    public bool UseAxisFontsFromGame { get; set; } = true;
-
-    /// <summary>
     /// Gets or sets the default font spec.
     /// </summary>
     public IFontSpec? DefaultFontSpec { get; set; }
-
-    /// <summary>
-    /// Gets or sets the gamma value to apply for Dalamud fonts. Do not use.
-    /// </summary>
-    [Obsolete("It happens that nobody touched this setting", true)]
-    public float FontGammaLevel { get; set; } = 1.4f;
 
     /// <summary>Gets or sets the opacity of the IME state indicator.</summary>
     /// <value>0 will hide the state indicator. 1 will make the state indicator fully visible. Values outside the
@@ -174,38 +179,38 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public float ImeStateIndicatorOpacity { get; set; } = 1f;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not plugin UI should be hidden.
+    /// Gets or sets a value indicating whether plugin UI should be hidden.
     /// </summary>
     public bool ToggleUiHide { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not plugin UI should be hidden during cutscenes.
+    /// Gets or sets a value indicating whether plugin UI should be hidden during cutscenes.
     /// </summary>
     public bool ToggleUiHideDuringCutscenes { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not plugin UI should be hidden during GPose.
+    /// Gets or sets a value indicating whether plugin UI should be hidden during GPose.
     /// </summary>
     public bool ToggleUiHideDuringGpose { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not a message containing Dalamud's current version and the number of loaded plugins should be sent at login.
+    /// Gets or sets a value indicating whether a message containing Dalamud's current version and the number of loaded plugins should be sent at login.
     /// </summary>
     public bool PrintDalamudWelcomeMsg { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not a message containing detailed plugin information should be sent at login.
+    /// Gets or sets a value indicating whether a message containing detailed plugin information should be sent at login.
     /// </summary>
     public bool PrintPluginsWelcomeMsg { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not plugins should be auto-updated.
+    /// Gets or sets a value indicating whether plugins should be auto-updated.
     /// </summary>
     [Obsolete("Use AutoUpdateBehavior instead.")]
     public bool AutoUpdatePlugins { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not Dalamud should add buttons to the system menu.
+    /// Gets or sets a value indicating whether Dalamud should add buttons to the system menu.
     /// </summary>
     public bool DoButtonsSystemMenu { get; set; } = true;
 
@@ -220,12 +225,12 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool LogSynchronously { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the debug log should scroll automatically.
+    /// Gets or sets a value indicating whether the debug log should scroll automatically.
     /// </summary>
     public bool LogAutoScroll { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the debug log should open at startup.
+    /// Gets or sets a value indicating whether the debug log should open at startup.
     /// </summary>
     public bool LogOpenAtStartup { get; set; }
 
@@ -237,32 +242,32 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// <summary>
     /// Gets or sets a list representing the command history for the Dalamud Console.
     /// </summary>
-    public List<string> LogCommandHistory { get; set; } = new();
+    public List<string> LogCommandHistory { get; set; } = [];
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the dev bar should open at startup.
+    /// Gets or sets a value indicating whether the dev bar should open at startup.
     /// </summary>
     public bool DevBarOpenAtStartup { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not ImGui asserts should be enabled at startup.
+    /// Gets or sets a value indicating whether ImGui asserts should be enabled at startup.
     /// </summary>
     public bool? ImGuiAssertsEnabledAtStartup { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not docking should be globally enabled in ImGui.
+    /// Gets or sets a value indicating whether docking should be globally enabled in ImGui.
     /// </summary>
     public bool IsDocking { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not plugin user interfaces should trigger sound effects.
+    /// Gets or sets a value indicating whether plugin user interfaces should trigger sound effects.
     /// This setting is effected by the in-game "System Sounds" option and volume.
     /// </summary>
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "ABI")]
-    public bool EnablePluginUISoundEffects { get; set; }
+    public bool EnablePluginUISoundEffects { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not an additional button allowing pinning and clickthrough options should be shown
+    /// Gets or sets a value indicating whether an additional button allowing pinning and clickthrough options should be shown
     /// on plugin title bars when using the Window System.
     /// </summary>
     public bool EnablePluginUiAdditionalOptions { get; set; } = true;
@@ -273,19 +278,19 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool IsDisableViewport { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not navigation via a gamepad should be globally enabled in ImGui.
+    /// Gets or sets a value indicating whether navigation via a gamepad should be globally enabled in ImGui.
     /// </summary>
     public bool IsGamepadNavigationEnabled { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not focus management is enabled.
+    /// Gets or sets a value indicating whether gamepad navigation turns off once the last navigable window closes.
     /// </summary>
-    public bool IsFocusManagementEnabled { get; set; } = true;
+    public bool AutoExitGamepadNavigation { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the anti-anti-debug check is enabled on startup.
+    /// Gets or sets a value indicating whether focus management is enabled.
     /// </summary>
-    public bool IsAntiAntiDebugEnabled { get; set; } = false;
+    public bool IsFocusManagementEnabled { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether to resume game main thread after plugins load.
@@ -293,12 +298,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool IsResumeGameAfterPluginLoad { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets the kind of beta to download when <see cref="DalamudBetaKey"/> matches the server value.
-    /// </summary>
-    public string? DalamudBetaKind { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether or not any plugin should be loaded when the game is started.
+    /// Gets or sets a value indicating whether any plugin should be loaded when the game is started.
     /// It is reset immediately when read.
     /// </summary>
     public bool PluginSafeMode { get; set; }
@@ -310,7 +310,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public int? PluginWaitBeforeFree { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not crashes during shutdown should be reported.
+    /// Gets or sets a value indicating whether crashes during shutdown should be reported.
     /// </summary>
     public bool ReportShutdownCrashes { get; set; }
 
@@ -332,6 +332,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public string ChosenStyle { get; set; } = "Dalamud Standard";
 
     /// <summary>
+    /// Gets or sets per-character style assignments.
+    /// </summary>
+    public List<CharacterStyleAssignment> CharacterStyleAssignments { get; set; } = [];
+
+    /// <summary>
     /// Gets or sets a list of saved plugin profiles.
     /// </summary>
     public List<ProfileModel>? SavedProfiles { get; set; }
@@ -342,12 +347,12 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public ProfileModel? DefaultProfile { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not profiles are enabled.
+    /// Gets or sets a value indicating whether profiles are enabled.
     /// </summary>
     public bool ProfilesEnabled { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the user has seen the profiles tutorial.
+    /// Gets or sets a value indicating whether the user has seen the profiles tutorial.
     /// </summary>
     public bool ProfilesHasSeenTutorial { get; set; } = false;
 
@@ -391,7 +396,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool? ReduceMotions { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not market board data should be uploaded.
+    /// Gets or sets a value indicating whether market board data should be uploaded.
     /// </summary>
     public bool IsMbCollect { get; set; } = true;
 
@@ -427,7 +432,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to show info on dev bar.
+    /// Gets or sets a value indicating whether to show info on dev bar.
     /// </summary>
     public bool ShowDevBarInfo { get; set; } = true;
 
@@ -502,25 +507,60 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool SendUpdateNotificationToChat { get; set; } = false;
 
     /// <summary>
+    /// Gets or sets a value indicating whether disabled plugins should be auto-updated.
+    /// </summary>
+    public bool UpdateDisabledPlugins { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether disabled plugins should be updated when updating manually.
+    /// </summary>
+    public bool UpdateDisabledPluginsOnManualUpdate { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets a value indicating where notifications are anchored to on the screen.
+    /// </summary>
+    public Vector2 NotificationAnchorPosition { get; set; } = new(1f, 1f);
+
+    /// <summary>
+    /// Gets or sets a value indicating whether seasonal events, such as April Fools, should be allowed to run.
+    /// </summary>
+    public bool AllowSeasonalEvents { get; set; } = true;
+
+#pragma warning disable SA1600
+#pragma warning disable SA1516
+    // XLCore/XoM compatibility until they move it out
+    public string? DalamudBetaKey { get; set; } = null;
+    public string? DalamudBetaKind { get; set; }
+#pragma warning restore SA1516
+#pragma warning restore SA1600
+
+    /// <summary>
+    /// Gets or sets a list of badge passwords used to unlock badges.
+    /// </summary>
+    public List<string> UsedBadgePasswords { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets a value indicating whether badges should be shown on the title screen.
+    /// </summary>
+    public bool ShowBadgesOnTitleScreen { get; set; } = true;
+
+    /// <summary>
     /// Load a configuration from the provided path.
     /// </summary>
     /// <param name="path">Path to read from.</param>
     /// <param name="fs">File storage.</param>
     /// <returns>The deserialized configuration file.</returns>
-    public static DalamudConfiguration Load(string path, ReliableFileStorage fs)
+    public static async Task<DalamudConfiguration> Load(string path, ReliableFileStorage fs)
     {
         DalamudConfiguration deserialized = null;
 
         try
         {
-            fs.ReadAllText(path, text =>
+            await fs.ReadAllTextAsync(path, text =>
             {
-                deserialized =
-                    JsonConvert.DeserializeObject<DalamudConfiguration>(text, SerializerSettings);
-
                 // If this reads as null, the file was empty, that's no good
-                if (deserialized == null)
-                    throw new Exception("Read config was null.");
+                deserialized = JsonConvert.DeserializeObject<DalamudConfiguration>(text, SerializerSettings)
+                    ?? throw new Exception("Read config was null.");
             });
         }
         catch (FileNotFoundException)
@@ -529,7 +569,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         }
         catch (Exception e)
         {
-            Log.Error(e, "Could not load DalamudConfiguration at {Path}, creating new", path);
+            Log.Error(e, "Could not load configuration at {Path}, creating new", path);
         }
 
         deserialized ??= new DalamudConfiguration();
@@ -538,10 +578,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         try
         {
             deserialized.SetDefaults();
+            deserialized.Cleanup();
         }
         catch (Exception e)
         {
-            Log.Error(e, "Failed to set defaults for DalamudConfiguration");
+            Log.Error(e, "Failed to set defaults or cleanup");
         }
 
         return deserialized;
@@ -561,6 +602,8 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public void ForceSave()
     {
         this.Save();
+        this.isSaveQueued = false;
+        this.writeTask?.GetAwaiter().GetResult();
     }
 
     /// <inheritdoc/>
@@ -582,8 +625,6 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         {
             this.Save();
             this.isSaveQueued = false;
-
-            Log.Verbose("Config saved");
         }
     }
 
@@ -595,11 +636,15 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         {
             // https://source.chromium.org/chromium/chromium/src/+/main:ui/gfx/animation/animation_win.cc;l=29?q=ReducedMotion&ss=chromium
             var winAnimEnabled = 0;
-            var success = NativeFunctions.SystemParametersInfo(
-                (uint)NativeFunctions.AccessibilityParameter.SPI_GETCLIENTAREAANIMATION,
-                0,
-                ref winAnimEnabled,
-                0);
+            bool success;
+            unsafe
+            {
+                success = Windows.Win32.PInvoke.SystemParametersInfo(
+                    SYSTEM_PARAMETERS_INFO_ACTION.SPI_GETCLIENTAREAANIMATION,
+                    0,
+                    &winAnimEnabled,
+                    0);
+            }
 
             if (!success)
             {
@@ -616,7 +661,15 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         this.AutoUpdateBehavior ??= this.AutoUpdatePlugins
                                         ? Plugin.Internal.AutoUpdate.AutoUpdateBehavior.UpdateAll
                                         : Plugin.Internal.AutoUpdate.AutoUpdateBehavior.OnlyNotify;
+
+        this.DevMode ??= this.DevPluginLoadLocations.Count != 0 || this.DevBarOpenAtStartup;
 #pragma warning restore CS0618
+    }
+
+    private void Cleanup()
+    {
+        // Unsure of the cause, but a null URL repo is possible
+        this.ThirdRepoList.RemoveAll(repo => repo.Url.IsNullOrEmpty());
     }
 
     private void Save()
@@ -628,19 +681,33 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         // Wait for previous write to finish
         this.writeTask?.Wait();
 
-        this.writeTask = Task.Run(() =>
+        this.writeTask = Task.Run(async () =>
         {
-            Service<ReliableFileStorage>.Get().WriteAllText(
-                this.configPath,
-                JsonConvert.SerializeObject(this, SerializerSettings));
+            await Service<ReliableFileStorage>.Get().WriteAllTextAsync(
+                                                   this.configPath,
+                                                   JsonConvert.SerializeObject(this, SerializerSettings));
+            Log.Verbose("Configuration saved");
         }).ContinueWith(t =>
         {
             if (t.IsFaulted)
             {
-                Log.Error(t.Exception, "Failed to save DalamudConfiguration to {Path}", this.configPath);
+                Log.Error(
+                    t.Exception,
+                    "Failed to save configuration to {Path}",
+                    this.configPath);
             }
         });
 
-        this.DalamudConfigurationSaved?.Invoke(this);
+        foreach (var action in Delegate.EnumerateInvocationList(this.DalamudConfigurationSaved))
+        {
+            try
+            {
+                action(this);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during raise of {handler}", action.Method);
+            }
+        }
     }
 }

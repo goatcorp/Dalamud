@@ -1,17 +1,16 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Text;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Windowing;
 using Dalamud.Storage.Assets;
-using Dalamud.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -20,11 +19,11 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class ImGuiWidget : IDataWindowWidget
 {
-    private readonly HashSet<IActiveNotification> notifications = new();
+    private readonly HashSet<IActiveNotification> notifications = [];
     private NotificationTemplate notificationTemplate;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "imgui" };
+    public string[]? CommandShortcuts { get; init; } = ["imgui"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "ImGui";
@@ -50,106 +49,67 @@ internal class ImGuiWidget : IDataWindowWidget
         ImGui.Text("Monitor count: " + ImGui.GetPlatformIO().Monitors.Size);
         ImGui.Text("OverrideGameCursor: " + interfaceManager.OverrideGameCursor);
 
-        ImGui.Button("THIS IS A BUTTON###hoverTestButton");
+        ImGui.Button("THIS IS A BUTTON###hoverTestButton"u8);
         interfaceManager.OverrideGameCursor = !ImGui.IsItemHovered();
 
         ImGui.Separator();
 
-        ImGui.TextUnformatted(
-            $"WindowSystem.TimeSinceLastAnyFocus: {WindowSystem.TimeSinceLastAnyFocus.TotalMilliseconds:0}ms");
+        ImGui.Text($"WindowSystem.TimeSinceLastAnyFocus: {WindowSystem.TimeSinceLastAnyFocus.TotalMilliseconds:0}ms");
 
         ImGui.Separator();
 
-        ImGui.Checkbox("##manualContent", ref this.notificationTemplate.ManualContent);
+        ImGui.Checkbox("##manualContent"u8, ref this.notificationTemplate.ManualContent);
         ImGui.SameLine();
-        ImGui.InputText("Content##content", ref this.notificationTemplate.Content, 255);
+        ImGui.InputText("Content##content"u8, ref this.notificationTemplate.Content, 255);
 
-        ImGui.Checkbox("##manualTitle", ref this.notificationTemplate.ManualTitle);
+        ImGui.Checkbox("##manualTitle"u8, ref this.notificationTemplate.ManualTitle);
         ImGui.SameLine();
-        ImGui.InputText("Title##title", ref this.notificationTemplate.Title, 255);
+        ImGui.InputText("Title##title"u8, ref this.notificationTemplate.Title, 255);
 
-        ImGui.Checkbox("##manualMinimizedText", ref this.notificationTemplate.ManualMinimizedText);
+        ImGui.Checkbox("##manualMinimizedText"u8, ref this.notificationTemplate.ManualMinimizedText);
         ImGui.SameLine();
-        ImGui.InputText("MinimizedText##minimizedText", ref this.notificationTemplate.MinimizedText, 255);
+        ImGui.InputText("MinimizedText##minimizedText"u8, ref this.notificationTemplate.MinimizedText, 255);
 
-        ImGui.Checkbox("##manualType", ref this.notificationTemplate.ManualType);
+        ImGui.Checkbox("##manualType"u8, ref this.notificationTemplate.ManualType);
         ImGui.SameLine();
-        ImGui.Combo(
-            "Type##type",
-            ref this.notificationTemplate.TypeInt,
-            NotificationTemplate.TypeTitles,
-            NotificationTemplate.TypeTitles.Length);
+        ImGui.Combo("Type##type", ref this.notificationTemplate.TypeInt, NotificationTemplate.TypeTitles);
 
-        ImGui.Combo(
-            "Icon##iconCombo",
-            ref this.notificationTemplate.IconInt,
-            NotificationTemplate.IconTitles,
-            NotificationTemplate.IconTitles.Length);
+        ImGui.Combo("Icon##iconCombo", ref this.notificationTemplate.IconInt, NotificationTemplate.IconTitles);
         switch (this.notificationTemplate.IconInt)
         {
             case 1 or 2:
-                ImGui.InputText(
-                    "Icon Text##iconText",
-                    ref this.notificationTemplate.IconText,
-                    255);
+                ImGui.InputText("Icon Text##iconText"u8, ref this.notificationTemplate.IconText, 255);
                 break;
             case 5 or 6:
-                ImGui.Combo(
-                    "Asset##iconAssetCombo",
-                    ref this.notificationTemplate.IconAssetInt,
-                    NotificationTemplate.AssetSources,
-                    NotificationTemplate.AssetSources.Length);
+                ImGui.Combo("Asset##iconAssetCombo", ref this.notificationTemplate.IconAssetInt, NotificationTemplate.AssetSources);
                 break;
             case 3 or 7:
-                ImGui.InputText(
-                    "Game Path##iconText",
-                    ref this.notificationTemplate.IconText,
-                    255);
+                ImGui.InputText("Game Path##iconText"u8, ref this.notificationTemplate.IconText, 255);
                 break;
             case 4 or 8:
-                ImGui.InputText(
-                    "File Path##iconText",
-                    ref this.notificationTemplate.IconText,
-                    255);
+                ImGui.InputText("File Path##iconText"u8, ref this.notificationTemplate.IconText, 255);
                 break;
         }
 
-        ImGui.Combo(
-            "Initial Duration",
-            ref this.notificationTemplate.InitialDurationInt,
-            NotificationTemplate.InitialDurationTitles,
-            NotificationTemplate.InitialDurationTitles.Length);
+        ImGui.Combo("Initial Duration", ref this.notificationTemplate.InitialDurationInt, NotificationTemplate.InitialDurationTitles);
 
-        ImGui.Combo(
-            "Extension Duration",
-            ref this.notificationTemplate.HoverExtendDurationInt,
-            NotificationTemplate.HoverExtendDurationTitles,
-            NotificationTemplate.HoverExtendDurationTitles.Length);
+        ImGui.Combo("Extension Duration", ref this.notificationTemplate.HoverExtendDurationInt, NotificationTemplate.HoverExtendDurationTitles);
 
-        ImGui.Combo(
-            "Progress",
-            ref this.notificationTemplate.ProgressMode,
-            NotificationTemplate.ProgressModeTitles,
-            NotificationTemplate.ProgressModeTitles.Length);
+        ImGui.Combo("Progress", ref this.notificationTemplate.ProgressMode, NotificationTemplate.ProgressModeTitles);
 
-        ImGui.Checkbox("Respect UI Hidden", ref this.notificationTemplate.RespectUiHidden);
+        ImGui.Checkbox("Respect UI Hidden"u8, ref this.notificationTemplate.RespectUiHidden);
 
-        ImGui.Checkbox("Minimized", ref this.notificationTemplate.Minimized);
+        ImGui.Checkbox("Minimized"u8, ref this.notificationTemplate.Minimized);
 
-        ImGui.Checkbox("Show Indeterminate If No Expiry", ref this.notificationTemplate.ShowIndeterminateIfNoExpiry);
+        ImGui.Checkbox("Show Indeterminate If No Expiry"u8, ref this.notificationTemplate.ShowIndeterminateIfNoExpiry);
 
-        ImGui.Checkbox("User Dismissable", ref this.notificationTemplate.UserDismissable);
+        ImGui.Checkbox("User Dismissable"u8, ref this.notificationTemplate.UserDismissable);
 
-        ImGui.Checkbox(
-            "Action Bar (always on if not user dismissable for the example)",
-            ref this.notificationTemplate.ActionBar);
+        ImGui.Checkbox("Action Bar (always on if not user dismissable for the example)"u8, ref this.notificationTemplate.ActionBar);
 
-        ImGui.Checkbox("Leave Textures Open", ref this.notificationTemplate.LeaveTexturesOpen);
-
-        if (ImGui.Button("Add notification"))
+        if (ImGui.Button("Add notification"u8))
         {
-            var text =
-                "Bla bla bla bla bla bla bla bla bla bla bla.\nBla bla bla bla bla bla bla bla bla bla bla bla bla bla.";
+            var text = "Bla bla bla bla bla bla bla bla bla bla bla.\nBla bla bla bla bla bla bla bla bla bla bla bla bla bla.";
 
             NewRandom(out var title, out var type, out var progress);
             if (this.notificationTemplate.ManualTitle)
@@ -212,35 +172,34 @@ internal class ImGuiWidget : IDataWindowWidget
             switch (this.notificationTemplate.IconInt)
             {
                 case 5:
-                    n.SetIconTexture(
-                        DisposeLoggingTextureWrap.Wrap(
-                            dam.GetDalamudTextureWrap(
-                                Enum.Parse<DalamudAsset>(
-                                    NotificationTemplate.AssetSources[this.notificationTemplate.IconAssetInt]))),
-                        this.notificationTemplate.LeaveTexturesOpen);
-                    break;
-                case 6:
-                    n.SetIconTexture(
-                        dam.GetDalamudTextureWrapAsync(
-                               Enum.Parse<DalamudAsset>(
-                                   NotificationTemplate.AssetSources[this.notificationTemplate.IconAssetInt]))
-                           .ContinueWith(
-                               r => r.IsCompletedSuccessfully
-                                        ? Task.FromResult<IDalamudTextureWrap>(DisposeLoggingTextureWrap.Wrap(r.Result))
-                                        : r).Unwrap(),
-                        this.notificationTemplate.LeaveTexturesOpen);
+                    var textureWrap = DisposeLoggingTextureWrap.Wrap(
+                        dam.GetDalamudTextureWrap(
+                            Enum.Parse<DalamudAsset>(
+                                NotificationTemplate.AssetSources[this.notificationTemplate.IconAssetInt])));
+
+                    if (textureWrap != null)
+                    {
+                        n.IconTexture = new ForwardingSharedImmediateTexture(textureWrap);
+                    }
+
                     break;
                 case 7:
-                    n.SetIconTexture(
-                        DisposeLoggingTextureWrap.Wrap(
-                            tm.Shared.GetFromGame(this.notificationTemplate.IconText).GetWrapOrDefault()),
-                        this.notificationTemplate.LeaveTexturesOpen);
+                    var textureWrap2 = DisposeLoggingTextureWrap.Wrap(
+                        tm.Shared.GetFromGame(this.notificationTemplate.IconText).GetWrapOrDefault());
+                    if (textureWrap2 != null)
+                    {
+                        n.IconTexture = new ForwardingSharedImmediateTexture(textureWrap2);
+                    }
+
                     break;
                 case 8:
-                    n.SetIconTexture(
-                        DisposeLoggingTextureWrap.Wrap(
-                            tm.Shared.GetFromFile(this.notificationTemplate.IconText).GetWrapOrDefault()),
-                        this.notificationTemplate.LeaveTexturesOpen);
+                    var textureWrap3 = DisposeLoggingTextureWrap.Wrap(
+                        tm.Shared.GetFromFile(this.notificationTemplate.IconText).GetWrapOrDefault());
+                    if (textureWrap3 != null)
+                    {
+                        n.IconTexture = new ForwardingSharedImmediateTexture(textureWrap3);
+                    }
+
                     break;
             }
 
@@ -282,10 +241,10 @@ internal class ImGuiWidget : IDataWindowWidget
                 n.DrawActions += an =>
                 {
                     ImGui.AlignTextToFramePadding();
-                    ImGui.TextUnformatted($"{nclick}");
+                    ImGui.Text($"{nclick}");
 
                     ImGui.SameLine();
-                    if (ImGui.Button("Update"))
+                    if (ImGui.Button("Update"u8))
                     {
                         NewRandom(out title, out type, out progress);
                         an.Notification.Title = title;
@@ -294,24 +253,24 @@ internal class ImGuiWidget : IDataWindowWidget
                     }
 
                     ImGui.SameLine();
-                    if (ImGui.Button("Dismiss"))
+                    if (ImGui.Button("Dismiss"u8))
                         an.Notification.DismissNow();
 
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(an.MaxCoord.X - ImGui.GetCursorPosX());
-                    ImGui.InputText("##input", ref testString, 255);
+                    ImGui.InputText("##input"u8, ref testString, 255);
                 };
             }
         }
-        
+
         ImGui.SameLine();
-        if (ImGui.Button("Replace images using setter"))
+        if (ImGui.Button("Replace images using setter"u8))
         {
             foreach (var n in this.notifications)
             {
                 var i = (uint)Random.Shared.NextInt64(0, 200000);
-                n.IconTexture = DisposeLoggingTextureWrap.Wrap(
-                    Service<TextureManager>.Get().Shared.GetFromGameIcon(new(i)).GetWrapOrDefault());
+
+                n.IconTexture = Service<TextureManager>.Get().Shared.GetFromGameIcon(new(i, false, false));
             }
         }
     }
@@ -350,7 +309,7 @@ internal class ImGuiWidget : IDataWindowWidget
     private struct NotificationTemplate
     {
         public static readonly string[] IconTitles =
-        {
+        [
             "None (use Type)",
             "SeIconChar",
             "FontAwesomeIcon",
@@ -360,7 +319,7 @@ internal class ImGuiWidget : IDataWindowWidget
             "TextureWrap from DalamudAssets(Async)",
             "TextureWrap from GamePath",
             "TextureWrap from FilePath",
-        };
+        ];
 
         public static readonly string[] AssetSources =
             Enum.GetValues<DalamudAsset>()
@@ -369,46 +328,46 @@ internal class ImGuiWidget : IDataWindowWidget
                 .ToArray();
 
         public static readonly string[] ProgressModeTitles =
-        {
+        [
             "Default",
             "Random",
             "Increasing",
             "Increasing & Auto Dismiss",
             "Indeterminate",
-        };
+        ];
 
         public static readonly string[] TypeTitles =
-        {
+        [
             nameof(NotificationType.None),
             nameof(NotificationType.Success),
             nameof(NotificationType.Warning),
             nameof(NotificationType.Error),
             nameof(NotificationType.Info),
-        };
+        ];
 
         public static readonly string[] InitialDurationTitles =
-        {
+        [
             "Infinite",
             "1 seconds",
             "3 seconds (default)",
             "10 seconds",
-        };
+        ];
 
         public static readonly string[] HoverExtendDurationTitles =
-        {
+        [
             "Disable",
             "1 seconds",
             "3 seconds (default)",
             "10 seconds",
-        };
+        ];
 
         public static readonly TimeSpan[] Durations =
-        {
+        [
             TimeSpan.Zero,
             TimeSpan.FromSeconds(1),
             NotificationConstants.DefaultDuration,
             TimeSpan.FromSeconds(10),
-        };
+        ];
 
         public bool ManualContent;
         public string Content;
@@ -428,7 +387,6 @@ internal class ImGuiWidget : IDataWindowWidget
         public bool Minimized;
         public bool UserDismissable;
         public bool ActionBar;
-        public bool LeaveTexturesOpen;
         public int ProgressMode;
 
         public void Reset()
@@ -450,7 +408,6 @@ internal class ImGuiWidget : IDataWindowWidget
             this.Minimized = true;
             this.UserDismissable = true;
             this.ActionBar = true;
-            this.LeaveTexturesOpen = true;
             this.ProgressMode = 0;
             this.RespectUiHidden = true;
         }
@@ -462,7 +419,7 @@ internal class ImGuiWidget : IDataWindowWidget
 
         public DisposeLoggingTextureWrap(IDalamudTextureWrap inner) => this.inner = inner;
 
-        public nint ImGuiHandle => this.inner.ImGuiHandle;
+        public ImTextureID Handle => this.inner.Handle;
 
         public int Width => this.inner.Width;
 

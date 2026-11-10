@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.Sanitizer;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings;
@@ -15,27 +15,27 @@ using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
+using Dalamud.Plugin.VersionInfo;
 
 namespace Dalamud.Plugin;
 
 /// <summary>
 /// This interface acts as an interface to various objects needed to interact with Dalamud and the game.
 /// </summary>
-public interface IDalamudPluginInterface
+public interface IDalamudPluginInterface : IServiceProvider
 {
     /// <summary>
     /// Delegate for localization change with two-letter iso lang code.
     /// </summary>
     /// <param name="langCode">The new language code.</param>
-    public delegate void LanguageChangedDelegate(string langCode);
+    delegate void LanguageChangedDelegate(string langCode);
 
     /// <summary>
     /// Delegate for events that listen to changes to the list of active plugins.
     /// </summary>
-    /// <param name="kind">What action caused this event to be fired.</param>
-    /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
-    public delegate void ActivePluginsChangedDelegate(PluginListInvalidationKind kind, bool affectedThisPlugin);
-    
+    /// <param name="args">The event arguments containing information about the change.</param>
+    delegate void ActivePluginsChangedDelegate(IActivePluginsChangedEventArgs args);
+
     /// <summary>
     /// Event that gets fired when loc is changed
     /// </summary>
@@ -52,7 +52,7 @@ public interface IDalamudPluginInterface
     PluginLoadReason Reason { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not auto-updates have already completed this session.
+    /// Gets a value indicating whether auto-updates have already completed this session.
     /// </summary>
     bool IsAutoUpdateComplete { get; }
 
@@ -69,6 +69,11 @@ public interface IDalamudPluginInterface
     /// Gets the current internal plugin name.
     /// </summary>
     string InternalName { get; }
+
+    /// <summary>
+    /// Gets the unique working plugin ID set by Dalamud.
+    /// </summary>
+    Guid WorkingPluginId { get; }
 
     /// <summary>
     /// Gets the plugin's manifest.
@@ -89,6 +94,11 @@ public interface IDalamudPluginInterface
     bool IsTesting { get; }
 
     /// <summary>
+    /// Gets a value indicating whether this plugin's load status is controlled by a profile/collection.
+    /// </summary>
+    bool IsInProfile { get; }
+
+    /// <summary>
     /// Gets the time that this plugin was loaded.
     /// </summary>
     DateTime LoadTime { get; }
@@ -107,6 +117,11 @@ public interface IDalamudPluginInterface
     /// Gets the directory Dalamud assets are stored in.
     /// </summary>
     DirectoryInfo DalamudAssetDirectory { get; }
+
+    /// <summary>
+    /// Gets your plugin's Assembly.
+    /// </summary>
+    Assembly Assembly { get; }
 
     /// <summary>
     /// Gets the location of your plugin assembly.
@@ -137,6 +152,13 @@ public interface IDalamudPluginInterface
     /// Gets a value indicating whether a debugger is attached.
     /// </summary>
     bool IsDebugging { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the user wants to allow seasonal events, such as April Fools, to be to run.
+    /// Certain users may not wish to be affected by these and may disable them globally.
+    /// We recommend that plugins check this value before running any seasonal event code, and disable or hide such features if this is false.
+    /// </summary>
+    bool AllowSeasonalEvents { get; }
 
     /// <summary>
     /// Gets the current UI language in two-letter iso format.
@@ -179,6 +201,26 @@ public interface IDalamudPluginInterface
     /// </summary>
     /// <returns>Returns false if the DalamudInterface was null.</returns>
     bool OpenDeveloperMenu();
+
+    /// <summary>
+    /// Gets the plugin the given assembly is part of.
+    /// </summary>
+    /// <param name="assembly">The assembly to check.</param>
+    /// <returns>The plugin the given assembly is part of, or null if this is a shared assembly or if this information cannot be determined.</returns>
+    IExposedPlugin? GetPlugin(Assembly assembly);
+
+    /// <summary>
+    /// Gets the plugin that loads in the given context.
+    /// </summary>
+    /// <param name="context">The context to check.</param>
+    /// <returns>The plugin that loads in the given context, or null if this isn't a plugin's context or if this information cannot be determined.</returns>
+    IExposedPlugin? GetPlugin(AssemblyLoadContext context);
+
+    /// <summary>
+    /// Gets information about the version of Dalamud this plugin is loaded into.
+    /// </summary>
+    /// <returns>Class containing version information.</returns>
+    IDalamudVersionInfo GetDalamudVersion();
 
     /// <inheritdoc cref="DataShare.GetOrCreateData{T}"/>
     T GetOrCreateData<T>(string tag, Func<T> dataGenerator) where T : class;
@@ -282,25 +324,6 @@ public interface IDalamudPluginInterface
     string GetPluginLocDirectory();
 
     /// <summary>
-    /// Register a chat link handler.
-    /// </summary>
-    /// <param name="commandId">The ID of the command.</param>
-    /// <param name="commandAction">The action to be executed.</param>
-    /// <returns>Returns an SeString payload for the link.</returns>
-    DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction);
-
-    /// <summary>
-    /// Remove a chat link handler.
-    /// </summary>
-    /// <param name="commandId">The ID of the command.</param>
-    void RemoveChatLinkHandler(uint commandId);
-
-    /// <summary>
-    /// Removes all chat link handlers registered by the plugin.
-    /// </summary>
-    void RemoveChatLinkHandler();
-
-    /// <summary>
     /// Create a new object of the provided type using its default constructor, then inject objects and properties.
     /// </summary>
     /// <param name="scopedObjects">Objects to inject additionally.</param>
@@ -331,4 +354,12 @@ public interface IDalamudPluginInterface
     /// <param name="scopedObjects">Objects to inject additionally.</param>
     /// <returns>A <see cref="ValueTask"/> representing the status of the operation.</returns>
     Task InjectAsync(object instance, params object[] scopedObjects);
+
+    /// <summary>
+    /// Check for updates for this plugin, returning information about the latest version if available.
+    /// Does not actually re-request data from the remote repository, but will wait for a pending reload if one is in progress.
+    /// Reloads happen at periodic intervals (10 minutes) so data will stay relatively fresh.
+    /// </summary>
+    /// <returns>A record containing details about the update, or null if no update is available.</returns>
+    Task<PluginUpdate?> CheckForUpdateAsync();
 }

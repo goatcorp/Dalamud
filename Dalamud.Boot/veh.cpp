@@ -1,17 +1,21 @@
-#include "pch.h"
+#include <chrono>
+#include <filesystem>
+#include <mutex>
+
+#include <Windows.h>
+#include <PathCch.h>
+#include <shellapi.h>
 
 #include "veh.h"
 
-#include <shellapi.h>
-
+#include "clr_host.h"
+#include "globals.h"
 #include "logging.h"
 #include "utils.h"
 #include "hooks.h"
 
 #include "crashhandler_shared.h"
 #include "DalamudStartInfo.h"
-
-#pragma comment(lib, "comctl32.lib")
 
 #if defined _M_IX86
 #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
@@ -30,6 +34,8 @@ std::optional<hooks::import_hook<decltype(SetUnhandledExceptionFilter)>> g_HookS
 HANDLE g_crashhandler_process = nullptr;
 HANDLE g_crashhandler_event = nullptr;
 HANDLE g_crashhandler_pipe_write = nullptr;
+
+wchar_t g_external_event_info[16384] = L"";
 
 std::recursive_mutex g_exception_handler_mutex;
 
@@ -102,9 +108,13 @@ bool is_ffxiv_address(const wchar_t* module_name, const DWORD64 address)
     return false;
 }
 
-static void append_injector_launch_args(std::vector<std::wstring>& args)
+static DalamudExpected<void> append_injector_launch_args(std::vector<std::wstring>& args)
 {
-    args.emplace_back(L"--game=\"" + utils::loaded_module::current_process().path().wstring() + L"\"");
+    if (auto path = utils::loaded_module::current_process().path())
+        args.emplace_back(L"--game=\"" + path->wstring() + L"\"");
+    else
+        return DalamudUnexpected(std::in_place, std::move(path.error()));
+
     switch (g_startInfo.DalamudLoadMethod) {
     case DalamudStartInfo::LoadMethod::Entrypoint:
         args.emplace_back(L"--mode=entrypoint");
@@ -118,6 +128,7 @@ static void append_injector_launch_args(std::vector<std::wstring>& args)
     args.emplace_back(L"--logname=\"" + unicode::convert<std::wstring>(g_startInfo.LogName) + L"\"");
     args.emplace_back(L"--dalamud-plugin-directory=\"" + unicode::convert<std::wstring>(g_startInfo.PluginDirectory) + L"\"");
     args.emplace_back(L"--dalamud-asset-directory=\"" + unicode::convert<std::wstring>(g_startInfo.AssetDirectory) + L"\"");
+    args.emplace_back(L"--dalamud-temp-directory=\"" + unicode::convert<std::wstring>(g_startInfo.TempDirectory) + L"\"");
     args.emplace_back(std::format(L"--dalamud-client-language={}", static_cast<int>(g_startInfo.Language)));
     args.emplace_back(std::format(L"--dalamud-delay-initialize={}", g_startInfo.DelayInitializeMs));
     // NoLoadPlugins/NoLoadThirdPartyPlugins: supplied from DalamudCrashHandler
@@ -155,6 +166,8 @@ static void append_injector_launch_args(std::vector<std::wstring>& args)
             args.emplace_back(szArgList[i]);
         LocalFree(szArgList);
     }
+
+    return {};
 }
 
 LONG exception_handler(EXCEPTION_POINTERS* ex)
@@ -184,22 +197,13 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     DuplicateHandle(GetCurrentProcess(), g_crashhandler_event, g_crashhandler_process, &exinfo.hEventHandle, 0, TRUE, DUPLICATE_SAME_ACCESS);
 
     std::wstring stackTrace;
-    if (!g_clr)
+    if (ex->ExceptionRecord->ExceptionCode == CUSTOM_EXCEPTION_EXTERNAL_EVENT)
     {
-        stackTrace = L"(no CLR stack trace available)";
+        stackTrace = std::wstring(g_external_event_info);
     }
-    else if (void* fn; const auto err = static_cast<DWORD>(g_clr->get_function_pointer(
-        L"Dalamud.EntryPoint, Dalamud",
-        L"VehCallback",
-        L"Dalamud.EntryPoint+VehDelegate, Dalamud",
-        nullptr, nullptr, &fn)))
+    else if (!g_clr)
     {
-        stackTrace = std::format(L"Failed to read stack trace: 0x{:08x}", err);
-    }
-    else
-    {
-        stackTrace = static_cast<wchar_t*(*)()>(fn)();
-        // Don't free it, as the program's going to be quit anyway
+        stackTrace = L"(CLR was not loaded)";
     }
 
     exinfo.dwStackTraceLength = static_cast<DWORD>(stackTrace.size());
@@ -245,6 +249,12 @@ LONG WINAPI structured_exception_handler(EXCEPTION_POINTERS* ex)
 
 LONG WINAPI vectored_exception_handler(EXCEPTION_POINTERS* ex)
 {
+    // special case for CLR exceptions, always trigger crash handler
+    if (ex->ExceptionRecord->ExceptionCode == CUSTOM_EXCEPTION_EXTERNAL_EVENT)
+    {
+        return exception_handler(ex);
+    }
+
     if (ex->ExceptionRecord->ExceptionCode == 0x12345678)
     {
         // pass
@@ -262,13 +272,13 @@ LONG WINAPI vectored_exception_handler(EXCEPTION_POINTERS* ex)
 
         if (!is_ffxiv_address(L"ffxiv_dx11.exe", ex->ContextRecord->Rip) &&
             !is_ffxiv_address(L"cimgui.dll", ex->ContextRecord->Rip))
-            return EXCEPTION_CONTINUE_SEARCH;   
+            return EXCEPTION_CONTINUE_SEARCH;
     }
 
     return exception_handler(ex);
 }
 
-bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
+bool veh::add_handler(bool doFullDump, const std::string& workingDirectory, const std::wstring& bootLogPath, bool bootConsole)
 {
     if (g_veh_handle)
         return false;
@@ -291,7 +301,7 @@ bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
     if (HANDLE hReadPipeRaw, hWritePipeRaw; CreatePipe(&hReadPipeRaw, &hWritePipeRaw, nullptr, 65536))
     {
         hWritePipe.emplace(hWritePipeRaw, &CloseHandle);
-        
+
         if (HANDLE hReadPipeInheritableRaw; DuplicateHandle(GetCurrentProcess(), hReadPipeRaw, GetCurrentProcess(), &hReadPipeInheritableRaw, 0, TRUE, DUPLICATE_SAME_ACCESS | DUPLICATE_CLOSE_SOURCE))
         {
             hReadPipeInheritable.emplace(hReadPipeInheritableRaw, &CloseHandle);
@@ -309,9 +319,9 @@ bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
     }
 
     // additional information
-    STARTUPINFOEXW siex{};     
+    STARTUPINFOEXW siex{};
     PROCESS_INFORMATION pi{};
-    
+
     siex.StartupInfo.cb = sizeof siex;
     siex.StartupInfo.dwFlags = STARTF_USESHOWWINDOW;
     siex.StartupInfo.wShowWindow = g_startInfo.CrashHandlerShow ? SW_SHOW : SW_HIDE;
@@ -358,11 +368,24 @@ bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
     args.emplace_back(std::format(L"--process-handle={}", reinterpret_cast<size_t>(hInheritableCurrentProcess)));
     args.emplace_back(std::format(L"--exception-info-pipe-read-handle={}", reinterpret_cast<size_t>(hReadPipeInheritable->get())));
     args.emplace_back(std::format(L"--asset-directory={}", unicode::convert<std::wstring>(g_startInfo.AssetDirectory)));
-    args.emplace_back(std::format(L"--log-directory={}", g_startInfo.BootLogPath.empty()
-        ? utils::loaded_module(g_hModule).path().parent_path().wstring()
-        : std::filesystem::path(unicode::convert<std::wstring>(g_startInfo.BootLogPath)).parent_path().wstring()));
+    if (const auto path = utils::loaded_module(g_hModule).path()) {
+        args.emplace_back(std::format(L"--log-directory={}", g_startInfo.BootLogPath.empty()
+            ? path->parent_path().wstring()
+            : std::filesystem::path(unicode::convert<std::wstring>(g_startInfo.BootLogPath)).parent_path().wstring()));
+    } else {
+        logging::W("Failed to read path of the Dalamud Boot module: {}", path.error().describe());
+        return false;
+    }
+    if (!bootLogPath.empty())
+        args.emplace_back(std::format(L"--log-path={}", bootLogPath));
+    if (bootConsole)
+        args.emplace_back(L"--console");
+
     args.emplace_back(L"--");
-    append_injector_launch_args(args);
+    if (auto r = append_injector_launch_args(args); !r) {
+        logging::W("Failed to generate injector launch args: {}", r.error().describe());
+        return false;
+    }
 
     for (const auto& arg : args)
     {
@@ -370,7 +393,7 @@ bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
         argstr.push_back(L' ');
     }
     argstr.pop_back();
-    
+
     if (!handles.empty() && !UpdateProcThreadAttribute(siex.lpAttributeList, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST, &handles[0], std::span(handles).size_bytes(), nullptr, nullptr))
     {
         logging::W("Failed to launch DalamudCrashHandler.exe: UpdateProcThreadAttribute error 0x{:x}", GetLastError());
@@ -385,7 +408,7 @@ bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
         TRUE,                          // Set handle inheritance to FALSE
         EXTENDED_STARTUPINFO_PRESENT,  // lpStartupInfo actually points to a STARTUPINFOEX(W)
         nullptr,                       // Use parent's environment block
-        nullptr,                       // Use parent's starting directory 
+        nullptr,                       // Use parent's starting directory
         &siex.StartupInfo,             // Pointer to STARTUPINFO structure
         &pi                            // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
         ))
@@ -401,7 +424,7 @@ bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
     }
 
     CloseHandle(pi.hThread);
-    
+
     g_crashhandler_process = pi.hProcess;
     g_crashhandler_pipe_write = hWritePipe->release();
     logging::I("Launched DalamudCrashHandler.exe: PID {}", pi.dwProcessId);
@@ -418,4 +441,17 @@ bool veh::remove_handler()
         return true;
     }
     return false;
+}
+
+void veh::raise_external_event(const std::wstring& info)
+{
+    const auto info_size = std::min(info.size(), std::size(g_external_event_info) - 1);
+    wcsncpy_s(g_external_event_info, info.c_str(), info_size);
+    RaiseException(CUSTOM_EXCEPTION_EXTERNAL_EVENT, 0, 0, nullptr);
+}
+
+extern "C" __declspec(dllexport) void BootVehRaiseExternalEventW(LPCWSTR info)
+{
+    const std::wstring info_wstr(info);
+    veh::raise_external_event(info_wstr);
 }

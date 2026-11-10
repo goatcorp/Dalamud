@@ -1,5 +1,7 @@
 using System.Runtime.InteropServices;
 
+using Dalamud.Bindings.ImGui;
+using Dalamud.Game.NativeWrapper;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Interface.Utility;
@@ -18,8 +20,6 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-using ImGuiNET;
-
 using Vector2 = System.Numerics.Vector2;
 using Vector3 = System.Numerics.Vector3;
 using Vector4 = System.Numerics.Vector4;
@@ -32,7 +32,7 @@ namespace Dalamud.Game.Gui;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 {
-    private static readonly ModuleLog Log = new("GameGui");
+    private static readonly ModuleLog Log = ModuleLog.Create<GameGui>();
 
     private readonly GameGuiAddressResolver address;
 
@@ -43,6 +43,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     private readonly Hook<HandleImmDelegate> handleImmHook;
     private readonly Hook<RaptureAtkModule.Delegates.SetUiVisibility> setUiVisibilityHook;
     private readonly Hook<Utf8String.Delegates.Ctor_FromSequence> utf8StringFromSequenceHook;
+    private readonly Hook<RaptureAtkModule.Delegates.Update> raptureAtkModuleUpdateHook;
 
     [ServiceManager.ServiceConstructor]
     private GameGui(TargetSigScanner sigScanner)
@@ -65,6 +66,10 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
         this.utf8StringFromSequenceHook = Hook<Utf8String.Delegates.Ctor_FromSequence>.FromAddress(Utf8String.Addresses.Ctor_FromSequence.Value, this.Utf8StringFromSequenceDetour);
 
+        this.raptureAtkModuleUpdateHook = Hook<RaptureAtkModule.Delegates.Update>.FromFunctionPointerVariable(
+            new(&RaptureAtkModule.StaticVirtualTablePointer->Update),
+            this.RaptureAtkModuleUpdateDetour);
+
         this.handleItemHoverHook.Enable();
         this.handleItemOutHook.Enable();
         this.handleImmHook.Enable();
@@ -72,10 +77,11 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         this.handleActionHoverHook.Enable();
         this.handleActionOutHook.Enable();
         this.utf8StringFromSequenceHook.Enable();
+        this.raptureAtkModuleUpdateHook.Enable();
     }
 
     // Hooked delegates
-    
+
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate char HandleImmDelegate(IntPtr framework, char a2, byte a3);
 
@@ -89,6 +95,9 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     public event EventHandler<HoveredAction>? HoveredActionChanged;
 
     /// <inheritdoc/>
+    public event Action<AgentUpdateFlag> AgentUpdate;
+
+    /// <inheritdoc/>
     public bool GameUiHidden { get; private set; }
 
     /// <inheritdoc/>
@@ -100,6 +109,10 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     /// <inheritdoc/>
     public bool OpenMapWithMapLink(MapLinkPayload mapLink)
         => RaptureAtkModule.Instance()->OpenMapWithMapLink(mapLink.DataString);
+
+    /// <inheritdoc/>
+    public bool OpenMapWithMapLink(uint territory, uint map, Vector3 worldPos)
+        => RaptureAtkModule.Instance()->OpenMapWithMapLink($"m:{territory},{map},{(int)worldPos.X * 1000},{(int)worldPos.Z * 1000}");
 
     /// <inheritdoc/>
     public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
@@ -160,86 +173,91 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
             return false;
         }
 
-        var ray = camera->ScreenPointToRay(screenPos);
+        var ray = camera->ScreenPointToRay(screenPos - windowPos);
         var result = BGCollisionModule.RaycastMaterialFilter(ray.Origin, ray.Direction, out var hit);
         worldPos = hit.Point;
         return result;
     }
 
     /// <inheritdoc/>
-    public IntPtr GetUIModule()
+    public UIModulePtr GetUIModule()
     {
-        var framework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
-        if (framework == null)
-            return IntPtr.Zero;
-
-        var uiModule = framework->GetUIModule();
-        if (uiModule == null)
-            return IntPtr.Zero;
-
-        return (IntPtr)uiModule;
+        return UIModule.Instance();
     }
 
     /// <inheritdoc/>
-    public IntPtr GetAddonByName(string name, int index = 1)
+    public AtkUnitBasePtr GetAddonByName(string name, int index = 1)
     {
-        var atkStage = AtkStage.Instance();
-        if (atkStage == null)
-            return IntPtr.Zero;
+        var unitManager = RaptureAtkUnitManager.Instance();
+        if (unitManager == null)
+            return 0;
 
-        var unitMgr = atkStage->RaptureAtkUnitManager;
-        if (unitMgr == null)
-            return IntPtr.Zero;
-
-        var addon = unitMgr->GetAddonByName(name, index);
-        if (addon == null)
-            return IntPtr.Zero;
-
-        return (IntPtr)addon;
+        return unitManager->GetAddonByName(name, index);
     }
 
     /// <inheritdoc/>
-    public IntPtr FindAgentInterface(string addonName)
+    public AtkUnitBasePtr GetAddonByName(ReadOnlySpan<byte> name, int index = 1)
+    {
+        var unitManager = RaptureAtkUnitManager.Instance();
+        if (unitManager == null)
+            return 0;
+
+        return unitManager->GetAddonByName(name, index);
+    }
+
+    /// <inheritdoc/>
+    public T* GetAddonByName<T>(string name, int index = 1) where T : unmanaged
+        => (T*)this.GetAddonByName(name, index).Address;
+
+    /// <inheritdoc/>
+    public T* GetAddonByName<T>(ReadOnlySpan<byte> name, int index = 1) where T : unmanaged
+        => (T*)this.GetAddonByName(name, index).Address;
+
+    /// <inheritdoc/>
+    public AgentInterfacePtr GetAgentById(int id)
+    {
+        var agentModule = AgentModule.Instance();
+        if (agentModule == null || id < 0 || id >= agentModule->Agents.Length)
+            return 0;
+
+        return agentModule->Agents[id].Value;
+    }
+
+    /// <inheritdoc/>
+    public AgentInterfacePtr FindAgentInterface(string addonName)
     {
         var addon = this.GetAddonByName(addonName);
         return this.FindAgentInterface(addon);
     }
 
     /// <inheritdoc/>
-    public IntPtr FindAgentInterface(void* addon) => this.FindAgentInterface((IntPtr)addon);
+    public AgentInterfacePtr FindAgentInterface(ReadOnlySpan<byte> addonName)
+    {
+        var addon = this.GetAddonByName(addonName);
+        return this.FindAgentInterface(addon);
+    }
 
     /// <inheritdoc/>
-    public IntPtr FindAgentInterface(IntPtr addonPtr)
+    public AgentInterfacePtr FindAgentInterface(AtkUnitBasePtr addon)
     {
-        if (addonPtr == IntPtr.Zero)
-            return IntPtr.Zero;
+        if (addon.IsNull)
+            return 0;
 
-        var uiModule = (UIModule*)this.GetUIModule();
-        if (uiModule == null)
-            return IntPtr.Zero;
-
-        var agentModule = uiModule->GetAgentModule();
+        var agentModule = AgentModule.Instance();
         if (agentModule == null)
-            return IntPtr.Zero;
+            return 0;
 
-        var addon = (AtkUnitBase*)addonPtr;
-        var addonId = addon->ParentId == 0 ? addon->Id : addon->ParentId;
-
+        var addonId = addon.ParentId == 0 ? addon.Id : addon.ParentId;
         if (addonId == 0)
-            return IntPtr.Zero;
+            return 0;
 
-        var index = 0;
-        while (true)
+        foreach (AgentInterface* agent in agentModule->Agents)
         {
-            var agent = agentModule->GetAgentByInternalId((AgentId)index++);
-            if (agent == uiModule || agent == null)
-                break;
-
-            if (agent->AddonId == addonId)
-                return new IntPtr(agent);
+            if (agent != null && agent->AddonId == addonId)
+                return agent;
         }
 
-        return IntPtr.Zero;
+        return 0;
     }
 
     /// <summary>
@@ -254,12 +272,13 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         this.handleActionHoverHook.Dispose();
         this.handleActionOutHook.Dispose();
         this.utf8StringFromSequenceHook.Dispose();
+        this.raptureAtkModuleUpdateHook.Dispose();
     }
 
     /// <summary>
     /// Indicates if the game is in the lobby scene (title screen, chara select, chara make, aesthetician etc.).
     /// </summary>
-    /// <returns>A value indicating whether or not the game is in the lobby scene.</returns>
+    /// <returns>A value indicating whether the game is in the lobby scene.</returns>
     internal bool IsInLobby() => RaptureAtkModule.Instance()->CurrentUIScene.StartsWith("LobbyMain"u8);
 
     /// <summary>
@@ -296,8 +315,6 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
         this.HoveredItem = itemId;
         this.HoveredItemChanged?.InvokeSafely(this, itemId);
-
-        Log.Verbose($"HoveredItem changed: {itemId}");
     }
 
     private AtkValue* HandleItemOutDetour(AgentItemDetail* thisPtr, AtkValue* returnValue, AtkValue* values, uint valueCount, ulong eventKind)
@@ -307,31 +324,19 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         if (values != null && valueCount == 1 && values->Int == -1)
         {
             this.HoveredItem = 0;
-
-            try
-            {
-                this.HoveredItemChanged?.Invoke(this, 0);
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "Could not dispatch HoveredItemChanged event.");
-            }
-
-            Log.Verbose("HoveredItem changed: 0");
+            this.HoveredItemChanged?.InvokeSafely(this, 0ul);
         }
 
         return ret;
     }
 
-    private void HandleActionHoverDetour(AgentActionDetail* hoverState, ActionKind actionKind, uint actionId, int a4, byte a5)
+    private void HandleActionHoverDetour(AgentActionDetail* hoverState, FFXIVClientStructs.FFXIV.Client.Enums.DetailKind detailKind, uint actionId, int a4, bool a5, int a6, int a7)
     {
-        this.handleActionHoverHook.Original(hoverState, actionKind, actionId, a4, a5);
-        this.HoveredAction.ActionKind = (HoverActionKind)actionKind;
-        this.HoveredAction.BaseActionID = actionId;
-        this.HoveredAction.ActionID = hoverState->ActionId;
+        this.handleActionHoverHook.Original(hoverState, detailKind, actionId, a4, a5, a6, a7);
+        this.HoveredAction.DetailKind = (DetailKind)detailKind;
+        this.HoveredAction.BaseActionId = actionId;
+        this.HoveredAction.ActionId = hoverState->ActionId;
         this.HoveredActionChanged?.InvokeSafely(this, this.HoveredAction);
-
-        Log.Verbose($"HoverActionId: {actionKind}/{actionId} this:{(nint)hoverState:X}");
     }
 
     private AtkValue* HandleActionOutDetour(AgentActionDetail* agentActionDetail, AtkValue* a2, AtkValue* a3, uint a4, ulong a5)
@@ -344,27 +349,17 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
             if (a3Val == 255)
             {
-                this.HoveredAction.ActionKind = HoverActionKind.None;
-                this.HoveredAction.BaseActionID = 0;
-                this.HoveredAction.ActionID = 0;
-
-                try
-                {
-                    this.HoveredActionChanged?.Invoke(this, this.HoveredAction);
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, "Could not dispatch HoveredActionChanged event.");
-                }
-
-                Log.Verbose("HoverActionId: 0");
+                this.HoveredAction.DetailKind = DetailKind.None;
+                this.HoveredAction.BaseActionId = 0;
+                this.HoveredAction.ActionId = 0;
+                this.HoveredActionChanged?.InvokeSafely(this, this.HoveredAction);
             }
         }
 
         return retVal;
     }
 
-    private unsafe void SetUiVisibilityDetour(RaptureAtkModule* thisPtr, bool uiVisible)
+    private void SetUiVisibilityDetour(RaptureAtkModule* thisPtr, bool uiVisible)
     {
         this.setUiVisibilityHook.Original(thisPtr, uiVisible);
 
@@ -394,6 +389,21 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
         return thisPtr; // this function shouldn't need to return but the original asm moves this into rax before returning so be safe?
     }
+
+    private void RaptureAtkModuleUpdateDetour(RaptureAtkModule* thisPtr, float delta)
+    {
+        // The game clears the AgentUpdateFlag in the original function, but it also updates agents in it too.
+        // We'll make a copy of the flags, so that we can fire events after the agents have been updated.
+
+        var agentUpdateFlag = thisPtr->AgentUpdateFlag;
+
+        this.raptureAtkModuleUpdateHook.Original(thisPtr, delta);
+
+        if (agentUpdateFlag != RaptureAtkModule.AgentUpdateFlags.None)
+        {
+            this.AgentUpdate.InvokeSafely((AgentUpdateFlag)agentUpdateFlag);
+        }
+    }
 }
 
 /// <summary>
@@ -417,6 +427,7 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
         this.gameGuiService.UiHideToggled += this.UiHideToggledForward;
         this.gameGuiService.HoveredItemChanged += this.HoveredItemForward;
         this.gameGuiService.HoveredActionChanged += this.HoveredActionForward;
+        this.gameGuiService.AgentUpdate += this.AgentUpdateForward;
     }
 
     /// <inheritdoc/>
@@ -427,6 +438,9 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
 
     /// <inheritdoc/>
     public event EventHandler<HoveredAction>? HoveredActionChanged;
+
+    /// <inheritdoc/>
+    public event Action<AgentUpdateFlag> AgentUpdate;
 
     /// <inheritdoc/>
     public bool GameUiHidden => this.gameGuiService.GameUiHidden;
@@ -447,6 +461,7 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
         this.gameGuiService.UiHideToggled -= this.UiHideToggledForward;
         this.gameGuiService.HoveredItemChanged -= this.HoveredItemForward;
         this.gameGuiService.HoveredActionChanged -= this.HoveredActionForward;
+        this.gameGuiService.AgentUpdate -= this.AgentUpdateForward;
 
         this.UiHideToggled = null;
         this.HoveredItemChanged = null;
@@ -456,6 +471,10 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
     /// <inheritdoc/>
     public bool OpenMapWithMapLink(MapLinkPayload mapLink)
         => this.gameGuiService.OpenMapWithMapLink(mapLink);
+
+    /// <inheritdoc/>
+    public bool OpenMapWithMapLink(uint territory, uint map, Vector3 worldPos)
+        => this.gameGuiService.OpenMapWithMapLink(territory, map, worldPos);
 
     /// <inheritdoc/>
     public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
@@ -470,28 +489,46 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
         => this.gameGuiService.ScreenToWorld(screenPos, out worldPos, rayDistance);
 
     /// <inheritdoc/>
-    public IntPtr GetUIModule()
+    public UIModulePtr GetUIModule()
         => this.gameGuiService.GetUIModule();
 
     /// <inheritdoc/>
-    public IntPtr GetAddonByName(string name, int index = 1)
+    public AtkUnitBasePtr GetAddonByName(string name, int index = 1)
         => this.gameGuiService.GetAddonByName(name, index);
 
     /// <inheritdoc/>
-    public IntPtr FindAgentInterface(string addonName)
+    public AtkUnitBasePtr GetAddonByName(ReadOnlySpan<byte> name, int index = 1)
+        => this.gameGuiService.GetAddonByName(name, index);
+
+    /// <inheritdoc/>
+    public unsafe T* GetAddonByName<T>(string name, int index = 1) where T : unmanaged
+        => this.gameGuiService.GetAddonByName<T>(name, index);
+
+    /// <inheritdoc/>
+    public unsafe T* GetAddonByName<T>(ReadOnlySpan<byte> name, int index = 1) where T : unmanaged
+        => this.gameGuiService.GetAddonByName<T>(name, index);
+
+    /// <inheritdoc/>
+    public AgentInterfacePtr GetAgentById(int id)
+        => this.gameGuiService.GetAgentById(id);
+
+    /// <inheritdoc/>
+    public AgentInterfacePtr FindAgentInterface(string addonName)
         => this.gameGuiService.FindAgentInterface(addonName);
 
     /// <inheritdoc/>
-    public unsafe IntPtr FindAgentInterface(void* addon)
-        => this.gameGuiService.FindAgentInterface(addon);
+    public AgentInterfacePtr FindAgentInterface(ReadOnlySpan<byte> addonName)
+        => this.gameGuiService.FindAgentInterface(addonName);
 
     /// <inheritdoc/>
-    public IntPtr FindAgentInterface(IntPtr addonPtr)
-        => this.gameGuiService.FindAgentInterface(addonPtr);
+    public AgentInterfacePtr FindAgentInterface(AtkUnitBasePtr addon)
+        => this.gameGuiService.FindAgentInterface(addon);
 
     private void UiHideToggledForward(object sender, bool toggled) => this.UiHideToggled?.Invoke(sender, toggled);
 
     private void HoveredItemForward(object sender, ulong itemId) => this.HoveredItemChanged?.Invoke(sender, itemId);
 
     private void HoveredActionForward(object sender, HoveredAction hoverAction) => this.HoveredActionChanged?.Invoke(sender, hoverAction);
+
+    private void AgentUpdateForward(AgentUpdateFlag agentUpdateFlag) => this.AgentUpdate.InvokeSafely(agentUpdateFlag);
 }

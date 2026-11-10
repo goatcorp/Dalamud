@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -10,27 +9,33 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Configuration.Internal;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Support;
-using ImGuiNET;
+
 using Lumina.Excel.Sheets;
+
 using Serilog;
+
 using TerraFX.Interop.Windows;
-using Windows.Win32.Storage.FileSystem;
+
 using Windows.Win32.System.Memory;
 using Windows.Win32.System.Ole;
+using Windows.Win32.UI.WindowsAndMessaging;
 
-using static TerraFX.Interop.Windows.Windows;
-
+using FLASHWINFO = Windows.Win32.UI.WindowsAndMessaging.FLASHWINFO;
+using HWND = Windows.Win32.Foundation.HWND;
+using MEMORY_BASIC_INFORMATION = Windows.Win32.System.Memory.MEMORY_BASIC_INFORMATION;
 using Win32_PInvoke = Windows.Win32.PInvoke;
 
 namespace Dalamud.Utility;
@@ -38,8 +43,9 @@ namespace Dalamud.Utility;
 /// <summary>
 /// Class providing various helper methods for use in Dalamud and plugins.
 /// </summary>
-public static class Util
+public static partial class Util
 {
+    private static readonly string[] ByteSuffixes = ["B", "KB", "MB", "GB", "TB"];
     private static readonly string[] PageProtectionFlagNames = [
         "PAGE_NOACCESS",
         "PAGE_READONLY",
@@ -63,68 +69,10 @@ public static class Util
     ];
 
     private static readonly Type GenericSpanType = typeof(Span<>);
-    private static string? scmVersionInternal;
-    private static string? gitHashInternal;
-    private static string? gitHashClientStructsInternal;
 
     private static ulong moduleStartAddr;
     private static ulong moduleEndAddr;
-
-    /// <summary>
-    /// Gets the assembly version of Dalamud.
-    /// </summary>
-    public static string AssemblyVersion { get; } =
-        Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
-
-    /// <summary>
-    /// Gets the SCM Version from the assembly, or null if it cannot be found. This method will generally return
-    /// the <c>git describe</c> output for this build, which will be a raw version if this is a stable build or an
-    /// appropriately-annotated version if this is *not* stable. Local builds will return a `Local Build` text string.
-    /// </summary>
-    /// <returns>The SCM version of the assembly.</returns>
-    public static string GetScmVersion()
-    {
-        if (scmVersionInternal != null) return scmVersionInternal;
-
-        var asm = typeof(Util).Assembly;
-        var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
-
-        return scmVersionInternal = attrs.First(a => a.Key == "SCMVersion").Value
-                                        ?? asm.GetName().Version!.ToString();
-    }
-
-    /// <summary>
-    /// Gets the git commit hash value from the assembly or null if it cannot be found. Will be null for Debug builds,
-    /// and will be suffixed with `-dirty` if in release with pending changes.
-    /// </summary>
-    /// <returns>The git hash of the assembly.</returns>
-    public static string? GetGitHash()
-    {
-        if (gitHashInternal != null)
-            return gitHashInternal;
-
-        var asm = typeof(Util).Assembly;
-        var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
-
-        return gitHashInternal = attrs.FirstOrDefault(a => a.Key == "GitHash")?.Value ?? "N/A";
-    }
-
-    /// <summary>
-    /// Gets the git hash value from the assembly or null if it cannot be found.
-    /// </summary>
-    /// <returns>The git hash of the assembly.</returns>
-    public static string? GetGitHashClientStructs()
-    {
-        if (gitHashClientStructsInternal != null)
-            return gitHashClientStructsInternal;
-
-        var asm = typeof(Util).Assembly;
-        var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
-
-        gitHashClientStructsInternal = attrs.First(a => a.Key == "GitHashClientStructs").Value;
-
-        return gitHashClientStructsInternal;
-    }
+    private static bool? isAppContainer;
 
     /// <inheritdoc cref="DescribeAddress(nint)"/>
     public static unsafe string DescribeAddress(void* p) => DescribeAddress((nint)p);
@@ -203,14 +151,14 @@ public static class Util
         }
 
         MEMORY_BASIC_INFORMATION mbi;
-        if (VirtualQuery((void*)p, &mbi, (nuint)sizeof(MEMORY_BASIC_INFORMATION)) == 0)
+        if (Win32_PInvoke.VirtualQuery((void*)p, &mbi, (nuint)sizeof(MEMORY_BASIC_INFORMATION)) == 0)
             return $"0x{p:X}(???)";
 
         var sb = new StringBuilder();
         sb.Append($"0x{p:X}(");
         for (int i = 0, c = 0; i < PageProtectionFlagNames.Length; i++)
         {
-            if ((mbi.Protect & (1 << i)) == 0)
+            if (((uint)mbi.Protect & (1 << i)) == 0)
                 continue;
             if (c++ != 0)
                 sb.Append(" | ");
@@ -309,7 +257,7 @@ public static class Util
     /// </summary>
     /// <param name="obj">The structure to show.</param>
     /// <param name="addr">The address to the structure.</param>
-    /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
+    /// <param name="autoExpand">Whether this structure should start out expanded.</param>
     /// <param name="path">The already followed path.</param>
     public static void ShowStruct(object obj, ulong addr, bool autoExpand = false, IEnumerable<string>? path = null)
         => ShowStructInternal(obj, addr, autoExpand, path);
@@ -319,7 +267,7 @@ public static class Util
     /// </summary>
     /// <typeparam name="T">The type of the structure.</typeparam>
     /// <param name="obj">The pointer to the structure.</param>
-    /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
+    /// <param name="autoExpand">Whether this structure should start out expanded.</param>
     public static unsafe void ShowStruct<T>(T* obj, bool autoExpand = false) where T : unmanaged
     {
         ShowStruct(*obj, (ulong)&obj, autoExpand);
@@ -329,7 +277,7 @@ public static class Util
     /// Show a GameObject's internal data in an ImGui-context.
     /// </summary>
     /// <param name="go">The GameObject to show.</param>
-    /// <param name="autoExpand">Whether or not the struct should start as expanded.</param>
+    /// <param name="autoExpand">Whether the struct should start as expanded.</param>
     public static unsafe void ShowGameObjectStruct(IGameObject go, bool autoExpand = true)
     {
         switch (go)
@@ -358,7 +306,7 @@ public static class Util
 
         ImGuiHelpers.ScaledDummy(5);
 
-        ImGui.TextColored(ImGuiColors.DalamudOrange, "-> Properties:");
+        ImGui.TextColored(ImGuiColors.DalamudOrange, "-> Properties:"u8);
 
         ImGui.Indent();
 
@@ -383,7 +331,7 @@ public static class Util
 
         ImGuiHelpers.ScaledDummy(5);
 
-        ImGui.TextColored(ImGuiColors.HealerGreen, "-> Fields:");
+        ImGui.TextColored(ImGuiColors.HealerGreen, "-> Fields:"u8);
 
         ImGui.Indent();
 
@@ -403,9 +351,9 @@ public static class Util
     /// <param name="exit">Specify whether to exit immediately.</param>
     public static void Fatal(string message, string caption, bool exit = true)
     {
-        var flags = NativeFunctions.MessageBoxType.Ok | NativeFunctions.MessageBoxType.IconError |
-                    NativeFunctions.MessageBoxType.Topmost;
-        _ = NativeFunctions.MessageBoxW(Process.GetCurrentProcess().MainWindowHandle, message, caption, flags);
+        var flags = MESSAGEBOX_STYLE.MB_OK | MESSAGEBOX_STYLE.MB_ICONERROR |
+                    MESSAGEBOX_STYLE.MB_TOPMOST;
+        _ = Windows.Win32.PInvoke.MessageBox(new HWND(Process.GetCurrentProcess().MainWindowHandle), message, caption, flags);
 
         if (exit)
         {
@@ -421,15 +369,24 @@ public static class Util
     /// <returns>Human readable version.</returns>
     public static string FormatBytes(long bytes)
     {
-        string[] suffix = { "B", "KB", "MB", "GB", "TB" };
+        return FormatBytes((ulong)bytes);
+    }
+
+    /// <summary>
+    /// Transform byte count to human readable format.
+    /// </summary>
+    /// <param name="bytes">Number of bytes.</param>
+    /// <returns>Human readable version.</returns>
+    public static string FormatBytes(ulong bytes)
+    {
         int i;
         double dblSByte = bytes;
-        for (i = 0; i < suffix.Length && bytes >= 1024; i++, bytes /= 1024)
+        for (i = 0; i < ByteSuffixes.Length && bytes >= 1024; i++, bytes /= 1024)
         {
             dblSByte = bytes / 1024.0;
         }
 
-        return $"{dblSByte:0.00} {suffix[i]}";
+        return $"{dblSByte:0.00} {ByteSuffixes[i]}";
     }
 
     /// <summary>
@@ -500,55 +457,14 @@ public static class Util
     /// Determine if Dalamud is currently running within a Wine context (e.g. either on macOS or Linux). This method
     /// will not return information about the host operating system.
     /// </summary>
-    /// <returns>Returns true if Wine is detected, false otherwise.</returns>
-    public static bool IsWine()
-    {
-        if (EnvironmentConfiguration.XlWineOnLinux) return true;
-        if (Environment.GetEnvironmentVariable("XL_PLATFORM") is not null and not "Windows") return true;
-
-        var ntdll = NativeFunctions.GetModuleHandleW("ntdll.dll");
-
-        // Test to see if any Wine specific exports exist. If they do, then we are running on Wine.
-        // The exports "wine_get_version", "wine_get_build_id", and "wine_get_host_version" will tend to be hidden
-        // by most Linux users (else FFXIV will want a macOS license), so we will additionally check some lesser-known
-        // exports as well.
-        return AnyProcExists(
-            ntdll,
-            "wine_get_version",
-            "wine_get_build_id",
-            "wine_get_host_version",
-            "wine_server_call",
-            "wine_unix_to_nt_file_name");
-
-        bool AnyProcExists(nint handle, params string[] procs) =>
-            procs.Any(p => NativeFunctions.GetProcAddress(handle, p) != nint.Zero);
-    }
+    /// <returns>Returns true if running on Wine, false otherwise.</returns>
+    public static bool IsWine() => Service<Dalamud>.Get().StartInfo.Platform != OSPlatform.Windows;
 
     /// <summary>
-    /// Gets the best guess for the current host's platform based on the <c>XL_PLATFORM</c> environment variable or
-    /// heuristics.
+    /// Gets the current host's platform based on the injector launch arguments or heuristics.
     /// </summary>
-    /// <remarks>
-    /// macOS users running without <c>XL_PLATFORM</c> being set will be reported as Linux users. Due to the way our
-    /// Wines work, there isn't a great (consistent) way to split the two apart if we're not told.
-    /// </remarks>
     /// <returns>Returns the <see cref="OSPlatform"/> that Dalamud is currently running on.</returns>
-    public static OSPlatform GetHostPlatform()
-    {
-        switch (Environment.GetEnvironmentVariable("XL_PLATFORM"))
-        {
-            case "Windows": return OSPlatform.Windows;
-            case "MacOS": return OSPlatform.OSX;
-            case "Linux": return OSPlatform.Linux;
-        }
-
-        // n.b. we had some fancy code here to check if the Wine host version returned "Darwin" but apparently
-        // *all* our Wines report Darwin if exports aren't hidden. As such, it is effectively impossible (without some
-        // (very cursed and inaccurate heuristics) to determine if we're on macOS or Linux unless we're explicitly told
-        // by our launcher. See commit a7aacb15e4603a367e2f980578271a9a639d8852 for the old check.
-
-        return IsWine() ? OSPlatform.Linux : OSPlatform.Windows;
-    }
+    public static OSPlatform GetHostPlatform() => Service<Dalamud>.Get().StartInfo.Platform;
 
     /// <summary>
     /// Heuristically determine if the Windows version is higher than Windows 11's first build.
@@ -557,17 +473,36 @@ public static class Util
     public static bool IsWindows11() => Environment.OSVersion.Version.Build >= 22000;
 
     /// <summary>
-    /// Open a link in the default browser.
+    /// Open a link in the default browser, and attempts to focus the newly launched application.
     /// </summary>
     /// <param name="url">The link to open.</param>
-    public static void OpenLink(string url)
-    {
-        var process = new ProcessStartInfo(url)
+    public static void OpenLink(string url) => new Thread(
+        static url =>
         {
-            UseShellExecute = true,
-        };
-        Process.Start(process);
-    }
+            try
+            {
+                var psi = new ProcessStartInfo((string)url!)
+                {
+                    UseShellExecute = true,
+                    ErrorDialogParentHandle = Service<InterfaceManager>.GetNullable() is { } im
+                                                  ? im.GameWindowHandle
+                                                  : 0,
+                    Verb = "open",
+                };
+                if (Process.Start(psi) is not { } process)
+                    return;
+
+                if (process.Id != 0)
+                    TerraFX.Interop.Windows.Windows.AllowSetForegroundWindow((uint)process.Id);
+                process.WaitForInputIdle();
+                TerraFX.Interop.Windows.Windows.SetForegroundWindow(
+                    (TerraFX.Interop.Windows.HWND)process.MainWindowHandle);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "{fn}: failed to open {url}", nameof(OpenLink), url);
+            }
+        }).Start(url);
 
     /// <summary>
     /// Perform a "zipper merge" (A, 1, B, 2, C, 3) of multiple enumerables, allowing for lists to end early.
@@ -620,89 +555,43 @@ public static class Util
     }
 
     /// <summary>
+    /// Returns true if the current application has focus, false otherwise.
+    /// </summary>
+    /// <returns>
+    /// If the current application is focused.
+    /// </returns>
+    public static unsafe bool ApplicationIsActivated()
+    {
+        var activatedHandle = Win32_PInvoke.GetForegroundWindow();
+        if (activatedHandle == IntPtr.Zero)
+            return false; // No window is currently activated
+
+        uint pid;
+        _ = Win32_PInvoke.GetWindowThreadProcessId(activatedHandle, &pid);
+        if (Marshal.GetLastWin32Error() != 0)
+            return false;
+
+        return pid == Environment.ProcessId;
+    }
+
+    /// <summary>
     /// Request that Windows flash the game window to grab the user's attention.
     /// </summary>
     /// <param name="flashIfOpen">Attempt to flash even if the game is currently focused.</param>
-    public static void FlashWindow(bool flashIfOpen = false)
+    public static unsafe void FlashWindow(bool flashIfOpen = false)
     {
-        if (NativeFunctions.ApplicationIsActivated() && !flashIfOpen)
+        if (ApplicationIsActivated() && !flashIfOpen)
             return;
 
-        var flashInfo = new NativeFunctions.FlashWindowInfo
+        var flashInfo = new FLASHWINFO
         {
-            Size = (uint)Marshal.SizeOf<NativeFunctions.FlashWindowInfo>(),
-            Count = uint.MaxValue,
-            Timeout = 0,
-            Flags = NativeFunctions.FlashWindow.All | NativeFunctions.FlashWindow.TimerNoFG,
-            Hwnd = Process.GetCurrentProcess().MainWindowHandle,
+            cbSize = (uint)sizeof(FLASHWINFO),
+            uCount = uint.MaxValue,
+            dwTimeout = 0,
+            dwFlags = FLASHWINFO_FLAGS.FLASHW_ALL | FLASHWINFO_FLAGS.FLASHW_TIMERNOFG,
+            hwnd = new HWND(Process.GetCurrentProcess().MainWindowHandle),
         };
-
-        NativeFunctions.FlashWindowEx(ref flashInfo);
-    }
-
-    /// <summary>
-    /// Overwrite text in a file by first writing it to a temporary file, and then
-    /// moving that file to the path specified.
-    /// </summary>
-    /// <param name="path">The path of the file to write to.</param>
-    /// <param name="text">The text to write.</param>
-    public static void WriteAllTextSafe(string path, string text)
-    {
-        WriteAllTextSafe(path, text, Encoding.UTF8);
-    }
-
-    /// <summary>
-    /// Overwrite text in a file by first writing it to a temporary file, and then
-    /// moving that file to the path specified.
-    /// </summary>
-    /// <param name="path">The path of the file to write to.</param>
-    /// <param name="text">The text to write.</param>
-    /// <param name="encoding">Encoding to use.</param>
-    public static void WriteAllTextSafe(string path, string text, Encoding encoding)
-    {
-        WriteAllBytesSafe(path, encoding.GetBytes(text));
-    }
-
-    /// <summary>
-    /// Overwrite data in a file by first writing it to a temporary file, and then
-    /// moving that file to the path specified.
-    /// </summary>
-    /// <param name="path">The path of the file to write to.</param>
-    /// <param name="bytes">The data to write.</param>
-    public static unsafe void WriteAllBytesSafe(string path, byte[] bytes)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(path);
-
-        // Open the temp file
-        var tempPath = path + ".tmp";
-
-        using var tempFile = Windows.Win32.PInvoke.CreateFile(
-            tempPath,
-            (uint)(FILE_ACCESS_RIGHTS.FILE_GENERIC_READ | FILE_ACCESS_RIGHTS.FILE_GENERIC_WRITE),
-            FILE_SHARE_MODE.FILE_SHARE_NONE,
-            null,
-            FILE_CREATION_DISPOSITION.CREATE_ALWAYS,
-            FILE_FLAGS_AND_ATTRIBUTES.FILE_ATTRIBUTE_NORMAL,
-            null);
-
-        if (tempFile.IsInvalid)
-            throw new Win32Exception();
-
-        // Write the data
-        uint bytesWritten = 0;
-        if (!Windows.Win32.PInvoke.WriteFile(tempFile, new ReadOnlySpan<byte>(bytes), &bytesWritten, null))
-            throw new Win32Exception();
-
-        if (bytesWritten != bytes.Length)
-            throw new Exception($"Could not write all bytes to temp file ({bytesWritten} of {bytes.Length})");
-
-        if (!Windows.Win32.PInvoke.FlushFileBuffers(tempFile))
-            throw new Win32Exception();
-
-        tempFile.Close();
-
-        if (!Windows.Win32.PInvoke.MoveFileEx(tempPath, path, MOVE_FILE_FLAGS.MOVEFILE_REPLACE_EXISTING | MOVE_FILE_FLAGS.MOVEFILE_WRITE_THROUGH))
-            throw new Win32Exception();
+        Win32_PInvoke.FlashWindowEx(flashInfo);
     }
 
     /// <summary>Gets a temporary file name, for use as the sourceFileName in
@@ -711,7 +600,7 @@ public static class Util
     /// <returns>A temporary file name that should be usable with <see cref="File.Replace(string,string,string?)"/>.
     /// </returns>
     /// <remarks>No write operation is done on the filesystem.</remarks>
-    public static string GetTempFileNameForFileReplacement(string targetFile)
+    public static string GetReplaceableFileName(string targetFile)
     {
         Span<byte> buf = stackalloc byte[9];
         Random.Shared.NextBytes(buf);
@@ -727,6 +616,41 @@ public static class Util
             if (i >= 64 || !Path.Exists(tempPath))
                 return tempPath;
         }
+    }
+
+    /// <summary>
+    /// Determine if the current process is running inside an AppContainer sandbox.
+    /// </summary>
+    /// <returns>Returns true if running in an AppContainer.</returns>
+    internal static unsafe bool IsAppContainer()
+    {
+        if (isAppContainer is { } cached)
+            return cached;
+
+        var result = false;
+        HANDLE token;
+        if (TerraFX.Interop.Windows.Windows.OpenProcessToken(
+                TerraFX.Interop.Windows.Windows.GetCurrentProcess(),
+                TOKEN.TOKEN_QUERY,
+                &token))
+        {
+            BOOL value;
+            uint returnLength;
+            if (TerraFX.Interop.Windows.Windows.GetTokenInformation(
+                    token,
+                    TOKEN_INFORMATION_CLASS.TokenIsAppContainer,
+                    &value,
+                    (uint)sizeof(BOOL),
+                    &returnLength))
+            {
+                result = value;
+            }
+
+            TerraFX.Interop.Windows.Windows.CloseHandle(token);
+        }
+
+        isAppContainer = result;
+        return result;
     }
 
     /// <summary>
@@ -809,15 +733,15 @@ public static class Util
     internal static void PrintGameObject(IGameObject actor, string tag, bool resolveGameData)
     {
         var actorString =
-            $"{actor.Address.ToInt64():X}:{actor.GameObjectId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.YalmDistanceX} R{actor.Rotation} - Target: {actor.TargetObjectId:X}\n";
+            $"{actor.Address.ToInt64():X}:{actor.GameObjectId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.CurrentDistance} R{actor.Rotation} - Target: {actor.TargetObjectId:X}\n";
 
         if (actor is Npc npc)
-            actorString += $"       DataId: {npc.DataId}  NameId:{npc.NameId}\n";
+            actorString += $"       BaseId: {npc.BaseId}  NameId:{npc.NameId}\n";
 
         if (actor is ICharacter chara)
         {
             actorString +=
-                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.ValueNullable?.Name : chara.ClassJob.RowId.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
+                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.ValueNullable?.Name : chara.ClassJob.RowId.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize.ToArray()).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
         }
 
         if (actor is IPlayerCharacter pc)
@@ -826,7 +750,7 @@ public static class Util
                 $"       HomeWorld: {(resolveGameData ? pc.HomeWorld.ValueNullable?.Name : pc.HomeWorld.RowId.ToString())} CurrentWorld: {(resolveGameData ? pc.CurrentWorld.ValueNullable?.Name : pc.CurrentWorld.RowId.ToString())} FC: {pc.CompanyTag}\n";
         }
 
-        ImGui.TextUnformatted(actorString);
+        ImGui.Text(actorString);
         ImGui.SameLine();
         if (ImGui.Button($"C##{actor.Address.ToInt64()}"))
         {
@@ -843,15 +767,15 @@ public static class Util
     internal static void PrintGameObject(GameObject actor, string tag, bool resolveGameData)
     {
         var actorString =
-            $"{actor.Address.ToInt64():X}:{actor.GameObjectId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.YalmDistanceX} R{actor.Rotation} - Target: {actor.TargetObjectId:X}\n";
+            $"{actor.Address.ToInt64():X}:{actor.GameObjectId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.CurrentDistance} R{actor.Rotation} - Target: {actor.TargetObjectId:X}\n";
 
         if (actor is Npc npc)
-            actorString += $"       DataId: {npc.DataId}  NameId:{npc.NameId}\n";
+            actorString += $"       BaseId: {npc.BaseId}  NameId:{npc.NameId}\n";
 
         if (actor is Character chara)
         {
             actorString +=
-                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.ValueNullable?.Name : chara.ClassJob.RowId.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
+                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.ValueNullable?.Name : chara.ClassJob.RowId.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize.ToArray()).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
         }
 
         if (actor is PlayerCharacter pc)
@@ -860,7 +784,7 @@ public static class Util
                 $"       HomeWorld: {(resolveGameData ? pc.HomeWorld.ValueNullable?.Name : pc.HomeWorld.RowId.ToString())} CurrentWorld: {(resolveGameData ? pc.CurrentWorld.ValueNullable?.Name : pc.CurrentWorld.RowId.ToString())} FC: {pc.CompanyTag}\n";
         }
 
-        ImGui.TextUnformatted(actorString);
+        ImGui.Text(actorString);
         ImGui.SameLine();
         if (ImGui.Button($"C##{actor.Address.ToInt64()}"))
         {
@@ -884,7 +808,7 @@ public static class Util
         var sizeWithTerminators = pathBytesSize + (pathBytes.Length * 2);
 
         var dropFilesSize = sizeof(DROPFILES);
-        var hGlobal = Win32_PInvoke.GlobalAlloc_SafeHandle(
+        var hGlobal = Win32_PInvoke.GlobalAlloc(
             GLOBAL_ALLOC_FLAGS.GHND,
             // struct size + size of encoded strings + null terminator for each
             // string + two null terminators for end of list
@@ -922,12 +846,11 @@ public static class Util
         {
             Win32_PInvoke.SetClipboardData(
                 (uint)CLIPBOARD_FORMAT.CF_HDROP,
-                hGlobal);
+                (Windows.Win32.Foundation.HANDLE)hGlobal.Value);
             Win32_PInvoke.CloseClipboard();
             return true;
         }
 
-        hGlobal.Dispose();
         return false;
     }
 
@@ -937,7 +860,7 @@ public static class Util
         var propType = p.PropertyType;
         if (p.GetGetMethod() is not { } getMethod)
         {
-            ImGui.Text("(No getter available)");
+            ImGui.Text("(No getter available)"u8);
             return;
         }
 
@@ -946,7 +869,7 @@ public static class Util
             MethodAttributes.Public | MethodAttributes.Static,
             CallingConventions.Standard,
             null,
-            new[] { typeof(object), typeof(IList<string>), typeof(ulong) },
+            [typeof(object), typeof(IList<string>), typeof(ulong)],
             obj.GetType(),
             true);
 
@@ -973,7 +896,7 @@ public static class Util
         ilg.Emit(OpCodes.Call, mm);
         ilg.Emit(OpCodes.Ret);
 
-        dm.Invoke(null, new[] { obj, path, addr });
+        dm.Invoke(null, [obj, path, addr]);
     }
 
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
@@ -1031,7 +954,7 @@ public static class Util
                 var pointerType = typeof(T*);
                 for (var i = 0; i < spanobj.Length; i++)
                 {
-                    ImGui.TextUnformatted($"[{offset + i:n0} (0x{offset + i:X})] ");
+                    ImGui.Text($"[{offset + i:n0} (0x{offset + i:X})] ");
                     ImGui.SameLine();
                     path.Add($"{offset + i}");
                     ShowValue(addr, path, pointerType, Pointer.Box(p + i, pointerType), true);
@@ -1072,7 +995,7 @@ public static class Util
                     var ptrObj = SafeMemory.PtrToStructure(new IntPtr(unboxed), eType);
                     if (ptrObj == null)
                     {
-                        ImGui.Text("null or invalid");
+                        ImGui.Text("null or invalid"u8);
                     }
                     else
                     {
@@ -1086,7 +1009,7 @@ public static class Util
             }
             else
             {
-                ImGui.Text("null");
+                ImGui.Text("null"u8);
             }
         }
         else
@@ -1107,7 +1030,7 @@ public static class Util
     /// </summary>
     /// <param name="obj">The structure to show.</param>
     /// <param name="addr">The address to the structure.</param>
-    /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
+    /// <param name="autoExpand">Whether this structure should start out expanded.</param>
     /// <param name="path">The already followed path.</param>
     /// <param name="hideAddress">Do not print addresses. Use when displaying a copied value.</param>
     private static void ShowStructInternal(object obj, ulong addr, bool autoExpand = false, IEnumerable<string>? path = null, bool hideAddress = false)
@@ -1152,12 +1075,12 @@ public static class Util
                 foreach (var f in obj.GetType()
                                      .GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.Instance))
                 {
-                    var fixedBuffer = (FixedBufferAttribute)f.GetCustomAttribute(typeof(FixedBufferAttribute));
-                    var offset = (FieldOffsetAttribute)f.GetCustomAttribute(typeof(FieldOffsetAttribute));
+                    var fixedBuffer = f.GetCustomAttribute<FixedBufferAttribute>();
+                    var offset = f.GetCustomAttribute<FieldOffsetAttribute>();
 
                     if (fixedBuffer != null)
                     {
-                        ImGui.Text("fixed");
+                        ImGui.Text("fixed"u8);
                         ImGui.SameLine();
                         ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{fixedBuffer.ElementType.Name}[0x{fixedBuffer.Length:X}]");
                     }
@@ -1181,7 +1104,7 @@ public static class Util
                     {
                         if (f.FieldType.IsGenericType && (f.FieldType.IsByRef || f.FieldType.IsByRefLike))
                         {
-                            ImGui.Text("Cannot preview ref typed fields."); // object never contains ref struct
+                            ImGui.Text("Cannot preview ref typed fields."u8); // object never contains ref struct
                         }
                         else if (f.FieldType == typeof(bool) && offset != null)
                         {
@@ -1196,7 +1119,7 @@ public static class Util
                     {
                         using (ImRaii.PushColor(ImGuiCol.Text, new Vector4(1f, 0.4f, 0.4f, 1f)))
                         {
-                            ImGui.TextUnformatted($"Error: {ex.GetType().Name}: {ex.Message}");
+                            ImGui.Text($"Error: {ex.GetType().Name}: {ex.Message}");
                         }
                     }
                     finally
@@ -1221,7 +1144,7 @@ public static class Util
                         }
                         else if (p.PropertyType.IsGenericType && (p.PropertyType.IsByRef || p.PropertyType.IsByRefLike))
                         {
-                            ImGui.Text("Cannot preview ref typed properties.");
+                            ImGui.Text("Cannot preview ref typed properties."u8);
                         }
                         else
                         {
@@ -1232,7 +1155,7 @@ public static class Util
                     {
                         using (ImRaii.PushColor(ImGuiCol.Text, new Vector4(1f, 0.4f, 0.4f, 1f)))
                         {
-                            ImGui.TextUnformatted($"Error: {ex.GetType().Name}: {ex.Message}");
+                            ImGui.Text($"Error: {ex.GetType().Name}: {ex.Message}");
                         }
                     }
                     finally

@@ -1,13 +1,18 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
+
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.Player;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
+
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 namespace Dalamud.Plugin.Internal.Profiles;
 
@@ -15,12 +20,13 @@ namespace Dalamud.Plugin.Internal.Profiles;
 /// Class responsible for managing plugin profiles.
 /// </summary>
 [ServiceManager.BlockingEarlyLoadedService($"Data provider for {nameof(PluginManager)}.")]
-internal class ProfileManager : IServiceType
+internal partial class ProfileManager : IServiceType
 {
-    private static readonly ModuleLog Log = new("PROFMAN");
+    private static readonly ModuleLog Log = ModuleLog.Create<ProfileManager>();
     private readonly DalamudConfiguration config;
 
-    private readonly List<Profile> profiles = new();
+    private readonly List<Profile> profiles = [];
+    private readonly Lock profilesLock = new();
 
     private volatile bool isBusy = false;
 
@@ -43,7 +49,7 @@ internal class ProfileManager : IServiceType
     {
         get
         {
-            lock (this.profiles)
+            using (this.profilesLock.EnterScope())
                 return this.profiles.First(x => x.IsDefaultProfile);
         }
     }
@@ -54,10 +60,10 @@ internal class ProfileManager : IServiceType
     public IEnumerable<Profile> Profiles => this.profiles;
 
     /// <summary>
-    /// Gets a value indicating whether or not the profile manager is busy enabling/disabling plugins.
+    /// Gets a value indicating whether the profile manager is busy enabling/disabling plugins.
     /// </summary>
     public bool IsBusy => this.isBusy;
-    
+
     /// <summary>
     /// Get a disposable that will lock the profile list while it is not disposed.
     /// You must NEVER use this in async code.
@@ -71,21 +77,26 @@ internal class ProfileManager : IServiceType
     /// <param name="workingPluginId">The ID of the plugin.</param>
     /// <param name="internalName">The internal name of the plugin, if available.</param>
     /// <param name="defaultState">The state the plugin shall be in, if it needs to be added.</param>
-    /// <param name="addIfNotDeclared">Whether or not the plugin should be added to the default preset, if it's not present in any preset.</param>
-    /// <returns>Whether or not the plugin shall be enabled.</returns>
+    /// <param name="addIfNotDeclared">Whether the plugin should be added to the default preset, if it's not present in any preset.</param>
+    /// <returns>Whether the plugin shall be enabled.</returns>
     public async Task<bool> GetWantStateAsync(Guid workingPluginId, string? internalName, bool defaultState, bool addIfNotDeclared = true)
     {
         var want = false;
         var wasInAnyProfile = false;
-        
-        lock (this.profiles)
+
+        var currentCharacterContentId = FindApplicableContentIdFromGameState() ?? 0;
+
+        using (this.profilesLock.EnterScope())
         {
             foreach (var profile in this.profiles)
             {
-                var state = profile.WantsPlugin(workingPluginId);
-                if (state.HasValue)
+                var profileWantsActive
+                    = profile.IsEnabled && profile.CheckWantsActiveFromGameState(currentCharacterContentId);
+
+                var pluginStateInProfile = profile.WantsPlugin(workingPluginId);
+                if (pluginStateInProfile.HasValue)
                 {
-                    want = want || (profile.IsEnabled && state.Value);
+                    want = want || (profileWantsActive && pluginStateInProfile.Value);
                     wasInAnyProfile = true;
                 }
             }
@@ -93,7 +104,7 @@ internal class ProfileManager : IServiceType
 
         if (!wasInAnyProfile && addIfNotDeclared)
         {
-            Log.Warning("'{Guid}'('{InternalName}') was not in any profile, adding to default with {Default}", workingPluginId, internalName, defaultState);
+            Log.Warning("{Guid}({InternalName}) was not in any profile, adding to default with {Default}", workingPluginId, internalName, defaultState);
             await this.DefaultProfile.AddOrUpdateAsync(workingPluginId, internalName, defaultState, false);
 
             return defaultState;
@@ -106,10 +117,10 @@ internal class ProfileManager : IServiceType
     /// Check whether a plugin is declared in any profile.
     /// </summary>
     /// <param name="workingPluginId">The ID of the plugin.</param>
-    /// <returns>Whether or not the plugin is in any profile.</returns>
+    /// <returns>Whether the plugin is in any profile.</returns>
     public bool IsInAnyProfile(Guid workingPluginId)
     {
-        lock (this.profiles)
+        using (this.profilesLock.EnterScope())
             return this.profiles.Any(x => x.WantsPlugin(workingPluginId) != null);
     }
 
@@ -118,7 +129,7 @@ internal class ProfileManager : IServiceType
     /// A plugin can never be in the default profile if it is in any other profile.
     /// </summary>
     /// <param name="workingPluginId">The ID of the plugin.</param>
-    /// <returns>Whether or not the plugin is in the default profile.</returns>
+    /// <returns>Whether the plugin is in the default profile.</returns>
     public bool IsInDefaultProfile(Guid workingPluginId)
         => this.DefaultProfile.WantsPlugin(workingPluginId) != null;
 
@@ -132,7 +143,7 @@ internal class ProfileManager : IServiceType
         {
             Guid = Guid.NewGuid(),
             Name = this.GenerateUniqueProfileName(Loc.Localize("PluginProfilesNewProfile", "New Collection")),
-            IsEnabled = false,
+            IsEnabled = true,
         };
 
         this.config.SavedProfiles!.Add(model);
@@ -151,11 +162,7 @@ internal class ProfileManager : IServiceType
     /// <returns>The newly cloned profile.</returns>
     public Profile CloneProfile(Profile toClone)
     {
-        var newProfile = this.ImportProfile(toClone.Model.SerializeForShare());
-        if (newProfile == null)
-            throw new Exception("New profile was null while cloning");
-
-        return newProfile;
+        return this.ImportProfile(toClone.Model.SerializeForShare()) ?? throw new Exception("New profile was null while cloning");
     }
 
     /// <summary>
@@ -175,7 +182,7 @@ internal class ProfileManager : IServiceType
         {
             // Disable it
             modelV1.IsEnabled = false;
-            
+
             // Try to find matching plugins for all plugins in the profile
             var pm = Service<PluginManager>.Get();
             foreach (var plugin in modelV1.Plugins)
@@ -193,6 +200,10 @@ internal class ProfileManager : IServiceType
                 }
             }
         }
+        else
+        {
+            throw new InvalidOperationException("Unsupported profile model version");
+        }
 
         this.config.SavedProfiles!.Add(newModel);
         this.config.QueueSave();
@@ -207,21 +218,24 @@ internal class ProfileManager : IServiceType
     /// Go through all profiles and plugins, and enable/disable plugins they want active.
     /// This will block until all plugins have been loaded/reloaded.
     /// </summary>
+    /// <param name="reason">The reason for why we are applying states.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task ApplyAllWantStatesAsync()
+    public async Task ApplyAllWantStatesAsync(string reason)
     {
         if (this.isBusy)
             throw new Exception("Already busy, this must not run in parallel. Check before starting another apply!");
 
+        var currentCharacterContentId = FindApplicableContentIdFromGameState();
+
         this.isBusy = true;
-        Log.Information("Getting want states...");
+        Log.Information("Getting want states... (reason={Reason}, cid={ContentId})", reason, currentCharacterContentId);
 
         List<ProfilePluginEntry> wantActive;
-        lock (this.profiles)
+        using (this.profilesLock.EnterScope())
         {
             wantActive = this.profiles
-                             .Where(x => x.IsEnabled)
-                             .SelectMany(profile => profile.Plugins.Where(plugin => plugin.IsEnabled))
+                             .Where(x => x.IsEnabled && x.CheckWantsActiveFromGameState(currentCharacterContentId ?? 0))
+                             .SelectMany(profile => profile.Plugins.Where(plugin => profile.WantsPlugin(plugin.WorkingPluginId) == true))
                              .Distinct().ToList();
         }
 
@@ -230,7 +244,7 @@ internal class ProfileManager : IServiceType
             Log.Information("\t=> Want {Name}({WorkingPluginId})", profilePluginEntry.InternalName, profilePluginEntry.WorkingPluginId);
         }
 
-        Log.Information("Applying want states...");
+        Log.Information("Applying want states... (reason={Reason})", reason);
 
         var tasks = new List<Task>();
 
@@ -241,7 +255,7 @@ internal class ProfileManager : IServiceType
             switch (wantThis)
             {
                 case true when !installedPlugin.IsLoaded:
-                    if (installedPlugin.ApplicableForLoad)
+                    if (installedPlugin.ApplicableForAutomaticLoads)
                     {
                         Log.Information("\t=> Enabling {Name}", installedPlugin.Manifest.InternalName);
                         tasks.Add(installedPlugin.LoadAsync(PluginLoadReason.Installer));
@@ -269,7 +283,7 @@ internal class ProfileManager : IServiceType
             Log.Error(e, "Couldn't apply state for one or more plugins");
         }
 
-        Log.Information("Applied!");
+        Log.Information("Applied! (reason={Reason})", reason);
         this.isBusy = false;
     }
 
@@ -307,13 +321,13 @@ internal class ProfileManager : IServiceType
     /// <param name="newGuid">Guid to use.</param>
     public void MigrateProfilesToGuidsForPlugin(string internalName, Guid newGuid)
     {
-        lock (this.profiles)
+        using (this.profilesLock.EnterScope())
         {
             foreach (var profile in this.profiles)
                 profile.MigrateProfilesToGuidsForPlugin(internalName, newGuid);
         }
     }
-    
+
     /// <summary>
     /// Validate profiles for errors.
     /// </summary>
@@ -328,18 +342,39 @@ internal class ProfileManager : IServiceType
             {
                 if (seenIds.Contains(pluginEntry.WorkingPluginId))
                     throw new Exception($"Plugin '{pluginEntry.WorkingPluginId}'('{pluginEntry.InternalName}') is twice in profile '{profile.Guid}'('{profile.Name}')");
-                
+
                 seenIds.Add(pluginEntry.WorkingPluginId);
             }
         }
     }
+
+    // Find either the content ID of the currently logged in character, or the content ID of the character that is selected on the lobby screen
+    private static unsafe ulong? FindApplicableContentIdFromGameState()
+    {
+        var cid = Service<PlayerState>.GetNullable()?.ContentId;
+
+        if (cid != null && cid != 0)
+            return cid;
+
+        var agentLobby = AgentLobby.Instance();
+        if (agentLobby == null)
+            return null;
+
+        if (agentLobby->HoveredCharacterContentId != 0)
+            return agentLobby->HoveredCharacterContentId;
+
+        return null;
+    }
+
+    [GeneratedRegex(@" \(.* Mix\)")]
+    private static partial Regex MixRegex();
 
     private string GenerateUniqueProfileName(string startingWith)
     {
         if (this.profiles.All(x => x.Name != startingWith))
             return startingWith;
 
-        startingWith = Regex.Replace(startingWith, @" \(.* Mix\)", string.Empty);
+        startingWith = MixRegex().Replace(startingWith, string.Empty);
 
         while (true)
         {
@@ -355,7 +390,7 @@ internal class ProfileManager : IServiceType
         this.config.DefaultProfile ??= new ProfileModelV1();
         this.profiles.Add(new Profile(this, this.config.DefaultProfile, true, true));
 
-        this.config.SavedProfiles ??= new List<ProfileModel>();
+        this.config.SavedProfiles ??= [];
         foreach (var profileModel in this.config.SavedProfiles)
         {
             this.profiles.Add(new Profile(this, profileModel, false, true));

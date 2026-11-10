@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 
@@ -35,8 +35,8 @@ internal sealed class DelegateFontHandle : FontHandle
     /// </summary>
     internal sealed class HandleManager : IFontHandleManager
     {
-        private readonly HashSet<DelegateFontHandle> handles = new();
-        private readonly object syncRoot = new();
+        private readonly HashSet<DelegateFontHandle> handles = [];
+        private readonly Lock syncRoot = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HandleManager"/> class.
@@ -56,7 +56,7 @@ internal sealed class DelegateFontHandle : FontHandle
         /// <inheritdoc/>
         public void Dispose()
         {
-            lock (this.syncRoot)
+            using (this.syncRoot.EnterScope())
                 this.handles.Clear();
         }
 
@@ -64,9 +64,9 @@ internal sealed class DelegateFontHandle : FontHandle
         public IFontHandle NewFontHandle(FontAtlasBuildStepDelegate buildStepDelegate)
         {
             var key = new DelegateFontHandle(this, buildStepDelegate);
-            lock (this.syncRoot)
+            using (this.syncRoot.EnterScope())
                 this.handles.Add(key);
-            this.RebuildRecommend?.Invoke();
+            this.RebuildRecommend.InvokeSafely();
             return key;
         }
 
@@ -76,14 +76,14 @@ internal sealed class DelegateFontHandle : FontHandle
             if (handle is not DelegateFontHandle cgfh)
                 return;
 
-            lock (this.syncRoot)
+            using (this.syncRoot.EnterScope())
                 this.handles.Remove(cgfh);
         }
 
         /// <inheritdoc/>
         public IFontHandleSubstance NewSubstance(IRefCountable dataRoot)
         {
-            lock (this.syncRoot)
+            using (this.syncRoot.EnterScope())
                 return new HandleSubstance(this, dataRoot, this.handles.ToArray());
         }
     }
@@ -96,8 +96,8 @@ internal sealed class DelegateFontHandle : FontHandle
         private static readonly ModuleLog Log = new($"{nameof(DelegateFontHandle)}.{nameof(HandleSubstance)}");
 
         // Owned by this class, but ImFontPtr values still do not belong to this.
-        private readonly Dictionary<DelegateFontHandle, ImFontPtr> fonts = new();
-        private readonly Dictionary<DelegateFontHandle, Exception?> buildExceptions = new();
+        private readonly Dictionary<DelegateFontHandle, ImFontPtr> fonts = [];
+        private readonly Dictionary<DelegateFontHandle, Exception?> buildExceptions = [];
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HandleSubstance"/> class.
@@ -159,7 +159,7 @@ internal sealed class DelegateFontHandle : FontHandle
                 {
                     toolkitPreBuild.Font = default;
                     k.CallOnBuildStepChange(toolkitPreBuild);
-                    if (toolkitPreBuild.Font.IsNull())
+                    if (toolkitPreBuild.Font.IsNull)
                     {
                         if (fontCountPrevious == fontsVector.Length)
                         {
@@ -177,7 +177,7 @@ internal sealed class DelegateFontHandle : FontHandle
                         {
                             for (var i = fontCountPrevious; !found && i < fontsVector.Length; i++)
                             {
-                                if (fontsVector[i].NativePtr == toolkitPreBuild.Font.NativePtr)
+                                if (fontsVector[i].Handle == toolkitPreBuild.Font.Handle)
                                     found = true;
                             }
                         }
@@ -223,7 +223,7 @@ internal sealed class DelegateFontHandle : FontHandle
                         {
                             unsafe
                             {
-                                if (fontsVector[i].NativePtr == fontsVector[j].NativePtr)
+                                if (fontsVector[i].Handle == fontsVector[j].Handle)
                                     throw new InvalidOperationException("An already added font has been added again.");
                             }
                         }
@@ -247,7 +247,7 @@ internal sealed class DelegateFontHandle : FontHandle
                     {
                         var distinct =
                             fontsVector
-                                .DistinctBy(x => (nint)x.NativePtr) // Remove duplicates
+                                .DistinctBy(x => (nint)x.Handle) // Remove duplicates
                                 .Where(x => x.ValidateUnsafe() is null) // Remove invalid entries without freeing them
                                 .ToArray();
 
@@ -259,7 +259,7 @@ internal sealed class DelegateFontHandle : FontHandle
             }
         }
 
-        /// <inheritdoc/>        
+        /// <inheritdoc/>
         public void OnPreBuildCleanup(IFontAtlasBuildToolkitPreBuild toolkitPreBuild)
         {
             // irrelevant

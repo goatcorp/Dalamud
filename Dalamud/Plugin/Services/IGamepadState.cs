@@ -1,31 +1,37 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 using Dalamud.Game.ClientState.GamePad;
-using ImGuiNET;
 
 namespace Dalamud.Plugin.Services;
 
 /// <summary>
-/// Exposes the game gamepad state to dalamud.
+/// Exposes the game gamepad state to Dalamud.
 ///
-/// Will block game's gamepad input if <see cref="ImGuiConfigFlags.NavEnableGamepad"/> is set.
+/// Will block game's gamepad input if <see cref="EnableGamepadNav"/> is set.
 /// </summary>
-public interface IGamepadState
+public interface IGamepadState : IDalamudService
 {
     /// <summary>
     /// Gets the pointer to the current instance of the GamepadInput struct.
     /// </summary>
-    public nint GamepadInputAddress { get; }
-    
+    nint GamepadInputAddress { get; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether gamepad input is intercepted for ImGui navigation,
+    /// preventing it from passing through to the game.
+    /// Setting to true is ignored while plugin gamepad input is disabled in Dalamud settings.
+    /// </summary>
+    public bool EnableGamepadNav { get; set; }
+
     /// <summary>
     /// Gets the left analogue sticks tilt vector.
     /// </summary>
-    public Vector2 LeftStick { get; }
-    
+    Vector2 LeftStick { get; }
+
     /// <summary>
     /// Gets the right analogue sticks tilt vector.
     /// </summary>
-    public Vector2 RightStick { get; }
+    Vector2 RightStick { get; }
 
     /// <summary>
     /// Gets whether <paramref name="button"/> has been pressed.
@@ -35,7 +41,7 @@ public interface IGamepadState
     /// </summary>
     /// <param name="button">The button to check for.</param>
     /// <returns>1 if pressed, 0 otherwise.</returns>
-    public float Pressed(GamepadButtons button);
+    float Pressed(GamepadButtons button);
 
     /// <summary>
     /// Gets whether <paramref name="button"/> is being pressed.
@@ -45,7 +51,7 @@ public interface IGamepadState
     /// </summary>
     /// <param name="button">The button to check for.</param>
     /// <returns>1 if still pressed during interval, 0 otherwise or in between intervals.</returns>
-    public float Repeat(GamepadButtons button);
+    float Repeat(GamepadButtons button);
 
     /// <summary>
     /// Gets whether <paramref name="button"/> has been released.
@@ -55,7 +61,7 @@ public interface IGamepadState
     /// </summary>
     /// <param name="button">The button to check for.</param>
     /// <returns>1 if released, 0 otherwise.</returns>
-    public float Released(GamepadButtons button);
+    float Released(GamepadButtons button);
 
     /// <summary>
     /// Gets the raw state of <paramref name="button"/>.
@@ -64,5 +70,5 @@ public interface IGamepadState
     /// </summary>
     /// <param name="button">The button to check for.</param>
     /// <returns>1 the whole time button is pressed, 0 otherwise.</returns>
-    public float Raw(GamepadButtons button);
+    float Raw(GamepadButtons button);
 }

@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.ManagedFontAtlas;
 
@@ -39,7 +38,7 @@ public interface IFontAtlas : IDisposable
     string Name { get; }
 
     /// <summary>
-    /// Gets a value how the atlas should be rebuilt when the relevant Dalamud Configuration changes. 
+    /// Gets a value how the atlas should be rebuilt when the relevant Dalamud Configuration changes.
     /// </summary>
     FontAtlasAutoRebuildMode AutoRebuildMode { get; }
 
@@ -80,7 +79,7 @@ public interface IFontAtlas : IDisposable
     /// }
     /// </code>
     /// </example>
-    public IDisposable SuppressAutoRebuild();
+    IDisposable SuppressAutoRebuild();
 
     /// <summary>Creates a new <see cref="IFontHandle"/> from game's built-in fonts.</summary>
     /// <param name="style">Font to use.</param>
@@ -91,7 +90,7 @@ public interface IFontAtlas : IDisposable
     /// <remarks>This function does not throw. <see cref="IFontHandle.LoadException"/> will be populated instead, if
     /// the build procedure has failed. <see cref="IFontHandle.Push"/> can be used regardless of the state of the font
     /// handle.</remarks>
-    public IFontHandle NewGameFontHandle(GameFontStyle style);
+    IFontHandle NewGameFontHandle(GameFontStyle style);
 
     /// <summary>Creates a new IFontHandle using your own callbacks.</summary>
     /// <param name="buildStepDelegate">Callback for <see cref="IFontAtlas.BuildStepChange"/>.</param>
@@ -130,10 +129,10 @@ public interface IFontAtlas : IDisposable
     /// <b>On use</b>:
     /// <code>
     /// using (this.fontHandle.Push())
-    ///     ImGui.TextUnformatted("Example");
+    ///     ImGui.Text("Example"u8);
     /// </code>
     /// </example>
-    public IFontHandle NewDelegateFontHandle(FontAtlasBuildStepDelegate buildStepDelegate);
+    IFontHandle NewDelegateFontHandle(FontAtlasBuildStepDelegate buildStepDelegate);
 
     /// <summary>
     /// Queues rebuilding fonts, on the main thread.<br />
@@ -153,7 +152,7 @@ public interface IFontAtlas : IDisposable
     void BuildFontsImmediately();
 
     /// <summary>
-    /// Rebuilds fonts asynchronously, on any thread. 
+    /// Rebuilds fonts asynchronously, on any thread.
     /// </summary>
     /// <returns>The task.</returns>
     /// <exception cref="InvalidOperationException">If <see cref="AutoRebuildMode"/> is <see cref="FontAtlasAutoRebuildMode.OnNewFrame"/>.</exception>

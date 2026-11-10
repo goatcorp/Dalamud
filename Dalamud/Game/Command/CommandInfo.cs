@@ -10,7 +10,7 @@ public interface IReadOnlyCommandInfo
     /// </summary>
     /// <param name="command">The command itself.</param>
     /// <param name="arguments">The arguments supplied to the command, ready for parsing.</param>
-    public delegate void HandlerDelegate(string command, string arguments);
+    delegate void HandlerDelegate(string command, string arguments);
 
     /// <summary>
     /// Gets a <see cref="HandlerDelegate"/> which will be called when the command is dispatched.
@@ -31,6 +31,11 @@ public interface IReadOnlyCommandInfo
     /// Gets the display order of this command. Defaults to alphabetical ordering.
     /// </summary>
     int DisplayOrder { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this command is permitted to run in macros. Defaults to true.
+    /// </summary>
+    bool AllowedInMacros { get; }
 }
 
 /// <summary>
@@ -59,4 +64,7 @@ public sealed class CommandInfo : IReadOnlyCommandInfo
 
     /// <inheritdoc/>
     public int DisplayOrder { get; set; } = -1;
+
+    /// <inheritdoc/>
+    public bool AllowedInMacros { get; set; } = true;
 }

@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
 using BitFaster.Caching.Lru;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game;
-using Dalamud.Game.Config;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 using Dalamud.Interface.Utility;
@@ -15,8 +16,6 @@ using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
-
-using ImGuiNET;
 
 using Lumina.Excel.Sheets;
 using Lumina.Text;
@@ -30,7 +29,7 @@ namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 
 /// <summary>Draws SeString.</summary>
 [ServiceManager.EarlyLoadedService]
-internal unsafe class SeStringRenderer : IInternalDisposableService
+internal class SeStringRenderer : IServiceType
 {
     private const int ImGuiContextCurrentWindowOffset = 0x3FF0;
     private const int ImGuiWindowDcOffset = 0x118;
@@ -44,9 +43,6 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// of this placeholder. On its own, usually displayed like <c>[OBJ]</c>.</summary>
     private const int ObjectReplacementCharacter = '\uFFFC';
 
-    [ServiceManager.ServiceDependency]
-    private readonly GameConfig gameConfig = Service<GameConfig>.Get();
-
     /// <summary>Cache of compiled SeStrings from <see cref="CompileAndCache"/>.</summary>
     private readonly ConcurrentLru<string, ReadOnlySeString> cache = new(1024);
 
@@ -55,27 +51,18 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
 
     /// <summary>Parsed text fragments from a SeString.</summary>
     /// <remarks>Touched only from the main thread.</remarks>
-    private readonly List<TextFragment> fragments = [];
+    private readonly List<TextFragment> fragmentsMainThread = [];
 
     /// <summary>Color stacks to use while evaluating a SeString for rendering.</summary>
     /// <remarks>Touched only from the main thread.</remarks>
-    private readonly SeStringColorStackSet colorStackSet;
-
-    /// <summary>Splits a draw list so that different layers of a single glyph can be drawn out of order.</summary>
-    private ImDrawListSplitter* splitter = ImGuiNative.ImDrawListSplitter_ImDrawListSplitter();
+    private readonly SeStringColorStackSet colorStackSetMainThread;
 
     [ServiceManager.ServiceConstructor]
     private SeStringRenderer(DataManager dm, TargetSigScanner sigScanner)
     {
-        this.colorStackSet = new(dm.Excel.GetSheet<UIColor>());
+        this.colorStackSetMainThread = new(dm.Excel.GetSheet<UIColor>());
         this.gfd = dm.GetFile<GfdFile>("common/font/gfdata.gfd")!;
     }
-
-    /// <summary>Finalizes an instance of the <see cref="SeStringRenderer"/> class.</summary>
-    ~SeStringRenderer() => this.ReleaseUnmanagedResources();
-
-    /// <inheritdoc/>
-    void IInternalDisposableService.DisposeService() => this.ReleaseUnmanagedResources();
 
     /// <summary>Compiles and caches a SeString from a text macro representation.</summary>
     /// <param name="text">SeString text macro representation.
@@ -87,6 +74,44 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             static text => ReadOnlySeString.FromMacroString(
                 text.ReplaceLineEndings("<br>"),
                 new() { ExceptionMode = MacroStringParseExceptionMode.EmbedError }));
+
+    /// <summary>Creates a draw data that will draw the given SeString onto it.</summary>
+    /// <param name="sss">SeString to render.</param>
+    /// <param name="drawParams">Parameters for drawing.</param>
+    /// <returns>A new self-contained draw data.</returns>
+    public unsafe BufferBackedImDrawData CreateDrawData(
+        ReadOnlySeStringSpan sss,
+        scoped in SeStringDrawParams drawParams = default)
+    {
+        if (drawParams.TargetDrawList is not null)
+        {
+            throw new ArgumentException(
+                $"{nameof(SeStringDrawParams.TargetDrawList)} may not be specified.",
+                nameof(drawParams));
+        }
+
+        var dd = BufferBackedImDrawData.Create();
+
+        try
+        {
+            var size = this.Draw(sss, drawParams with { TargetDrawList = dd.ListPtr }).Size;
+
+            var offset = drawParams.ScreenOffset ?? Vector2.Zero;
+            foreach (var vtx in new Span<ImDrawVert>(dd.ListPtr.VtxBuffer.Data, dd.ListPtr.VtxBuffer.Size))
+                offset = Vector2.Min(offset, vtx.Pos);
+
+            dd.Data.DisplayPos = offset;
+            dd.Data.DisplaySize = size - offset;
+            dd.Data.Valid = 1;
+            dd.UpdateDrawDataStatistics();
+            return dd;
+        }
+        catch
+        {
+            dd.Dispose();
+            throw;
+        }
+    }
 
     /// <summary>Compiles and caches a SeString from a text macro representation, and then draws it.</summary>
     /// <param name="text">SeString text macro representation.
@@ -121,28 +146,43 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
     /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <returns>Interaction result of the rendered text.</returns>
-    public SeStringDrawResult Draw(
+    public unsafe SeStringDrawResult Draw(
         ReadOnlySeStringSpan sss,
         scoped in SeStringDrawParams drawParams = default,
         ImGuiId imGuiId = default,
         ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault)
     {
-        // Drawing is only valid if done from the main thread anyway, especially with interactivity.
-        ThreadSafety.AssertMainThread();
+        // Interactivity is supported only from the main thread.
+        if (!imGuiId.IsEmpty())
+            ThreadSafety.AssertMainThread();
 
         if (drawParams.TargetDrawList is not null && imGuiId)
             throw new ArgumentException("ImGuiId cannot be set if TargetDrawList is manually set.", nameof(imGuiId));
 
-        // This also does argument validation for drawParams. Do it here.
-        var state = new SeStringDrawState(sss, drawParams, this.colorStackSet, this.splitter);
+        using var cleanup = new DisposeSafety.ScopedFinalizer();
 
-        // Reset and initialize the state.
-        this.fragments.Clear();
-        this.colorStackSet.Initialize(ref state);
+        ImFont* font = null;
+        if (drawParams.Font.HasValue)
+            font = drawParams.Font.Value;
+
+        if (ThreadSafety.IsMainThread && drawParams.TargetDrawList is null && font is null)
+            font = ImGui.GetFont();
+        if (font is null)
+            throw new ArgumentException("Specified font is empty.");
+
+        // This also does argument validation for drawParams. Do it here.
+        // `using var` makes a struct read-only, but we do want to modify it.
+        using var stateStorage = new SeStringDrawState(
+            sss,
+            drawParams,
+            ThreadSafety.IsMainThread ? this.colorStackSetMainThread : new(this.colorStackSetMainThread.ColorTypes),
+            ThreadSafety.IsMainThread ? this.fragmentsMainThread : [],
+            font);
+        ref var state = ref Unsafe.AsRef(in stateStorage);
 
         // Analyze the provided SeString and break it up to text fragments.
         this.CreateTextFragments(ref state);
-        var fragmentSpan = CollectionsMarshal.AsSpan(this.fragments);
+        var fragmentSpan = CollectionsMarshal.AsSpan(state.Fragments);
 
         // Calculate size.
         var size = Vector2.Zero;
@@ -150,21 +190,22 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             size = Vector2.Max(size, fragment.Offset + new Vector2(fragment.VisibleWidth, state.LineHeight));
 
         // If we're not drawing at all, stop further processing.
-        if (state.DrawList.NativePtr is null)
+        if (state.DrawList.Handle is null)
             return new() { Size = size };
 
         state.SplitDrawList();
 
-        // Handle cases where ImGui.AlignTextToFramePadding has been called.
-        var pCurrentWindow = *(nint*)(ImGui.GetCurrentContext() + ImGuiContextCurrentWindowOffset);
-        var pWindowDc = pCurrentWindow + ImGuiWindowDcOffset;
-        var currLineTextBaseOffset = *(float*)(pWindowDc + ImGuiWindowTempDataCurrLineTextBaseOffset);
         var itemSize = size;
-        if (currLineTextBaseOffset != 0f)
+        if (drawParams.TargetDrawList is null)
         {
-            itemSize.Y += 2 * currLineTextBaseOffset;
-            foreach (ref var f in fragmentSpan)
-                f.Offset += new Vector2(0, currLineTextBaseOffset);
+            // Handle cases where ImGui.AlignTextToFramePadding has been called.
+            var currLineTextBaseOffset = ImGui.GetCurrentContext().CurrentWindow.DC.CurrLineTextBaseOffset;
+            if (currLineTextBaseOffset != 0f)
+            {
+                itemSize.Y += 2 * currLineTextBaseOffset;
+                foreach (ref var f in fragmentSpan)
+                    f.Offset += new Vector2(0, currLineTextBaseOffset);
+            }
         }
 
         // Draw all text fragments.
@@ -203,7 +244,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
 
                     var cursorPosBackup = ImGui.GetCursorScreenPos();
                     ImGui.SetCursorScreenPos(state.ScreenOffset + f.Offset);
-                    clicked = ImGui.InvisibleButton("##link", sz, buttonFlags);
+                    clicked = ImGui.InvisibleButton("##link"u8, sz, buttonFlags);
                     if (ImGui.IsItemHovered())
                         hoveredLinkOffset = f.Link;
                     if (ImGui.IsItemActive())
@@ -218,7 +259,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             if (!invisibleButtonDrawn)
             {
                 ImGui.SetCursorScreenPos(state.ScreenOffset);
-                clicked = ImGui.InvisibleButton("##text", itemSize, buttonFlags);
+                clicked = ImGui.InvisibleButton("##text"u8, itemSize, buttonFlags);
             }
 
             ImGui.PopID();
@@ -280,15 +321,6 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         return displayRune.Value != 0;
     }
 
-    private void ReleaseUnmanagedResources()
-    {
-        if (this.splitter is not null)
-        {
-            ImGuiNative.ImDrawListSplitter_destroy(this.splitter);
-            this.splitter = null;
-        }
-    }
-
     /// <summary>Creates text fragment, taking line and word breaking into account.</summary>
     /// <param name="state">Draw state.</param>
     private void CreateTextFragments(ref SeStringDrawState state)
@@ -299,7 +331,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         var link = -1;
         foreach (var (breakAt, mandatory) in new LineBreakEnumerator(state.Span, UtfEnumeratorFlags.Utf8SeString))
         {
-            // Might have happened if custom entity was longer than the previous break unit. 
+            // Might have happened if custom entity was longer than the previous break unit.
             if (prev > breakAt)
                 continue;
 
@@ -391,7 +423,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 var overflows = Math.Max(w, xy.X + fragment.VisibleWidth) > state.WrapWidth;
 
                 // Test if the fragment does not fit into the current line and the current line is not empty.
-                if (xy.X != 0 && this.fragments.Count > 0 && !this.fragments[^1].BreakAfter && overflows)
+                if (xy.X != 0 && state.Fragments.Count > 0 && !state.Fragments[^1].BreakAfter && overflows)
                 {
                     // Introduce break if this is the first time testing the current break unit or the current fragment
                     // is an entity.
@@ -401,7 +433,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                         xy.X = 0;
                         xy.Y += state.LineHeight;
                         w = 0;
-                        CollectionsMarshal.AsSpan(this.fragments)[^1].BreakAfter = true;
+                        CollectionsMarshal.AsSpan(state.Fragments)[^1].BreakAfter = true;
                         fragment.Offset = xy;
 
                         // Now that the fragment is given its own line, test if it overflows again.
@@ -419,16 +451,16 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                         fragment = this.CreateFragment(state, prev, curr, true, xy, link, entity, remainingWidth);
                     }
                 }
-                else if (this.fragments.Count > 0 && xy.X != 0)
+                else if (state.Fragments.Count > 0 && xy.X != 0)
                 {
                     // New fragment fits into the current line, and it has a previous fragment in the same line.
                     // If the previous fragment ends with a soft hyphen, adjust its width so that the width of its
                     // trailing soft hyphens are not considered.
-                    if (this.fragments[^1].EndsWithSoftHyphen)
-                        xy.X += this.fragments[^1].AdvanceWidthWithoutSoftHyphen - this.fragments[^1].AdvanceWidth;
+                    if (state.Fragments[^1].EndsWithSoftHyphen)
+                        xy.X += state.Fragments[^1].AdvanceWidthWithoutSoftHyphen - state.Fragments[^1].AdvanceWidth;
 
                     // Adjust this fragment's offset from kerning distance.
-                    xy.X += state.CalculateScaledDistance(this.fragments[^1].LastRune, fragment.FirstRune);
+                    xy.X += state.CalculateScaledDistance(state.Fragments[^1].LastRune, fragment.FirstRune);
                     fragment.Offset = xy;
                 }
 
@@ -439,7 +471,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 w = Math.Max(w, xy.X + fragment.VisibleWidth);
                 xy.X += fragment.AdvanceWidth;
                 prev = fragment.To;
-                this.fragments.Add(fragment);
+                state.Fragments.Add(fragment);
 
                 if (fragment.BreakAfter)
                 {
@@ -491,7 +523,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                     if (gfdTextureSrv != 0)
                     {
                         state.Draw(
-                            gfdTextureSrv,
+                            new(gfdTextureSrv),
                             offset + new Vector2(x, MathF.Round((state.LineHeight - size.Y) / 2)),
                             size,
                             useHq ? gfdEntry.HqUv0 : gfdEntry.Uv0,
@@ -528,7 +560,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
 
         return;
 
-        static nint GetGfdTextureSrv()
+        static unsafe nint GetGfdTextureSrv()
         {
             var uim = UIModule.Instance();
             if (uim is null)
@@ -553,7 +585,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <summary>Determines a bitmap icon to display for the given SeString payload.</summary>
     /// <param name="sss">Byte span that should include a SeString payload.</param>
     /// <returns>Icon to display, or <see cref="None"/> if it should not be displayed as an icon.</returns>
-    private BitmapFontIcon GetBitmapFontIconFor(ReadOnlySpan<byte> sss)
+    private unsafe BitmapFontIcon GetBitmapFontIconFor(ReadOnlySpan<byte> sss)
     {
         var e = new ReadOnlySeStringSpan(sss).GetEnumerator();
         if (!e.MoveNext() || e.Current.MacroCode is not MacroCode.Icon and not MacroCode.Icon2)
@@ -570,70 +602,16 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             // Apply gamepad key mapping to icons.
             case MacroCode.Icon2
                 when payload.TryGetExpression(out var icon) && icon.TryGetInt(out var iconId):
-                var configName = (BitmapFontIcon)iconId switch
+                ref var iconMapping = ref RaptureAtkModule.Instance()->AtkFontManager.Icon2RemapTable;
+                for (var i = 0; i < 30; i++)
                 {
-                    ControllerShoulderLeft => SystemConfigOption.PadButton_L1,
-                    ControllerShoulderRight => SystemConfigOption.PadButton_R1,
-                    ControllerTriggerLeft => SystemConfigOption.PadButton_L2,
-                    ControllerTriggerRight => SystemConfigOption.PadButton_R2,
-                    ControllerButton3 => SystemConfigOption.PadButton_Triangle,
-                    ControllerButton1 => SystemConfigOption.PadButton_Cross,
-                    ControllerButton0 => SystemConfigOption.PadButton_Circle,
-                    ControllerButton2 => SystemConfigOption.PadButton_Square,
-                    ControllerStart => SystemConfigOption.PadButton_Start,
-                    ControllerBack => SystemConfigOption.PadButton_Select,
-                    ControllerAnalogLeftStick => SystemConfigOption.PadButton_LS,
-                    ControllerAnalogLeftStickIn => SystemConfigOption.PadButton_LS,
-                    ControllerAnalogLeftStickUpDown => SystemConfigOption.PadButton_LS,
-                    ControllerAnalogLeftStickLeftRight => SystemConfigOption.PadButton_LS,
-                    ControllerAnalogRightStick => SystemConfigOption.PadButton_RS,
-                    ControllerAnalogRightStickIn => SystemConfigOption.PadButton_RS,
-                    ControllerAnalogRightStickUpDown => SystemConfigOption.PadButton_RS,
-                    ControllerAnalogRightStickLeftRight => SystemConfigOption.PadButton_RS,
-                    _ => (SystemConfigOption?)null,
-                };
-
-                if (configName is null || !this.gameConfig.TryGet(configName.Value, out PadButtonValue pb))
-                    return (BitmapFontIcon)iconId;
-
-                return pb switch
-                {
-                    PadButtonValue.Autorun_Support => ControllerShoulderLeft,
-                    PadButtonValue.Hotbar_Set_Change => ControllerShoulderRight,
-                    PadButtonValue.XHB_Left_Start => ControllerTriggerLeft,
-                    PadButtonValue.XHB_Right_Start => ControllerTriggerRight,
-                    PadButtonValue.Jump => ControllerButton3,
-                    PadButtonValue.Accept => ControllerButton0,
-                    PadButtonValue.Cancel => ControllerButton1,
-                    PadButtonValue.Map_Sub => ControllerButton2,
-                    PadButtonValue.MainCommand => ControllerStart,
-                    PadButtonValue.HUD_Select => ControllerBack,
-                    PadButtonValue.Move_Operation => (BitmapFontIcon)iconId switch
+                    if (iconMapping[i].IconId == iconId)
                     {
-                        ControllerAnalogLeftStick => ControllerAnalogLeftStick,
-                        ControllerAnalogLeftStickIn => ControllerAnalogLeftStickIn,
-                        ControllerAnalogLeftStickUpDown => ControllerAnalogLeftStickUpDown,
-                        ControllerAnalogLeftStickLeftRight => ControllerAnalogLeftStickLeftRight,
-                        ControllerAnalogRightStick => ControllerAnalogLeftStick,
-                        ControllerAnalogRightStickIn => ControllerAnalogLeftStickIn,
-                        ControllerAnalogRightStickUpDown => ControllerAnalogLeftStickUpDown,
-                        ControllerAnalogRightStickLeftRight => ControllerAnalogLeftStickLeftRight,
-                        _ => (BitmapFontIcon)iconId,
-                    },
-                    PadButtonValue.Camera_Operation => (BitmapFontIcon)iconId switch
-                    {
-                        ControllerAnalogLeftStick => ControllerAnalogRightStick,
-                        ControllerAnalogLeftStickIn => ControllerAnalogRightStickIn,
-                        ControllerAnalogLeftStickUpDown => ControllerAnalogRightStickUpDown,
-                        ControllerAnalogLeftStickLeftRight => ControllerAnalogRightStickLeftRight,
-                        ControllerAnalogRightStick => ControllerAnalogRightStick,
-                        ControllerAnalogRightStickIn => ControllerAnalogRightStickIn,
-                        ControllerAnalogRightStickUpDown => ControllerAnalogRightStickUpDown,
-                        ControllerAnalogRightStickLeftRight => ControllerAnalogRightStickLeftRight,
-                        _ => (BitmapFontIcon)iconId,
-                    },
-                    _ => (BitmapFontIcon)iconId,
-                };
+                        return (BitmapFontIcon)iconMapping[i].RemappedIconId;
+                    }
+                }
+
+                return (BitmapFontIcon)iconId;
         }
 
         return None;
@@ -763,39 +741,5 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             endsWithSoftHyphen,
             firstDisplayRune ?? default,
             lastNonSoftHyphenRune);
-    }
-
-    /// <summary>Represents a text fragment in a SeString span.</summary>
-    /// <param name="From">Starting byte offset (inclusive) in a SeString.</param>
-    /// <param name="To">Ending byte offset (exclusive) in a SeString.</param>
-    /// <param name="Link">Byte offset of the link that decorates this text fragment, or <c>-1</c> if none.</param>
-    /// <param name="Offset">Offset in pixels w.r.t. <see cref="SeStringDrawParams.ScreenOffset"/>.</param>
-    /// <param name="Entity">Replacement entity, if any.</param>
-    /// <param name="VisibleWidth">Visible width of this text fragment. This is the width required to draw everything
-    /// without clipping.</param>
-    /// <param name="AdvanceWidth">Advance width of this text fragment. This is the width required to add to the cursor
-    /// to position the next fragment correctly.</param>
-    /// <param name="AdvanceWidthWithoutSoftHyphen">Same with <paramref name="AdvanceWidth"/>, but trimming all the
-    /// trailing soft hyphens.</param>
-    /// <param name="BreakAfter">Whether to insert a line break after this text fragment.</param>
-    /// <param name="EndsWithSoftHyphen">Whether this text fragment ends with one or more soft hyphens.</param>
-    /// <param name="FirstRune">First rune in this text fragment.</param>
-    /// <param name="LastRune">Last rune in this text fragment, for the purpose of calculating kerning distance with
-    /// the following text fragment in the same line, if any.</param>
-    private record struct TextFragment(
-        int From,
-        int To,
-        int Link,
-        Vector2 Offset,
-        SeStringReplacementEntity Entity,
-        float VisibleWidth,
-        float AdvanceWidth,
-        float AdvanceWidthWithoutSoftHyphen,
-        bool BreakAfter,
-        bool EndsWithSoftHyphen,
-        Rune FirstRune,
-        Rune LastRune)
-    {
-        public bool IsSoftHyphenVisible => this.EndsWithSoftHyphen && this.BreakAfter;
     }
 }

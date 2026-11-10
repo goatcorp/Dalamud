@@ -1,92 +1,68 @@
-﻿using System.Runtime.CompilerServices;
-
-using Dalamud.Memory;
-
-using FFXIVClientStructs.FFXIV.Component.GUI;
+using Dalamud.Game.NativeWrapper;
+using Dalamud.Utility;
 
 namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 /// <summary>
 /// Base class for AddonLifecycle AddonArgTypes.
 /// </summary>
-public abstract unsafe class AddonArgs
+public class AddonArgs
 {
     /// <summary>
     /// Constant string representing the name of an addon that is invalid.
     /// </summary>
-    public const string InvalidAddon = "NullAddon";
+    [Obsolete("AddonName can never be null or invalid. This check is unnecessary.")]
+    public const string InvalidAddonName = "NullAddon";
 
-    private string? addonName;
-    private IntPtr addon;
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AddonArgs"/> class.
+    /// </summary>
+    internal AddonArgs()
+    {
+    }
+
+    /// <summary>
+    /// Gets the string representing the name of an addon that is invalid.
+    /// </summary>
+    [Obsolete("AddonName can never be null or invalid. This check is unnecessary.")]
+    public static ReadOnlySpan<byte> InvalidAddonNameSpan => "NullAddon"u8;
 
     /// <summary>
     /// Gets the name of the addon this args referrers to.
     /// </summary>
-    public string AddonName => this.GetAddonName();
+    public string AddonName { get; internal init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the name of the addon this args referrers to.
+    /// </summary>
+    public ReadOnlySpan<byte> AddonNameSpan => this.Addon.NameSpan.BeforeNull();
 
     /// <summary>
     /// Gets the pointer to the addons AtkUnitBase.
     /// </summary>
-    public nint Addon
-    {
-        get => this.AddonInternal;
-        init => this.AddonInternal = value;
-    }
+    public AtkUnitBasePtr Addon { get; internal init; }
 
     /// <summary>
     /// Gets the type of these args.
     /// </summary>
-    public abstract AddonArgsType Type { get; }
+    public virtual AddonArgsType Type => AddonArgsType.Generic;
 
     /// <summary>
-    /// Gets or sets the pointer to the addons AtkUnitBase.
+    /// Gets a value indicating whether original is being requested to be skipped.
     /// </summary>
-    internal nint AddonInternal
-    {
-        get => this.addon;
-        set
-        {
-            this.addon = value;
-
-            // Note: always clear addonName on updating the addon being pointed.
-            // Same address may point to a different addon.
-            this.addonName = null;
-        }
-    }
+    public bool PreventOriginalRequested { get; internal set; }
 
     /// <summary>
-    /// Checks if addon name matches the given span of char.
+    /// Request that the call to original is skipped.
+    /// Only valid to be called from a Pre event listener not a Post event listener.
     /// </summary>
-    /// <param name="name">The name to check.</param>
-    /// <returns>Whether it is the case.</returns>
-    internal bool IsAddon(ReadOnlySpan<char> name)
-    {
-        if (this.Addon == nint.Zero) return false;
-        if (name.Length is 0 or > 0x20)
-            return false;
-
-        var addonPointer = (AtkUnitBase*)this.Addon;
-        if (addonPointer->Name[0] == 0) return false;
-
-        // note: might want to rewrite this to just compare to NameString
-        return MemoryHelper.EqualsZeroTerminatedString(
-            name,
-            (nint)Unsafe.AsPointer(ref addonPointer->Name[0]),
-            null,
-            0x20);
-    }
+    public void PreventOriginal() => this.PreventOriginalRequested = true;
 
     /// <summary>
-    /// Helper method for ensuring the name of the addon is valid.
+    /// Gets the typed pointer to the addons AtkUnitBase*.
     /// </summary>
-    /// <returns>The name of the addon for this object. <see cref="InvalidAddon"/> when invalid.</returns>
-    private string GetAddonName()
-    {
-        if (this.Addon == nint.Zero) return InvalidAddon;
-
-        var addonPointer = (AtkUnitBase*)this.Addon;
-        if (addonPointer->Name[0] == 0) return InvalidAddon;
-
-        return this.addonName ??= addonPointer->NameString;
-    }
+    /// <typeparam name="T">AtkUnitBase.</typeparam>
+    /// <returns>Typed pointer to contained addons AtkUnitBase.</returns>
+    public unsafe T* GetAddonPointer<T>() where T : unmanaged
+        => (T*)this.Addon.Address;
 }

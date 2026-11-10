@@ -1,22 +1,26 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
-public sealed class GapSettingsEntry : SettingsEntry
+internal sealed class GapSettingsEntry : SettingsEntry
 {
     private readonly float size;
     private readonly bool hr;
+    private readonly Func<bool>? visibility;
 
-    public GapSettingsEntry(float size, bool hr = false)
+    public GapSettingsEntry(float size, bool hr = false, Func<bool>? visibility = null)
     {
         this.size = size;
         this.hr = hr;
+        this.visibility = visibility;
         this.IsValid = true;
     }
+
+    public override bool IsVisible => this.visibility == null || this.visibility();
 
     public override void Load()
     {

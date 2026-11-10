@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
@@ -12,7 +14,7 @@ using Serilog;
 namespace Dalamud.CorePlugin
 {
     /// <summary>
-    /// This class is a a plugin testbed for developing new Dalamud features with easy access to Dalamud itself.
+    /// This class is a plugin testbed for developing new Dalamud features with easy access to Dalamud itself.
     /// Be careful to not commit anything extra.
     /// </summary>
     /// <remarks>
@@ -26,7 +28,7 @@ namespace Dalamud.CorePlugin
     /// While it may have similarities, it is compiled with access to Dalamud internals, which may cause confusion when
     /// some things work and others don't in normal operations.
     /// </remarks>
-    public sealed class PluginImpl : IDalamudPlugin
+    public sealed class PluginImpl : IAsyncDalamudPlugin
     {
 #if !DEBUG
 
@@ -38,15 +40,22 @@ namespace Dalamud.CorePlugin
         {
         }
 
+        /// <inheritdoc />
+        public async Task LoadAsync(CancellationToken cancellationToken)
+        {
+        }
+
         /// <inheritdoc/>
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
         }
 
 #else
 
         private readonly WindowSystem windowSystem = new("Dalamud.CorePlugin");
-        private Localization localization;
+        private readonly PluginWindow? window;
+
+        private Localization? localization;
 
         private IPluginLog pluginLog;
 
@@ -57,13 +66,15 @@ namespace Dalamud.CorePlugin
         /// <param name="log">Logging service.</param>
         public PluginImpl(IDalamudPluginInterface pluginInterface, IPluginLog log)
         {
+            this.Interface = pluginInterface;
+            this.pluginLog = log;
+
             try
             {
                 // this.InitLoc();
-                this.Interface = pluginInterface;
-                this.pluginLog = log;
 
-                this.windowSystem.AddWindow(new PluginWindow());
+                this.window = new PluginWindow();
+                this.windowSystem.AddWindow(this.window);
 
                 this.Interface.UiBuilder.Draw += this.OnDraw;
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
@@ -88,9 +99,18 @@ namespace Dalamud.CorePlugin
         /// </summary>
         internal IDalamudPluginInterface Interface { get; private set; }
 
-        /// <inheritdoc/>
-        public void Dispose()
+        /// <inheritdoc />
+        public async Task LoadAsync(CancellationToken cancellationToken)
         {
+            await Task.Delay(10000, cancellationToken);
+            this.pluginLog.Information("LoadAsync completed!");
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask DisposeAsync()
+        {
+            await Task.Delay(10000);
+
             Service<CommandManager>.Get().RemoveHandler("/coreplug");
 
             this.Interface.UiBuilder.Draw -= this.OnDraw;
@@ -136,12 +156,12 @@ namespace Dalamud.CorePlugin
         {
             this.pluginLog.Information("Command called!");
 
-            // this.window.IsOpen = true;
+            this.window?.IsOpen ^= true;
         }
 
         private void OnOpenConfigUi()
         {
-            // this.window.IsOpen = true;
+            this.window?.IsOpen = true;
         }
 
         private void OnOpenMainUi()

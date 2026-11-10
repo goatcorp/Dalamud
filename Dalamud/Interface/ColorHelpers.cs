@@ -56,11 +56,10 @@ public static class ColorHelpers
         var min = Math.Min(r, Math.Min(g, b));
 
         var h = max;
-        var s = max;
         var v = max;
 
         var d = max - min;
-        s = max == 0 ? 0 : d / max;
+        var s = max == 0 ? 0 : d / max;
 
         if (max == min)
         {
@@ -320,7 +319,7 @@ public static class ColorHelpers
 
         _ => color / 255.0f,
     };
-    
+
     /// <summary>
     /// A struct representing a color using HSVA coordinates.
     /// </summary>

@@ -2,7 +2,6 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <map>
 #include <optional>
 #include <ranges>
@@ -19,15 +18,18 @@
 #include <comdef.h>
 #include <CommCtrl.h>
 #include <DbgHelp.h>
+#include <intrin.h>
 #include <minidumpapiset.h>
 #include <PathCch.h>
 #include <Psapi.h>
 #include <shellapi.h>
+#include <TlHelp32.h>
 #include <ShlGuid.h>
 #include <ShObjIdl.h>
 #include <shlobj_core.h>
 
-#pragma comment(lib, "comctl32.lib")
+#include <dxgi.h>
+
 #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 _COM_SMARTPTR_TYPEDEF(IFileOperation, __uuidof(IFileOperation));
@@ -39,11 +41,19 @@ _COM_SMARTPTR_TYPEDEF(IStream, __uuidof(IStream));
 static constexpr GUID Guid_IFileDialog_Tspack{ 0xfc057318, 0xad35, 0x4599, {0xa7, 0x68, 0xdd, 0xaf, 0x70, 0xbe, 0x98, 0x75} };
 
 #include "resource.h"
-#include "../Dalamud.Boot/crashhandler_shared.h"
+#include "crashhandler_shared.h"
+#include "hardware_info.h"
+#include "logging.h"
 #include "miniz.h"
+#include "dac_interfaces.h"
 
 HANDLE g_hProcess = nullptr;
 bool g_bSymbolsAvailable = false;
+
+// DAC state per crash to walk the managed stack
+IXCLRDataProcess* g_pClrDataProcess = nullptr;
+// ISOSDacInterface used to read JIT code header data for cross-process unwinding of JIT frames
+ISOSDacInterface*  g_pSosDac          = nullptr;
 
 std::string ws_to_u8(const std::wstring& ws) {
     std::string s(WideCharToMultiByte(CP_UTF8, 0, ws.data(), static_cast<int>(ws.size()), nullptr, 0, nullptr, nullptr), '\0');
@@ -119,7 +129,7 @@ std::wstring describe_module(const std::filesystem::path& path) {
         return std::format(L"<error: GetFileVersionInfoSizeW#2 returned {}>", GetLastError());
 
     UINT size = 0;
-    
+
     std::wstring version = L"v?.?.?.?";
     if (LPVOID lpBuffer; VerQueryValueW(block.data(), L"\\", &lpBuffer, &size)) {
         const auto& v = *static_cast<const VS_FIXEDFILEINFO*>(lpBuffer);
@@ -176,7 +186,7 @@ const std::map<HMODULE, size_t>& get_remote_modules() {
         std::vector<HMODULE> buf(8192);
         for (size_t i = 0; i < 64; i++) {
             if (DWORD needed; !EnumProcessModules(g_hProcess, &buf[0], static_cast<DWORD>(std::span(buf).size_bytes()), &needed)) {
-                std::cerr << std::format("EnumProcessModules error: 0x{:x}", GetLastError()) << std::endl; 
+                logging::E("EnumProcessModules error: 0x{:x}", GetLastError());
                 break;
             } else if (needed > std::span(buf).size_bytes()) {
                 buf.resize(needed / sizeof(HMODULE) + 16);
@@ -190,18 +200,18 @@ const std::map<HMODULE, size_t>& get_remote_modules() {
             IMAGE_DOS_HEADER dosh;
             IMAGE_NT_HEADERS64 nth64;
             if (size_t read; !ReadProcessMemory(g_hProcess, hModule, &dosh, sizeof dosh, &read) || read != sizeof dosh) {
-                std::cerr << std::format("Failed to read IMAGE_DOS_HEADER for module at 0x{:x}", reinterpret_cast<size_t>(hModule)) << std::endl;
+                logging::E("Failed to read IMAGE_DOS_HEADER for module at 0x{:x}", reinterpret_cast<size_t>(hModule));
                 continue;
             }
 
             if (size_t read; !ReadProcessMemory(g_hProcess, reinterpret_cast<const char*>(hModule) + dosh.e_lfanew, &nth64, sizeof nth64, &read) || read != sizeof nth64) {
-                std::cerr << std::format("Failed to read IMAGE_NT_HEADERS64 for module at 0x{:x}", reinterpret_cast<size_t>(hModule)) << std::endl;
+                logging::E("Failed to read IMAGE_NT_HEADERS64 for module at 0x{:x}", reinterpret_cast<size_t>(hModule));
                 continue;
             }
 
             data[hModule] = nth64.OptionalHeader.SizeOfImage;
         }
-        
+
         return data;
     }();
 
@@ -217,7 +227,7 @@ const std::map<HMODULE, std::filesystem::path>& get_remote_module_paths() {
             buf.resize(PATHCCH_MAX_CCH, L'\0');
             buf.resize(GetModuleFileNameExW(g_hProcess, hModule, &buf[0], PATHCCH_MAX_CCH));
             if (buf.empty()) {
-                std::cerr << std::format("Failed to get path for module at 0x{:x}: error 0x{:x}", reinterpret_cast<size_t>(hModule), GetLastError()) << std::endl;
+                logging::E("Failed to get path for module at 0x{:x}: error 0x{:x}", reinterpret_cast<size_t>(hModule), GetLastError());
                 continue;
             }
 
@@ -290,76 +300,1192 @@ std::wstring to_address_string(const DWORD64 address, const bool try_ptrderef = 
     return value != 0 ? std::format(L"{} [{}]", addr_str, to_address_string(value, false)) : addr_str;
 }
 
-void print_exception_info(HANDLE hThread, const EXCEPTION_POINTERS& ex, const CONTEXT& ctx, std::wostringstream& log) {
+// Data target for accessing the game process remotely
+class CrashHandlerDataTarget : public ICLRDataTarget2
+{
+    ULONG m_refs;
+    DWORD m_crashingThreadOsId;
+    CONTEXT m_crashContext;
+
+public:
+    CrashHandlerDataTarget(DWORD crashingThreadOsId, const CONTEXT& crashCtx)
+        : m_refs(1)
+        , m_crashingThreadOsId(crashingThreadOsId)
+        , m_crashContext(crashCtx)
+    {
+    }
+
+    virtual ~CrashHandlerDataTarget() = default;
+
+    // IUnknown
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppvObject) override
+    {
+        if (riid == IID_IUnknown || riid == __uuidof(ICLRDataTarget) || riid == __uuidof(ICLRDataTarget2))
+        {
+            *ppvObject = static_cast<ICLRDataTarget2*>(this);
+            AddRef();
+            return S_OK;
+        }
+        *ppvObject = nullptr;
+        return E_NOINTERFACE;
+    }
+
+    ULONG STDMETHODCALLTYPE AddRef() override
+    {
+        return ++m_refs;
+    }
+
+    ULONG STDMETHODCALLTYPE Release() override
+    {
+        const ULONG refs = --m_refs;
+        if (!refs)
+            delete this;
+        return refs;
+    }
+
+    // ICLRDataTarget
+    HRESULT STDMETHODCALLTYPE GetMachineType(ULONG32* machineType) override
+    {
+        *machineType = IMAGE_FILE_MACHINE_AMD64;
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetPointerSize(ULONG32* pointerSize) override
+    {
+        *pointerSize = 8;
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetImageBase(LPCWSTR imagePath, CLRDATA_ADDRESS* baseAddress) override
+    {
+        for (const auto& [hMod, path] : get_remote_module_paths())
+        {
+            if (_wcsicmp(path.c_str(), imagePath) == 0
+                || _wcsicmp(path.filename().c_str(), imagePath) == 0)
+            {
+                *baseAddress = reinterpret_cast<CLRDATA_ADDRESS>(hMod);
+                return S_OK;
+            }
+        }
+        return E_FAIL;
+    }
+
+    HRESULT STDMETHODCALLTYPE ReadVirtual(CLRDATA_ADDRESS address, BYTE* buffer, ULONG32 bytesRequested, ULONG32* bytesRead) override
+    {
+        SIZE_T read = 0;
+        if (!ReadProcessMemory(g_hProcess, reinterpret_cast<LPCVOID>(address), buffer, bytesRequested, &read))
+        {
+            *bytesRead = 0;
+            return HRESULT_FROM_WIN32(GetLastError());
+        }
+        *bytesRead = static_cast<ULONG32>(read);
+        // ReadProcessMemory may do a partial read and still succeed, that's fine (I think)
+        return read > 0 ? S_OK : E_FAIL;
+    }
+
+    HRESULT STDMETHODCALLTYPE WriteVirtual(CLRDATA_ADDRESS, BYTE*, ULONG32, ULONG32*) override
+    {
+        return E_NOTIMPL;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetTLSValue(ULONG32, ULONG32, CLRDATA_ADDRESS*) override
+    {
+        return E_NOTIMPL;
+    }
+
+    HRESULT STDMETHODCALLTYPE SetTLSValue(ULONG32, ULONG32, CLRDATA_ADDRESS) override
+    {
+        return E_NOTIMPL;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetCurrentThreadID(ULONG32* threadID) override
+    {
+        *threadID = m_crashingThreadOsId;
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetThreadContext(ULONG32 threadID, ULONG32 contextFlags, ULONG32 contextSize, BYTE* context) override
+    {
+        if (contextSize < sizeof(CONTEXT))
+            return E_INVALIDARG;
+
+        // For the crashing thread we already have a saved snapshot of the context at crash time
+        if (threadID == m_crashingThreadOsId)
+        {
+            const ULONG32 copySize = std::min<ULONG32>(contextSize, sizeof(CONTEXT));
+            memcpy(context, &m_crashContext, copySize);
+            return S_OK;
+        }
+
+        // For any other thread, open it and get its current context
+        HANDLE hThread = OpenThread(THREAD_GET_CONTEXT | THREAD_QUERY_INFORMATION, FALSE, threadID);
+        if (!hThread)
+            return HRESULT_FROM_WIN32(GetLastError());
+
+        auto* pCtx = reinterpret_cast<CONTEXT*>(context);
+        pCtx->ContextFlags = contextFlags;
+        const BOOL ok = ::GetThreadContext(hThread, pCtx);
+        CloseHandle(hThread);
+        return ok ? S_OK : HRESULT_FROM_WIN32(GetLastError());
+    }
+
+    HRESULT STDMETHODCALLTYPE SetThreadContext(ULONG32, ULONG32, BYTE*) override
+    {
+        return E_NOTIMPL;
+    }
+
+    HRESULT STDMETHODCALLTYPE Request(ULONG32, ULONG32, BYTE*, ULONG32, BYTE*) override
+    {
+        return E_NOTIMPL;
+    }
+
+    // ICLRDataTarget2
+    HRESULT STDMETHODCALLTYPE AllocVirtual(CLRDATA_ADDRESS, ULONG32, ULONG32, ULONG32, CLRDATA_ADDRESS*) override
+    {
+        return E_NOTIMPL;
+    }
+
+    HRESULT STDMETHODCALLTYPE FreeVirtual(CLRDATA_ADDRESS, ULONG32, ULONG32) override
+    {
+        return E_NOTIMPL;
+    }
+};
+
+IXCLRDataProcess* try_create_clr_data_process(DWORD crashingThreadOsId, const CONTEXT& crashCtx)
+{
+    for (const auto& [hMod, path] : get_remote_module_paths())
+    {
+        if (_wcsicmp(path.filename().c_str(), L"coreclr.dll") != 0)
+            continue;
+
+        const auto dacPath = path.parent_path() / L"mscordaccore.dll";
+
+        const HMODULE hDac = LoadLibraryExW(dacPath.c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
+        if (!hDac)
+        {
+            logging::E("[DAC] Failed to load {}: 0x{:x}", dacPath, GetLastError());
+            continue;
+        }
+
+        const auto pfnCreateInstance = reinterpret_cast<PFN_CLRDataCreateInstance>(
+            GetProcAddress(hDac, "CLRDataCreateInstance"));
+        if (!pfnCreateInstance)
+        {
+            logging::E("[DAC] CLRDataCreateInstance not found in mscordaccore.dll");
+            FreeLibrary(hDac);
+            continue;
+        }
+
+        auto* const pTarget = new CrashHandlerDataTarget(crashingThreadOsId, crashCtx);
+        IXCLRDataProcess* pProc = nullptr;
+        const HRESULT hr = pfnCreateInstance(__uuidof(IXCLRDataProcess), pTarget, reinterpret_cast<void**>(&pProc));
+        pTarget->Release();
+
+        if (FAILED(hr) || !pProc)
+        {
+            logging::E("[DAC] CLRDataCreateInstance failed: 0x{:x}", static_cast<unsigned>(hr));
+            FreeLibrary(hDac);
+            continue;
+        }
+
+        logging::I("[DAC] Initialized successfully");
+
+        ISOSDacInterface* pSos = nullptr;
+        if (SUCCEEDED(pProc->QueryInterface(__uuidof(ISOSDacInterface),
+                                            reinterpret_cast<void**>(&pSos))))
+        {
+            g_pSosDac = pSos;
+            logging::I("[DAC] ISOSDacInterface obtained");
+        }
+
+        return pProc;
+    }
+    return nullptr;
+}
+
+struct DacNameResult
+{
+    wchar_t nameBuf[2048];
+    CLRDATA_ADDRESS displacement;
+    // 0 = not found, 1 = managed method, 2 = CLR runtime code
+    int kind;
+};
+
+static DacNameResult try_get_managed_method_name_seh(IXCLRDataProcess* pClrProc, DWORD64 address)
+{
+    DacNameResult result{};
+    result.nameBuf[0] = L'\0';
+    result.displacement = 0;
+    result.kind = 0;
+
+    __try
+    {
+        CLRDataAddressType addrType = CLRDATA_ADDRESS_UNRECOGNIZED;
+        if (FAILED(pClrProc->GetAddressType(static_cast<CLRDATA_ADDRESS>(address), &addrType)))
+            return result;
+
+        if (addrType == CLRDATA_ADDRESS_MANAGED_METHOD)
+        {
+            CLRDATA_ENUM enumHandle{};
+            if (FAILED(pClrProc->StartEnumMethodInstancesByAddress(
+                    static_cast<CLRDATA_ADDRESS>(address), nullptr, &enumHandle)))
+                return result;
+
+            IXCLRDataMethodInstance* pMethod = nullptr;
+            const HRESULT hrEnum = pClrProc->EnumMethodInstanceByAddress(&enumHandle, &pMethod);
+            pClrProc->EndEnumMethodInstancesByAddress(enumHandle);
+
+            if (FAILED(hrEnum) || !pMethod)
+                return result;
+
+            ULONG32 nameLen = 0;
+            const HRESULT hrName = pMethod->GetName(
+                0, static_cast<ULONG32>(ARRAYSIZE(result.nameBuf)), &nameLen, result.nameBuf);
+            pMethod->Release();
+
+            if (SUCCEEDED(hrName) && result.nameBuf[0])
+                result.kind = 1;
+
+            return result;
+        }
+
+        if (addrType == CLRDATA_ADDRESS_RUNTIME_MANAGED_CODE
+            || addrType == CLRDATA_ADDRESS_RUNTIME_UNMANAGED_CODE
+            || addrType == CLRDATA_ADDRESS_RUNTIME_MANAGED_STUB
+            || addrType == CLRDATA_ADDRESS_RUNTIME_UNMANAGED_STUB)
+        {
+            ULONG32 nameLen = 0;
+            if (SUCCEEDED(pClrProc->GetRuntimeNameByAddress(
+                    static_cast<CLRDATA_ADDRESS>(address), 0,
+                    static_cast<ULONG32>(ARRAYSIZE(result.nameBuf)), &nameLen,
+                    result.nameBuf, &result.displacement))
+                && result.nameBuf[0])
+            {
+                result.kind = 2;
+            }
+
+            return result;
+        }
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+        // DAC may raise exceptions on corrupt CLR heap
+    }
+
+    return result;
+}
+
+// Attempt to resolve a managed method name for a given native code address (in compiled JIT code)
+std::wstring try_get_managed_method_name(IXCLRDataProcess* pClrProc, DWORD64 address)
+{
+    if (!pClrProc)
+        return {};
+
+    const DacNameResult r = try_get_managed_method_name_seh(pClrProc, address);
+
+    if (r.kind == 1)
+        return std::wstring(r.nameBuf);
+
+    if (r.kind == 2)
+    {
+        if (r.displacement)
+            return std::format(L"[clr] {}+0x{:X}", r.nameBuf, static_cast<ULONG64>(r.displacement));
+        return std::format(L"[clr] {}", r.nameBuf);
+    }
+
+    return {};
+}
+
+// Render the address as a string for the call stack, including managed data from DAC
+std::wstring to_address_string_mixed(DWORD64 address, IXCLRDataProcess* pClrProc)
+{
+    // Try the DAC first so managed frames get a human-readable managed name
+    if (const auto managed = try_get_managed_method_name(pClrProc, address); !managed.empty())
+    {
+        DWORD64 moduleBase;
+        std::filesystem::path modulePath;
+        if (get_module_file_and_base(address, moduleBase, modulePath))
+        {
+            return std::format(L"{}+{:X}\t({})",
+                modulePath.filename().wstring(), address - moduleBase, managed);
+        }
+        return std::format(L"{:X}\t({})", address, managed);
+    }
+
+    // Fallback for native code
+    return to_address_string(address, false);
+}
+
+static HRESULT seh_get_code_header_data(ISOSDacInterface* pSos,
+                                         CLRDATA_ADDRESS    ip,
+                                         DacpCodeHeaderData* pOut)
+{
+    __try { return pSos->GetCodeHeaderData(ip, pOut); }
+    __except (EXCEPTION_EXECUTE_HANDLER) { return E_FAIL; }
+}
+
+// Map x64 unwind register index (0-15) to the matching CONTEXT field pointer
+static ULONG64* ctx_reg(CONTEXT& ctx, BYTE regIdx)
+{
+    // 0=RAX 1=RCX 2=RDX 3=RBX 4=RSP 5=RBP 6=RSI 7=RDI
+    // 8=R8  9=R9 10=R10 11=R11 12=R12 13=R13 14=R14 15=R15
+    static const int offsets[16] = {
+        static_cast<int>(offsetof(CONTEXT, Rax)), static_cast<int>(offsetof(CONTEXT, Rcx)),
+        static_cast<int>(offsetof(CONTEXT, Rdx)), static_cast<int>(offsetof(CONTEXT, Rbx)),
+        static_cast<int>(offsetof(CONTEXT, Rsp)), static_cast<int>(offsetof(CONTEXT, Rbp)),
+        static_cast<int>(offsetof(CONTEXT, Rsi)), static_cast<int>(offsetof(CONTEXT, Rdi)),
+        static_cast<int>(offsetof(CONTEXT, R8)),  static_cast<int>(offsetof(CONTEXT, R9)),
+        static_cast<int>(offsetof(CONTEXT, R10)), static_cast<int>(offsetof(CONTEXT, R11)),
+        static_cast<int>(offsetof(CONTEXT, R12)), static_cast<int>(offsetof(CONTEXT, R13)),
+        static_cast<int>(offsetof(CONTEXT, R14)), static_cast<int>(offsetof(CONTEXT, R15)),
+    };
+    if (regIdx >= 16) return nullptr;
+    return reinterpret_cast<ULONG64*>(reinterpret_cast<char*>(&ctx) + offsets[regIdx]);
+}
+
+static bool rpm_u64(HANDLE hProcess, ULONG64 addr, ULONG64& out)
+{
+    SIZE_T rd = 0;
+    return ReadProcessMemory(hProcess, reinterpret_cast<LPCVOID>(addr), &out, 8, &rd) && rd == 8;
+}
+
+// Process one UNWIND_INFO blob on ctx
+static bool apply_unwind_codes(
+    HANDLE hProcess,
+    CONTEXT& ctx,
+    const std::vector<BYTE>& buf,
+    IMAGE_RUNTIME_FUNCTION_ENTRY& chainedRFOut)
+{
+    chainedRFOut = {};
+
+    if (buf.size() < 4)
+        return false;
+
+    const BYTE uwFlags        = buf[0] >> 3;
+    const BYTE uwCountOfCodes = buf[2];
+    const BYTE uwFrameReg     = buf[3] & 0xF;
+    const BYTE uwFrameOffset  = buf[3] >> 4;
+
+    if (4 + static_cast<SIZE_T>(uwCountOfCodes) * 2 > buf.size())
+        return false;
+
+    DWORD i = 0;
+    while (i < uwCountOfCodes)
+    {
+        const BYTE* pNode  = buf.data() + 4 + i * 2;
+        const BYTE  op     = pNode[1] & 0xF;
+        const BYTE  info   = pNode[1] >> 4;
+
+        switch (op)
+        {
+        case 0: // UWOP_PUSH_NONVOL
+        {
+            ULONG64 val = 0;
+            if (!rpm_u64(hProcess, ctx.Rsp, val))
+            {
+                logging::D("[JIT-MAN] PUSH_NONVOL: RPM failed at RSP=0x{:X}", ctx.Rsp);
+                return false;
+            }
+            if (auto* pReg = ctx_reg(ctx, info)) *pReg = val;
+            ctx.Rsp += 8;
+            ++i;
+            break;
+        }
+        case 1: // UWOP_ALLOC_LARGE
+            if (info == 0)
+            {
+                if (i + 2 > uwCountOfCodes) return false;
+                const USHORT scaled = *reinterpret_cast<const USHORT*>(buf.data() + 4 + (i + 1) * 2);
+                ctx.Rsp += static_cast<ULONG64>(scaled) * 8;
+                i += 2;
+            }
+            else
+            {
+                if (i + 3 > uwCountOfCodes) return false;
+                const ULONG32 sz = *reinterpret_cast<const ULONG32*>(buf.data() + 4 + (i + 1) * 2);
+                ctx.Rsp += sz;
+                i += 3;
+            }
+            break;
+        case 2: // UWOP_ALLOC_SMALL
+            ctx.Rsp += (static_cast<ULONG64>(info) + 1) * 8;
+            ++i;
+            break;
+        case 3: // UWOP_SET_FPREG
+        {
+            auto* pFR = ctx_reg(ctx, uwFrameReg);
+            if (!pFR) return false;
+            ctx.Rsp = *pFR - static_cast<ULONG64>(uwFrameOffset) * 16;
+            logging::D(
+                "[JIT-MAN] SET_FPREG: RSP <- reg{}=0x{:X} - {}*16 = 0x{:X}",
+                uwFrameReg, *pFR, uwFrameOffset, ctx.Rsp);
+            ++i;
+            break;
+        }
+        case 4: // UWOP_SAVE_NONVOL (slot * 8 from RSP; no RSP change)
+        {
+            if (i + 2 > uwCountOfCodes) return false;
+            const USHORT slot = *reinterpret_cast<const USHORT*>(buf.data() + 4 + (i + 1) * 2);
+            ULONG64 val = 0;
+            const ULONG64 addr = ctx.Rsp + static_cast<ULONG64>(slot) * 8;
+            if (!rpm_u64(hProcess, addr, val))
+            {
+                logging::D("[JIT-MAN] SAVE_NONVOL: RPM failed at 0x{:X}", addr);
+                return false;
+            }
+            if (auto* pReg = ctx_reg(ctx, info)) *pReg = val;
+            i += 2;
+            break;
+        }
+        case 5: // UWOP_SAVE_NONVOL_FAR (32-bit offset from RSP; no RSP change)
+        {
+            if (i + 3 > uwCountOfCodes) return false;
+            const ULONG32 off = *reinterpret_cast<const ULONG32*>(buf.data() + 4 + (i + 1) * 2);
+            ULONG64 val = 0;
+            const ULONG64 addr = ctx.Rsp + off;
+            if (!rpm_u64(hProcess, addr, val))
+            {
+                logging::D("[JIT-MAN] SAVE_NONVOL_FAR: RPM failed at 0x{:X}", addr);
+                return false;
+            }
+            if (auto* pReg = ctx_reg(ctx, info)) *pReg = val;
+            i += 3;
+            break;
+        }
+        case 6: // UWOP_EPILOG (V2, 2 nodes)
+        case 7: // UWOP_SPARE_CODE
+            i += 2;
+            break;
+        case 8: // UWOP_SAVE_XMM128 (2 nodes, XMM not needed for stack walks)
+            i += 2;
+            break;
+        case 9: // UWOP_SAVE_XMM128_FAR (3 nodes)
+            i += 3;
+            break;
+        case 10: // UWOP_PUSH_MACHFRAME (interrupt/exception frame)
+        {
+            // Layout: [ErrorCode?] RIP CS RFLAGS RSP SS
+            if (info) ctx.Rsp += 8; // skip error code if present
+            ULONG64 newRip = 0, newRsp = 0;
+            if (!rpm_u64(hProcess, ctx.Rsp,      newRip)) return false; // RIP
+            if (!rpm_u64(hProcess, ctx.Rsp + 24, newRsp)) return false; // RSP
+            ctx.Rip = newRip;
+            ctx.Rsp = newRsp;
+            ++i;
+            return newRip != 0; // terminal: no further unwinding needed
+        }
+        default:
+            logging::D("[JIT-MAN] Unknown UWOP {} at node index {}", op, i);
+            return false;
+        }
+    }
+
+    // If UNW_FLAG_CHAININFO (bit 2 of flags),chained RUNTIME_FUNCTION follows the
+    // (aligned) codes section. Populate chainedRFOut for the caller to recurse
+    if (uwFlags & 0x4)
+    {
+        const SIZE_T chainOffset = (4 + static_cast<SIZE_T>(uwCountOfCodes) * 2 + 3) & ~3uLL;
+        if (chainOffset + sizeof(IMAGE_RUNTIME_FUNCTION_ENTRY) <= buf.size())
+        {
+            std::memcpy(&chainedRFOut, buf.data() + chainOffset, sizeof(chainedRFOut));
+            logging::D(
+                "[JIT-MAN] CHAININFO: chained RF Begin=0x{:X} End=0x{:X} UnwindInfo=0x{:X}",
+                chainedRFOut.BeginAddress, chainedRFOut.EndAddress, chainedRFOut.UnwindInfoAddress);
+        }
+        else
+        {
+            logging::D("[JIT-MAN] CHAININFO but buffer too small to read chained RF");
+        }
+    }
+
+    return true;
+}
+
+// Read UNWIND_INFO blob from the target process into a vector.
+static bool read_unwind_info_blob(HANDLE hProcess, ULONG64 unwindInfoAddr,
+                                   std::vector<BYTE>& out)
+{
+    BYTE hdr[4] = {};
+    if (!ReadProcessMemory(hProcess, reinterpret_cast<LPCVOID>(unwindInfoAddr),
+                           hdr, 4, nullptr))
+        return false;
+    // Size = 4-byte header + 2*CountOfCodes (rounded up to DWORD) + 12 (chain/handler trailer)
+    const SIZE_T sz = ((4 + static_cast<SIZE_T>(hdr[2]) * 2 + 3) & ~3uLL) + 12;
+    out.resize(sz);
+    SIZE_T rd = 0;
+    return ReadProcessMemory(hProcess, reinterpret_cast<LPCVOID>(unwindInfoAddr),
+                              out.data(), sz, &rd) && rd >= 4;
+}
+
+// Attempt to unwind one JIT-compiled frame in the game process
+// On success, ctx is updated to the caller's context and true is returned.
+// On failure (IP not in JIT code, read errors, allocation failure) false is returned
+// and ctx is left unchanged.
+static bool try_jit_virtual_unwind(HANDLE hProcess, ISOSDacInterface* pSos, CONTEXT& ctx)
+{
+    if (!pSos || ctx.Rip == 0)
+        return false;
+
+    // Step 1: Check if the IP is in a JIT-compiled method, otherwise we shouldn't even bother
+    DacpCodeHeaderData codeHdr = {};
+    const HRESULT hrHdr = seh_get_code_header_data(
+        pSos, ctx.Rip, &codeHdr);
+
+    if (FAILED(hrHdr) || codeHdr.MethodStart == 0)
+    {
+        logging::D(
+            "[JIT] GetCodeHeaderData hr=0x{:X} MethodStart=0x{:X}; IP not in JIT code",
+            static_cast<unsigned>(hrHdr), codeHdr.MethodStart);
+        return false;
+    }
+
+    // Skip ReadyToRun (PJIT) code, handled by StackWalk64
+    if (codeHdr.JITType != TYPE_JIT)
+    {
+        logging::D("[JIT] JITType={} (not TYPE_JIT); skipping",
+            static_cast<int>(codeHdr.JITType));
+        return false;
+    }
+
+    logging::D(
+        "[JIT] try_jit_virtual_unwind: Rip=0x{:X} MethodStart=0x{:X} MethodSize=0x{:X} JITType={}",
+        ctx.Rip, codeHdr.MethodStart, codeHdr.MethodSize, static_cast<int>(codeHdr.JITType));
+
+    // Step 2: Read CodeHeader (immediately before the JIT code)
+    ULONG64 pRealCodeHeader = 0; // pointer into JIT code heap
+    SIZE_T  hdrBytesRead    = 0;
+    if (!ReadProcessMemory(hProcess,
+                           reinterpret_cast<LPCVOID>(codeHdr.MethodStart - 8),
+                           &pRealCodeHeader, sizeof(pRealCodeHeader), &hdrBytesRead))
+    {
+        logging::D(
+            "[JIT] ReadProcessMemory for pRealCodeHeader at 0x{:X} failed: error 0x{:X}",
+            codeHdr.MethodStart - 8, GetLastError());
+        return false;
+    }
+    logging::D("[JIT] pRealCodeHeader=0x{:X} (read {} bytes)",
+        pRealCodeHeader, hdrBytesRead);
+
+    // Guard against stub code blocks (pRealCodeHeader holds a small sentinel enum, not a heap ptr)
+    if (pRealCodeHeader <= 0x100)
+    {
+        logging::D("[JIT] pRealCodeHeader stub sentinel; skipping");
+        return false;
+    }
+
+    // Step 3: Read nUnwindInfos
+    // RealCodeHeader (x64, FEATURE_EH_FUNCLETS)
+    //   +0x00  phdrDebugInfo   (8)  +0x08  phdrJitEHInfo (8)
+    //   +0x10  phdrJitGCInfo   (8)  +0x18  phdrMDesc     (8)
+    //   +0x20  nUnwindInfos    (4)  +0x24  unwindInfos[] (12 bytes each)
+    DWORD nUnwindInfos = 0;
+    if (!ReadProcessMemory(hProcess,
+                           reinterpret_cast<LPCVOID>(pRealCodeHeader + 0x20),
+                           &nUnwindInfos, sizeof(nUnwindInfos), nullptr))
+    {
+        logging::D(
+            "[JIT] ReadProcessMemory for nUnwindInfos at 0x{:X}+0x20 failed: error 0x{:X}",
+            pRealCodeHeader, GetLastError());
+        return false;
+    }
+    logging::D("[JIT] nUnwindInfos={}", nUnwindInfos);
+
+    if (nUnwindInfos == 0 || nUnwindInfos > 512)
+    {
+        logging::D("[JIT] nUnwindInfos={} out of range; aborting", nUnwindInfos);
+        return false;
+    }
+
+    // Step 4: Read RUNTIME_FUNCTION entries
+    std::vector<IMAGE_RUNTIME_FUNCTION_ENTRY> rfs(nUnwindInfos);
+    if (!ReadProcessMemory(hProcess,
+                           reinterpret_cast<LPCVOID>(pRealCodeHeader + 0x24),
+                           rfs.data(),
+                           static_cast<SIZE_T>(nUnwindInfos) * sizeof(IMAGE_RUNTIME_FUNCTION_ENTRY),
+                           nullptr))
+    {
+        logging::D(
+            "[JIT] ReadProcessMemory for RUNTIME_FUNCTIONs at 0x{:X}+0x24 failed: error 0x{:X}",
+            pRealCodeHeader, GetLastError());
+        return false;
+    }
+
+    // codeheapBase: the base from which all BeginAddress / UnwindInfoAddress RVAs are computed
+    // rfs[0].BeginAddress == MethodStart - codeheapBase
+    const ULONG64 codeheapBase = codeHdr.MethodStart - rfs[0].BeginAddress;
+    const DWORD   relIp        = static_cast<DWORD>(ctx.Rip - codeheapBase);
+
+    logging::D("[JIT] codeheapBase=0x{:X} relIp=0x{:X} ({} RUNTIME_FUNCTION entries)",
+        codeheapBase, relIp, nUnwindInfos);
+    for (DWORD i = 0; i < nUnwindInfos; ++i)
+    {
+        logging::D(
+            "[JIT]   rf[{}]: Begin=0x{:X} End=0x{:X} UnwindInfo=0x{:X}",
+            i, rfs[i].BeginAddress, rfs[i].EndAddress, rfs[i].UnwindInfoAddress);
+    }
+
+    // Step 5: Find the RUNTIME_FUNCTION entry that covers ctx.Rip
+    const IMAGE_RUNTIME_FUNCTION_ENTRY* pEntry = nullptr;
+    for (const auto& rf : rfs)
+    {
+        if (relIp >= rf.BeginAddress && relIp < rf.EndAddress)
+        {
+            pEntry = &rf;
+            break;
+        }
+    }
+    if (!pEntry)
+    {
+        logging::D(
+            "[JIT] No RUNTIME_FUNCTION covers relIp=0x{:X} (codeheapBase=0x{:X})",
+            relIp, codeheapBase);
+        return false;
+    }
+    logging::D(
+        "[JIT] Matched rf: Begin=0x{:X} End=0x{:X} UnwindInfo=0x{:X}",
+        pEntry->BeginAddress, pEntry->EndAddress, pEntry->UnwindInfoAddress);
+
+    // Step 6: Read UNWIND_INFO from target process
+    const ULONG64 unwindInfoAddr = codeheapBase + pEntry->UnwindInfoAddress;
+
+    // Read CountOfCodes and Flags
+    BYTE hdrUnwind[4] = {};
+    if (!ReadProcessMemory(hProcess, reinterpret_cast<LPCVOID>(unwindInfoAddr),
+                           hdrUnwind, sizeof(hdrUnwind), nullptr))
+    {
+        logging::D(
+            "[JIT] ReadProcessMemory for UNWIND_INFO header at 0x{:X} failed: error 0x{:X}",
+            unwindInfoAddr, GetLastError());
+        return false;
+    }
+
+    const BYTE uwVersion      = hdrUnwind[0] & 0x7;
+    const BYTE uwFlags        = hdrUnwind[0] >> 3;
+    const BYTE uwSizeOfProlog = hdrUnwind[1];
+    const BYTE uwCountOfCodes = hdrUnwind[2];
+    const BYTE uwFrameReg     = hdrUnwind[3] & 0xF;
+    const BYTE uwFrameOffset  = hdrUnwind[3] >> 4;
+    logging::D(
+        "[JIT] UNWIND_INFO at 0x{:X}: Ver={} Flags=0x{:X} SizeOfProlog={} CountOfCodes={} FrameReg={} FrameOff={}",
+        unwindInfoAddr, uwVersion, uwFlags, uwSizeOfProlog, uwCountOfCodes, uwFrameReg, uwFrameOffset);
+    if (uwFlags & 0x4)
+        logging::D("[JIT]   -> UNW_FLAG_CHAININFO set; chained unwind entry present");
+    if (uwFlags & 0x1)
+        logging::D("[JIT]   -> UNW_FLAG_EHANDLER set");
+    if (uwFlags & 0x2)
+        logging::D("[JIT]   -> UNW_FLAG_UHANDLER set");
+
+    // Step 7: Manual unwind
+    // We can't use RtlVirtualUnwind here because it dereferences RSP into
+    // the crash handler and the game's stack is only accessible via ReadProcessMemory
+    CONTEXT newCtx = ctx;
+    ULONG64 curUnwindAddr = unwindInfoAddr;
+
+    for (int chainDepth = 0; chainDepth < 8; ++chainDepth)
+    {
+        std::vector<BYTE> uwBuf;
+        if (!read_unwind_info_blob(hProcess, curUnwindAddr, uwBuf))
+        {
+            logging::D("[JIT] Failed to read UNWIND_INFO blob at 0x{:X}", curUnwindAddr);
+            return false;
+        }
+
+        IMAGE_RUNTIME_FUNCTION_ENTRY chainedRF{};
+        if (!apply_unwind_codes(hProcess, newCtx, uwBuf, chainedRF))
+            return false;
+
+        // If a chained RF was found, continue with its UNWIND_INFO.
+        if (chainedRF.UnwindInfoAddress != 0)
+        {
+            curUnwindAddr = codeheapBase + chainedRF.UnwindInfoAddress;
+            continue;
+        }
+        break;
+    }
+
+    // Read return address from the unwound RSP
+    ULONG64 retAddr = 0;
+    if (!rpm_u64(hProcess, newCtx.Rsp, retAddr))
+    {
+        logging::D("[JIT] Failed to read return address from RSP=0x{:X}", newCtx.Rsp);
+        return false;
+    }
+    logging::D("[JIT] RetAddr=0x{:X} from [RSP=0x{:X}]", retAddr, newCtx.Rsp);
+
+    if (retAddr == 0)
+    {
+        logging::D("[JIT] Return address is zero; stopping");
+        return false;
+    }
+
+    newCtx.Rip  = retAddr;
+    newCtx.Rsp += 8;
+
+    logging::D("[JIT] Unwound: old Rip=0x{:X} -> new Rip=0x{:X} Rsp=0x{:X}",
+        ctx.Rip, newCtx.Rip, newCtx.Rsp);
+
+    ctx = newCtx;
+    return true;
+}
+
+static HRESULT seh_dac_get_task(IXCLRDataProcess* pProc, DWORD osId, IXCLRDataTask** ppTask)
+{
+    *ppTask = nullptr;
+    __try { return pProc->GetTaskByOSThreadID(osId, ppTask); }
+    __except (EXCEPTION_EXECUTE_HANDLER) { return E_FAIL; }
+}
+
+static HRESULT seh_dac_create_stack_walk(IXCLRDataTask* pTask, ULONG32 flags, IXCLRDataStackWalk** ppWalk)
+{
+    *ppWalk = nullptr;
+    __try { return pTask->CreateStackWalk(flags, ppWalk); }
+    __except (EXCEPTION_EXECUTE_HANDLER) { return E_FAIL; }
+}
+
+static HRESULT seh_dac_walk_get_context(IXCLRDataStackWalk* pWalk, CONTEXT* pCtx)
+{
+    ULONG32 ctxSize = 0;
+    __try { return pWalk->GetContext(CONTEXT_ALL, sizeof(CONTEXT), &ctxSize, reinterpret_cast<BYTE*>(pCtx)); }
+    __except (EXCEPTION_EXECUTE_HANDLER) { return E_FAIL; }
+}
+
+static HRESULT seh_dac_walk_get_frame_type(IXCLRDataStackWalk* pWalk,
+    CLRDataSimpleFrameType* pSimple, CLRDataDetailedFrameType* pDetailed)
+{
+    __try { return pWalk->GetFrameType(pSimple, pDetailed); }
+    __except (EXCEPTION_EXECUTE_HANDLER) { return E_FAIL; }
+}
+
+static HRESULT seh_dac_walk_next(IXCLRDataStackWalk* pWalk)
+{
+    __try { return pWalk->Next(); }
+    __except (EXCEPTION_EXECUTE_HANDLER) { return E_FAIL; }
+}
+
+static HRESULT seh_dac_walk_set_context2(IXCLRDataStackWalk* pWalk, ULONG32 flags, const CONTEXT* pCtx)
+{
+    __try
+    {
+        return pWalk->SetContext2(flags, sizeof(CONTEXT),
+            const_cast<BYTE*>(reinterpret_cast<const BYTE*>(pCtx)));
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) { return E_FAIL; }
+}
+
+static std::wstring get_thread_name(HANDLE hThread)
+{
+    PWSTR pName = nullptr;
+    if (SUCCEEDED(GetThreadDescription(hThread, &pName)) && pName && pName[0] != L'\0')
+    {
+        std::wstring name(pName);
+        LocalFree(pName);
+        return name;
+    }
+    if (pName)
+        LocalFree(pName);
+    return {};
+}
+
+// Walk and log mixed-mode call stack for the passed thread
+void print_thread_call_stack(HANDLE hThread, const CONTEXT& ctx, std::wostringstream& log) {
+    int frame_index = 0;
+    bool dacWalkDone = false;
+
+    if (g_pClrDataProcess)
+    {
+        const DWORD osThreadId = GetThreadId(hThread);
+        IXCLRDataTask* pTask = nullptr;
+        if (SUCCEEDED(seh_dac_get_task(g_pClrDataProcess, osThreadId, &pTask)) && pTask)
+        {
+            IXCLRDataStackWalk* pWalk = nullptr;
+            const HRESULT hrCreate = seh_dac_create_stack_walk(
+                pTask,
+                CLRDATA_SIMPFRAME_UNRECOGNIZED       |
+                CLRDATA_SIMPFRAME_MANAGED_METHOD     |
+                CLRDATA_SIMPFRAME_RUNTIME_MANAGED_CODE |
+                CLRDATA_SIMPFRAME_RUNTIME_UNMANAGED_CODE,
+                &pWalk);
+            pTask->Release();
+
+            if (SUCCEEDED(hrCreate) && pWalk)
+            {
+                const auto emit_native_frames = [&](const CONTEXT& startCtx,
+                                                    bool skipFirstFrame,
+                                                    ULONG64 stopRsp)
+                {
+                    logging::D(
+                        "[NAT] emit_native_frames from Rip=0x{:X} Rsp=0x{:X} skipFirst={} stopRsp=0x{:X}",
+                        startCtx.Rip, startCtx.Rsp, skipFirstFrame, stopRsp);
+
+                    STACKFRAME64 sf{};
+                    sf.AddrPC.Offset    = startCtx.Rip; sf.AddrPC.Mode    = AddrModeFlat;
+                    sf.AddrStack.Offset = startCtx.Rsp; sf.AddrStack.Mode = AddrModeFlat;
+                    sf.AddrFrame.Offset = startCtx.Rbp; sf.AddrFrame.Mode = AddrModeFlat;
+
+                    CONTEXT walkCtx = startCtx;
+                    bool isFirstResult = true;
+                    ULONG64 prevRsp = 0;
+
+                    for (int nativeLimit = 0; nativeLimit < 256; ++nativeLimit)
+                    {
+                        if (!StackWalk64(IMAGE_FILE_MACHINE_AMD64, g_hProcess, hThread,
+                                         &sf, &walkCtx, nullptr,
+                                         &SymFunctionTableAccess64, &SymGetModuleBase64, nullptr))
+                        {
+                            logging::D("[NAT] StackWalk64 returned false, bye bye");
+                            break;
+                        }
+
+                        const ULONG64 pc  = sf.AddrPC.Offset;
+                        const ULONG64 rsp = sf.AddrStack.Offset;
+
+                        logging::D("[NAT] sw64 pc=0x{:X} rsp=0x{:X} ret=0x{:X}",
+                            pc, rsp, sf.AddrReturn.Offset);
+
+                        if (pc == 0)                 { logging::D("[NAT] pc==0, stopping");           break; }
+                        if (rsp >= stopRsp)           { logging::D("[NAT] rsp>=stopRsp, stopping");    break; }
+                        if (rsp != 0 && rsp <= prevRsp){ logging::D("[NAT] rsp went backwards, stopping"); break; }
+
+                        prevRsp = rsp;
+
+                        if (isFirstResult && skipFirstFrame)
+                        {
+                            isFirstResult = false;
+                            logging::D("[NAT] skipping first (already shown)");
+                            continue;
+                        }
+                        isFirstResult = false;
+
+                        log << std::format(L"\n  [{}]\t{}",
+                            frame_index++, to_address_string_mixed(pc, g_pClrDataProcess));
+
+                        if (sf.AddrReturn.Offset == 0 || sf.AddrPC.Offset == sf.AddrReturn.Offset)
+                        {
+                            logging::D("[NAT] AddrReturn==0 or loop, stopping");
+                            break;
+                        }
+                    }
+                };
+
+                log << std::format(L"\n  [{}]\t{}", frame_index++,
+                    to_address_string_mixed(ctx.Rip, g_pClrDataProcess));
+
+                logging::D("[DAC] crash ctx.Rip=0x{:X} ctx.Rsp=0x{:X} ctx.Rbp=0x{:X}",
+                    ctx.Rip, ctx.Rsp, ctx.Rbp);
+
+                const HRESULT hrSetCtx = seh_dac_walk_set_context2(pWalk,
+                    static_cast<ULONG32>(CLRDATA_STACK_SET_CURRENT_CONTEXT), &ctx);
+                logging::D("[DAC] SetContext2(CURRENT_CONTEXT) hr=0x{:X}", (unsigned)hrSetCtx);
+
+                CONTEXT pendingNativeCtx = ctx;
+                bool    pendingNative    = true;
+                bool    pendingShown     = true;
+
+                bool    firstFrame       = true;
+
+                CONTEXT frameCtx{};
+                bool skipNext = true;
+
+                for (int limit = 0; limit < 512; ++limit)
+                {
+                    logging::D("[DAC] ---> iteration limit={} skipNext={}", limit, skipNext);
+
+                    if (!skipNext)
+                    {
+                        const HRESULT hrNext = seh_dac_walk_next(pWalk);
+                        logging::D("[DAC] Next() hr=0x{:X}", (unsigned)hrNext);
+                        if (hrNext != S_OK)
+                        {
+                            logging::D("[DAC] Next() stopped walk");
+                            break;
+                        }
+                    }
+                    skipNext = false;
+
+                    frameCtx = {};
+                    const HRESULT hrGetCtx = seh_dac_walk_get_context(pWalk, &frameCtx);
+                    logging::D("[DAC] GetContext hr=0x{:X} Rip=0x{:X} Rsp=0x{:X} Rbp=0x{:X}",
+                        (unsigned)hrGetCtx, frameCtx.Rip, frameCtx.Rsp, frameCtx.Rbp);
+                    if (FAILED(hrGetCtx) || frameCtx.Rip == 0)
+                    {
+                        logging::D("[DAC] GetContext failed or Rip==0");
+                        break;
+                    }
+
+                    CLRDataSimpleFrameType simpleType = CLRDATA_SIMPFRAME_UNRECOGNIZED;
+                    CLRDataDetailedFrameType detType  = CLRDATA_DETFRAME_UNRECOGNIZED;
+                    const HRESULT hrFT = seh_dac_walk_get_frame_type(pWalk, &simpleType, &detType);
+                    logging::D("[DAC] GetFrameType hr=0x{:X} simpleType={} detType={}",
+                        (unsigned)hrFT, (int)simpleType, (int)detType);
+
+                    if (simpleType == CLRDATA_SIMPFRAME_RUNTIME_UNMANAGED_CODE)
+                    {
+                        const bool isNativeRip = try_get_managed_method_name(
+                            g_pClrDataProcess, frameCtx.Rip).empty();
+                        logging::D("[DAC] RUNTIME_UNMANAGED_CODE isNativeRip={}", isNativeRip);
+
+                        if (isNativeRip)
+                        {
+                            if (!pendingNative || frameCtx.Rsp <= pendingNativeCtx.Rsp)
+                            {
+                                pendingNativeCtx = frameCtx;
+                                pendingShown     = (frameCtx.Rip == ctx.Rip);
+                                pendingNative    = true;
+                            }
+                        }
+                        continue;
+                    }
+
+                    if (simpleType == CLRDATA_SIMPFRAME_UNRECOGNIZED)
+                    {
+                        logging::D("[DAC] UNRECOGNIZED frame at 0x{:X}, skipping", frameCtx.Rip);
+                        continue;
+                    }
+
+                    if (pendingNative)
+                    {
+                        logging::D("[DAC] Flushing pending native up to Rsp=0x{:X}", frameCtx.Rsp);
+                        emit_native_frames(pendingNativeCtx, pendingShown, frameCtx.Rsp);
+                        pendingNative = false;
+                    }
+
+                    if (firstFrame)
+                    {
+                        firstFrame = false;
+                        if (frameCtx.Rip == ctx.Rip)
+                        {
+                            logging::D("[DAC] firstFrame managed duplicate, skipping");
+                            continue;
+                        }
+                    }
+
+                    const auto name = try_get_managed_method_name(g_pClrDataProcess, frameCtx.Rip);
+                    if (!name.empty())
+                    {
+                        logging::D("[DAC] managed frame: {}", name);
+
+                        log << std::format(L"\n  [{}]\t{}", frame_index++, name);
+                    }
+                    else
+                    {
+                        logging::D("[DAC] managed frame (no name): 0x{:X}", frameCtx.Rip);
+                        log << std::format(L"\n  [{}]\t{}", frame_index++,
+                            to_address_string(frameCtx.Rip, false));
+                    }
+                }
+                logging::D("[DAC] walk loop ended");
+
+                if (pendingNative)
+                {
+                    logging::D("[DAC] emitting residual native segment");
+                    emit_native_frames(pendingNativeCtx, pendingShown, UINT64_MAX);
+                }
+                else if (g_pSosDac && frameCtx.Rip != 0)
+                {
+                    logging::D(
+                        "[DAC] last frame was managed (Rip=0x{:X}); attempting JIT unwind "
+                        "to recover native frames below reverse-P/Invoke boundary",
+                        frameCtx.Rip);
+
+                    CONTEXT jitCtx = frameCtx;
+                    bool reachedNative = false;
+                    for (int jitLimit = 0; jitLimit < 64 && jitCtx.Rip != 0; ++jitLimit)
+                    {
+                        const bool isManaged =
+                            !try_get_managed_method_name(g_pClrDataProcess, jitCtx.Rip).empty();
+
+                        if (!isManaged)
+                        {
+                            logging::D("[JIT] Reached native Rip=0x{:X} after {} unwind step(s)",
+                                jitCtx.Rip, jitLimit);
+                            emit_native_frames(jitCtx, /*skipFirstFrame=*/false, UINT64_MAX);
+                            reachedNative = true;
+                            break;
+                        }
+
+                        if (!try_jit_virtual_unwind(g_hProcess, g_pSosDac, jitCtx))
+                        {
+                            logging::D("[JIT] try_jit_virtual_unwind failed; stopping JIT unwind");
+                            break;
+                        }
+                    }
+
+                    if (!reachedNative)
+                    {
+                        logging::D("[JIT] Could not reach native frames via JIT unwind");
+                    }
+                }
+                else
+                {
+                    logging::D("[DAC] last frame was managed and we have no SOS");
+                }
+
+                dacWalkDone = true;
+                pWalk->Release();
+            }
+        }
+    }
+
+    if (!dacWalkDone)
+    {
+        STACKFRAME64 sf{};
+        sf.AddrPC.Offset    = ctx.Rip; sf.AddrPC.Mode    = AddrModeFlat;
+        sf.AddrStack.Offset = ctx.Rsp; sf.AddrStack.Mode = AddrModeFlat;
+        sf.AddrFrame.Offset = ctx.Rbp; sf.AddrFrame.Mode = AddrModeFlat;
+
+        log << std::format(L"\n  [{}]\t{}", frame_index++, to_address_string_mixed(sf.AddrPC.Offset, g_pClrDataProcess));
+
+        const auto appendContextToLog = [&](const CONTEXT& ctxWalk) {
+            log << std::format(L"\n  [{}]\t{}", frame_index++, to_address_string_mixed(sf.AddrPC.Offset, g_pClrDataProcess));
+        };
+
+        const auto tryStackWalk = [&] {
+            __try {
+                CONTEXT ctxWalk = ctx;
+                do {
+                    if (!StackWalk64(IMAGE_FILE_MACHINE_AMD64, g_hProcess, hThread, &sf, &ctxWalk, nullptr, &SymFunctionTableAccess64, &SymGetModuleBase64, nullptr))
+                        break;
+
+                    appendContextToLog(ctxWalk);
+
+                } while (sf.AddrReturn.Offset != 0 && sf.AddrPC.Offset != sf.AddrReturn.Offset);
+                return true;
+            } __except(EXCEPTION_EXECUTE_HANDLER) {
+                return false;
+            }
+        };
+
+        if (!tryStackWalk())
+            log << L"\n  Access violation while walking up the stack.";
+    }
+}
+
+void print_exception_info(DWORD threadId, HANDLE hThread, const EXCEPTION_POINTERS& ex, const CONTEXT& ctx, std::wostringstream& log) {
     std::vector<EXCEPTION_RECORD> exRecs;
-    if (ex.ExceptionRecord) {
+    if (ex.ExceptionRecord)
+    {
         size_t rec_index = 0;
         size_t read;
-        exRecs.emplace_back();
+
         for (auto pRemoteExRec = ex.ExceptionRecord;
-             pRemoteExRec
-             && rec_index < 64
-             && ReadProcessMemory(g_hProcess, pRemoteExRec, &exRecs.back(), sizeof exRecs.back(), &read)
-             && read >= offsetof(EXCEPTION_RECORD, ExceptionInformation)
-             && read >= static_cast<size_t>(reinterpret_cast<const char*>(&exRecs.back().ExceptionInformation[exRecs.back().NumberParameters]) - reinterpret_cast<const char*>(&exRecs.back()));
-             rec_index++) {
+             pRemoteExRec && rec_index < 64;
+             rec_index++)
+        {
+            exRecs.emplace_back();
+
+            if (!ReadProcessMemory(g_hProcess, pRemoteExRec, &exRecs.back(), sizeof exRecs.back(), &read)
+                || read < offsetof(EXCEPTION_RECORD, ExceptionInformation)
+                || read < static_cast<size_t>(reinterpret_cast<const char*>(&exRecs.back().ExceptionInformation[exRecs.
+                    back().NumberParameters]) - reinterpret_cast<const char*>(&exRecs.back())))
+            {
+                exRecs.pop_back();
+                break;
+            }
 
             log << std::format(L"\nException Info #{}\n", rec_index);
             log << std::format(L"Address: {:X}\n", exRecs.back().ExceptionCode);
             log << std::format(L"Flags: {:X}\n", exRecs.back().ExceptionFlags);
             log << std::format(L"Address: {:X}\n", reinterpret_cast<size_t>(exRecs.back().ExceptionAddress));
-            if (!exRecs.back().NumberParameters)
-                continue;
-            log << L"Parameters: ";
-            for (DWORD i = 0; i < exRecs.back().NumberParameters; ++i) {
-                if (i != 0)
-                    log << L", ";
-                log << std::format(L"{:X}", exRecs.back().ExceptionInformation[i]);
+            if (exRecs.back().NumberParameters)
+            {
+                log << L"Parameters: ";
+                for (DWORD i = 0; i < exRecs.back().NumberParameters; ++i)
+                {
+                    if (i != 0)
+                        log << L", ";
+                    log << std::format(L"{:X}", exRecs.back().ExceptionInformation[i]);
+                }
             }
 
             pRemoteExRec = exRecs.back().ExceptionRecord;
-            exRecs.emplace_back();
         }
-        exRecs.pop_back();
     }
 
-    log << L"\nCall Stack\n{";
+    const std::wstring crashThreadName = get_thread_name(hThread);
 
-    STACKFRAME64 sf{};
-    sf.AddrPC.Offset = ctx.Rip;
-    sf.AddrPC.Mode = AddrModeFlat;
-    sf.AddrStack.Offset = ctx.Rsp;
-    sf.AddrStack.Mode = AddrModeFlat;
-    sf.AddrFrame.Offset = ctx.Rbp;
-    sf.AddrFrame.Mode = AddrModeFlat;
-    int frame_index = 0;
+    log << std::format(L"\nThread: 0x{:X}", threadId);
+    if (!crashThreadName.empty())
+        log << std::format(L" ({})\n", crashThreadName);
 
-    log << std::format(L"\n  [{}]\t{}", frame_index++, to_address_string(sf.AddrPC.Offset, false));
-
-    const auto appendContextToLog = [&](const CONTEXT& ctxWalk) {
-        log << std::format(L"\n  [{}]\t{}", frame_index++, to_address_string(sf.AddrPC.Offset, false));
-    };
-
-    const auto tryStackWalk = [&] {
-        __try {
-            CONTEXT ctxWalk = ctx;
-            do {
-                if (!StackWalk64(IMAGE_FILE_MACHINE_AMD64, g_hProcess, hThread, &sf, &ctxWalk, nullptr, &SymFunctionTableAccess64, &SymGetModuleBase64, nullptr))
-                    break;
-
-                appendContextToLog(ctxWalk);
-
-            } while (sf.AddrReturn.Offset != 0 && sf.AddrPC.Offset != sf.AddrReturn.Offset);
-            return true;
-        } __except(EXCEPTION_EXECUTE_HANDLER) {
-            return false;
-        }
-    };
-
-    if (!tryStackWalk())
-        log << L"\n  Access violation while walking up the stack.";
-
+    log << L"\n" << L"Call Stack" << L"\n{";
+    print_thread_call_stack(hThread, ctx, log);
     log << L"\n}\n";
+}
+
+// Walk and log the call stacks of every thread in the target process except the crashing thread
+// Each thread is briefly suspended
+void print_all_threads_info(DWORD crashingThreadId, std::wostringstream& log)
+{
+    const HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+    if (hSnap == INVALID_HANDLE_VALUE)
+    {
+        log << std::format(L"\n[All Threads] CreateToolhelp32Snapshot failed: 0x{:X}\n",
+            GetLastError());
+        return;
+    }
+    std::unique_ptr<std::remove_pointer_t<HANDLE>, decltype(&CloseHandle)>
+        hSnapGuard(hSnap, &CloseHandle);
+
+    const DWORD targetPid = GetProcessId(g_hProcess);
+
+    THREADENTRY32 te{};
+    te.dwSize = sizeof(te);
+    if (!Thread32First(hSnap, &te))
+        return;
+
+    do
+    {
+        if (te.th32OwnerProcessID != targetPid)
+            continue;
+        if (te.th32ThreadID == crashingThreadId)
+            continue;
+
+        const HANDLE hThread = OpenThread(
+            THREAD_SUSPEND_RESUME | THREAD_GET_CONTEXT | THREAD_QUERY_INFORMATION,
+            FALSE, te.th32ThreadID);
+        if (!hThread)
+        {
+            log << std::format(L"\nThread 0x{:X} Call Stack\n{{\n"
+                               L"  (OpenThread failed: error 0x{:X})\n}}\n",
+                te.th32ThreadID, GetLastError());
+            continue;
+        }
+        std::unique_ptr<std::remove_pointer_t<HANDLE>, decltype(&CloseHandle)>
+            hThreadGuard(hThread, &CloseHandle);
+
+        const DWORD suspendCount = SuspendThread(hThread);
+        if (suspendCount == static_cast<DWORD>(-1))
+        {
+            log << std::format(L"\nThread 0x{:X} Call Stack\n{{\n"
+                               L"  (SuspendThread failed: error 0x{:X})\n}}\n",
+                te.th32ThreadID, GetLastError());
+            continue;
+        }
+
+        CONTEXT ctx{};
+        ctx.ContextFlags = CONTEXT_ALL;
+        const bool gotCtx = GetThreadContext(hThread, &ctx) != 0;
+
+        ResumeThread(hThread);
+
+        if (!gotCtx)
+        {
+            log << std::format(L"\nThread 0x{:X} Call Stack\n{{\n"
+                               L"  (GetThreadContext failed: error 0x{:X})\n}}\n",
+                te.th32ThreadID, GetLastError());
+            continue;
+        }
+
+        const std::wstring threadName = get_thread_name(hThread);
+        const std::wstring threadLabel = threadName.empty()
+            ? std::format(L"Thread 0x{:X}", te.th32ThreadID)
+            : std::format(L"Thread 0x{:X} \"{}\"", te.th32ThreadID, threadName);
+
+        log << std::format(L"\n{} Call Stack\n{{", threadLabel);
+        print_thread_call_stack(hThread, ctx, log);
+        log << L"\n}\n";
+
+    } while (Thread32Next(hSnap, &te));
 }
 
 void print_exception_info_extended(const EXCEPTION_POINTERS& ex, const CONTEXT& ctx, std::wostringstream& log)
@@ -410,7 +1536,7 @@ void print_exception_info_extended(const EXCEPTION_POINTERS& ex, const CONTEXT& 
 
 std::wstring escape_shell_arg(const std::wstring& arg) {
     // https://docs.microsoft.com/en-us/archive/blogs/twistylittlepassagesallalike/everyone-quotes-command-line-arguments-the-wrong-way
-    
+
     std::wstring res;
     if (!arg.empty() && arg.find_first_of(L" \t\n\v\"") == std::wstring::npos) {
         res.append(arg);
@@ -463,12 +1589,15 @@ void open_folder_and_select_items(HWND hwndOpener, const std::wstring& path) {
 
 void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const std::string& crashLog, const std::string& troubleshootingPackData) {
     static const char* SourceLogFiles[] = {
-        "output.log",
+        "output.log", // XIVLauncher for Windows
+        "launcher.log", // XIVLauncher.Core for [mostly] Linux
         "patcher.log",
         "dalamud.log",
+        "dalamud.troubleshooting.json",
         "dalamud.injector.log",
         "dalamud.boot.log",
         "aria.log",
+        "wine.log"
     };
     static constexpr auto MaxSizePerLog = 1 * 1024 * 1024;
     static constexpr std::array<COMDLG_FILTERSPEC, 2> OutputFileTypeFilterSpec{{
@@ -502,7 +1631,7 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
         filePath.emplace(pFilePath);
 
         std::fstream fileStream(*filePath, std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
-        
+
         mz_zip_archive zipa{};
         zipa.m_pIO_opaque = &fileStream;
         zipa.m_pRead = [](void* pOpaque, mz_uint64 file_ofs, void* pBuf, size_t n) -> size_t {
@@ -564,7 +1693,7 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
             const auto hLogFile = CreateFileW(logFilePath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
             if (hLogFile == INVALID_HANDLE_VALUE)
                 throw_last_error(std::format("indiv. log file: CreateFileW({})", ws_to_u8(logFilePath.wstring())));
-            
+
             std::unique_ptr<void, decltype(&CloseHandle)> hLogFileClose(hLogFile, &CloseHandle);
 
             LARGE_INTEGER size, baseOffset{};
@@ -608,7 +1737,7 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
             try {
                 std::filesystem::remove(*filePath);
             } catch (const std::filesystem::filesystem_error& e2) {
-                std::wcerr << std::format(L"Failed to remove temporary file: {}", u8_to_ws(e2.what())) << std::endl;
+                logging::E("Failed to remove temporary file: {}", e2.what());
             }
         }
         return;
@@ -680,6 +1809,9 @@ void restart_game_using_injector(int nRadioButton, const std::vector<std::wstrin
 }
 
 int main() {
+    logging::set_tag("CRASHHANDLER");
+    logging::update_dll_load_status(true);
+
     enum crash_handler_special_exit_codes {
         UnknownError = -99,
         InvalidParameter = -101,
@@ -688,12 +1820,14 @@ int main() {
 
     HANDLE hPipeRead = nullptr;
     std::filesystem::path assetDir, logDir;
+    std::filesystem::path bootLogPath;
+    bool bootConsole = false;
     std::optional<std::vector<std::wstring>> launcherArgs;
     auto fullDump = false;
 
     // IFileSaveDialog only works on STA
     CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
-    
+
     std::vector<std::wstring> args;
     if (int argc = 0; const auto argv = CommandLineToArgvW(GetCommandLineW(), &argc)) {
         for (auto i = 0; i < argc; i++)
@@ -715,35 +1849,49 @@ int main() {
             assetDir = arg.substr(ARRAYSIZE(pwszArgPrefix) - 1);
         } else if (constexpr wchar_t pwszArgPrefix[] = L"--log-directory="; arg.starts_with(pwszArgPrefix)) {
             logDir = arg.substr(ARRAYSIZE(pwszArgPrefix) - 1);
+        } else if (constexpr wchar_t pwszArgPrefix[] = L"--log-path="; arg.starts_with(pwszArgPrefix)) {
+            bootLogPath = arg.substr(ARRAYSIZE(pwszArgPrefix) - 1);
+        } else if (arg == L"--console") {
+            bootConsole = true;
         } else if (arg == L"--") {
             launcherArgs.emplace();
         } else {
-            std::wcerr << L"Invalid argument: " << arg << std::endl;
+            logging::E("Invalid argument: {}", std::wstring(arg));
             return InvalidParameter;
         }
     }
 
     if (g_hProcess == nullptr) {
-        std::wcerr << L"Target process not specified" << std::endl;
+        logging::E("Target process not specified");
         return InvalidParameter;
     }
 
     if (hPipeRead == nullptr) {
-        std::wcerr << L"Read pipe handle not specified" << std::endl;
+        logging::E("Read pipe handle not specified");
         return InvalidParameter;
     }
 
     const auto dwProcessId = GetProcessId(g_hProcess);
     if (!dwProcessId){
-        std::wcerr << L"Target process not specified" << std::endl;
+        logging::E("Target process not specified");
         return InvalidParameter;
     }
 
+    if (!bootLogPath.empty()) {
+        const auto crashLogPath = bootLogPath.parent_path() / "dalamud.crashhandler.log";
+        try {
+            logging::start_file_logging(crashLogPath, !bootConsole);
+            logging::I("Logging to file: {}", crashLogPath);
+        } catch (const std::exception& e) {
+            logging::E("Couldn't open log file {}: {}", crashLogPath, e.what());
+        }
+    }
+
     if (logDir.filename().wstring().ends_with(L".log")) {
-        std::wcout << L"logDir seems to be pointing to a file; stripping the last path component.\n" << std::endl;
-        std::wcout << L"Previous: " << logDir.wstring() << std::endl;
+        logging::W("logDir seems to be pointing to a file; stripping the last path component.");
+        logging::I("Previous: {}", logDir);
         logDir = logDir.parent_path();
-        std::wcout << L"Stripped: " << logDir.wstring() << std::endl;
+        logging::I("Stripped: {}", logDir);
     }
 
     // Only keep the last 3 minidumps
@@ -762,13 +1910,13 @@ int main() {
             for (size_t i = 0; i < minidumps.size() - 3; i++) {
                 if (std::filesystem::exists(minidumps[i].first))
                 {
-                    std::wcout << std::format(L"Removing old minidump: {}", minidumps[i].first.wstring()) << std::endl;
+                    logging::I("Removing old minidump: {}", minidumps[i].first);
                     std::filesystem::remove(minidumps[i].first);
                 }
 
                 // Also remove corresponding .log, if it exists
                 if (const auto logPath = minidumps[i].first.replace_extension(L".log"); std::filesystem::exists(logPath)) {
-                    std::wcout << std::format(L"Removing corresponding log: {}", logPath.wstring()) << std::endl;
+                    logging::I("Removing corresponding log: {}", logPath);
                     std::filesystem::remove(logPath);
                 }
             }
@@ -776,36 +1924,36 @@ int main() {
     }
 
     while (true) {
-        std::cout << "Waiting for crash...\n";
+        logging::I("Waiting for crash...");
 
         exception_info exinfo;
         if (DWORD exsize{}; !ReadFile(hPipeRead, &exinfo, static_cast<DWORD>(sizeof exinfo), &exsize, nullptr) || exsize != sizeof exinfo) {
             if (WaitForSingleObject(g_hProcess, 0) == WAIT_OBJECT_0) {
                 auto excode = static_cast<DWORD>(ProcessExitedUnknownExitCode);
                 if (!GetExitCodeProcess(g_hProcess, &excode))
-                    std::cerr << std::format("Process exited, but failed to read exit code; error: 0x{:x}", GetLastError()) << std::endl;
+                    logging::E("Process exited, but failed to read exit code; error: 0x{:x}", GetLastError());
                 else
-                    std::cout << std::format("Process exited with exit code {0} (0x{0:x})", excode) << std::endl;
+                    logging::I("Process exited with exit code {0} (0x{0:x})", excode);
                 break;
             }
 
             const auto err = GetLastError();
-            std::cerr << std::format("Failed to read exception information; error: 0x{:x}", err) << std::endl;
-            std::cerr << "Terminating target process." << std::endl;
+            logging::E("Failed to read exception information; error: 0x{:x}", err);
+            logging::W("Terminating target process.");
             TerminateProcess(g_hProcess, -1);
             break;
         }
 
         if (exinfo.ExceptionRecord.ExceptionCode == 0x12345678) {
-            std::cout << "Restart requested" << std::endl;
+            logging::I("Restart requested");
             TerminateProcess(g_hProcess, 0);
             restart_game_using_injector(IdRadioRestartNormal, *launcherArgs);
             break;
         }
 
-        std::cout << "Crash triggered" << std::endl;
+        logging::I("Crash triggered");
 
-        std::cout << "Creating progress window" << std::endl;
+        logging::I("Creating progress window");
         IProgressDialog* pProgressDialog = NULL;
         if (SUCCEEDED(CoCreateInstance(CLSID_ProgressDialog, NULL, CLSCTX_ALL, IID_IProgressDialog, (void**)&pProgressDialog)) && pProgressDialog) {
             pProgressDialog->SetTitle(L"Dalamud Crash Handler");
@@ -821,17 +1969,17 @@ int main() {
                 hr = pOleWindow->GetWindow(&hwndProgressDialog);
                 if (SUCCEEDED(hr))
                 {
-                    SetWindowPos(hwndProgressDialog, HWND_TOPMOST, 0, 0, 0, 0, 
+                    SetWindowPos(hwndProgressDialog, HWND_TOPMOST, 0, 0, 0, 0,
                         SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
                     SetForegroundWindow(hwndProgressDialog);
                 }
-                
+
                 pOleWindow->Release();
             }
-        
+
         }
         else {
-            std::cerr << "Failed to create progress window" << std::endl;
+            logging::W("Failed to create progress window");
             pProgressDialog = NULL;
         }
 
@@ -850,43 +1998,67 @@ int main() {
 
         https://github.com/sumatrapdfreader/sumatrapdf/blob/master/src/utils/DbgHelpDyn.cpp
         */
-        
+
+        // Get working dir (for PDBs for native things we ship)
+        std::wstring selfPath(PATHCCH_MAX_CCH, L'\0');
+        selfPath.resize(GetModuleFileNameExW(GetCurrentProcess(), GetModuleHandleW(nullptr), &selfPath[0], PATHCCH_MAX_CCH));
+        const auto dalamudDir = std::filesystem::path(selfPath).parent_path().wstring();
+
         if (g_bSymbolsAvailable) {
             SymRefreshModuleList(g_hProcess);
         }
         else if(!assetDir.empty())
         {
-            auto symbol_search_path = std::format(L".;{}", (assetDir / "UIRes" / "pdb").wstring());
-            
+            auto symbol_search_path = std::format(L".;{};{}", dalamudDir, (assetDir / "UIRes" / "pdb").wstring());
+
             g_bSymbolsAvailable = SymInitializeW(g_hProcess, symbol_search_path.c_str(), true);
-            std::wcout << std::format(L"Init symbols with PDB at {}", symbol_search_path) << std::endl;
+            logging::I("Init symbols with PDB at {}", symbol_search_path);
 
             SymRefreshModuleList(g_hProcess);
         }
         else
         {
-            g_bSymbolsAvailable = SymInitializeW(g_hProcess, nullptr, true);
-            std::cout << "Init symbols without PDB" << std::endl;
-        }
-        
-        if (!g_bSymbolsAvailable) {
-            std::wcerr << std::format(L"SymInitialize error: 0x{:x}", GetLastError()) << std::endl;
+            auto symbol_search_path = std::format(L".;{}", dalamudDir);
+
+            g_bSymbolsAvailable = SymInitializeW(g_hProcess, symbol_search_path.c_str(), true);
+            logging::I("Init symbols without game PDB at {}", symbol_search_path);
         }
 
-        if (pProgressDialog) 
+        if (!g_bSymbolsAvailable) {
+            logging::E("SymInitialize error: 0x{:x}", GetLastError());
+        }
+
+        // Initialize (or refresh) the DAC for mixed-mode stack walking.
+        // The crashing thread OS ID and its context at crash time are needed to seed the data target.
+        if (pProgressDialog)
+            pProgressDialog->SetLine(3, L"Initializing DAC for mixed-mode trace", FALSE, NULL);
+
+        const DWORD crashingThreadOsId = GetThreadId(exinfo.hThreadHandle);
+        if (g_pClrDataProcess)
+        {
+            // Flush cached DAC state for a fresh read on this crash.
+            g_pClrDataProcess->Flush();
+            logging::D("[DAC] Flushed cached state for new crash");
+        }
+        else
+        {
+            g_pClrDataProcess = try_create_clr_data_process(crashingThreadOsId, exinfo.ContextRecord);
+        }
+
+        if (pProgressDialog)
             pProgressDialog->SetLine(3, L"Reading troubleshooting data", FALSE, NULL);
 
         std::wstring stackTrace(exinfo.dwStackTraceLength, L'\0');
         if (exinfo.dwStackTraceLength) {
             if (DWORD read; !ReadFile(hPipeRead, &stackTrace[0], 2 * exinfo.dwStackTraceLength, &read, nullptr)) {
-                std::cout << std::format("Failed to read supplied stack trace: error 0x{:x}", GetLastError()) << std::endl;
+                logging::E("Failed to read supplied stack trace: error 0x{:x}", GetLastError());
             }
         }
 
         std::string troubleshootingPackData(exinfo.dwTroubleshootingPackDataLength, '\0');
         if (exinfo.dwTroubleshootingPackDataLength) {
             if (DWORD read; !ReadFile(hPipeRead, &troubleshootingPackData[0], exinfo.dwTroubleshootingPackDataLength, &read, nullptr)) {
-                std::cout << std::format("Failed to read troubleshooting pack data: error 0x{:x}", GetLastError()) << std::endl;
+                logging::E("Failed to read troubleshooting pack data: error 0x{:x}", GetLastError());
             }
         }
 
@@ -900,9 +2072,9 @@ int main() {
         const auto logPath = logDir.empty() ? std::filesystem::path() : logDir / std::format(L"dalamud_appcrash_{:04}{:02}{:02}_{:02}{:02}{:02}_{:03}_{}.log", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, dwProcessId);
         std::wstring dumpError;
         if (dumpPath.empty()) {
-            std::cout << "Skipping dump path, as log directory has not been specified" << std::endl;
+            logging::I("Skipping dump path, as log directory has not been specified");
         } else if (shutup) {
-            std::cout << "Skipping dump, was shutdown" << std::endl;
+            logging::I("Skipping dump, was shutdown");
         }
         else
         {
@@ -914,27 +2086,39 @@ int main() {
             do {
                 const auto hDumpFile = CreateFileW(dumpPath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr);
                 if (hDumpFile == INVALID_HANDLE_VALUE) {
-                    std::wcerr << (dumpError = std::format(L"CreateFileW({}, GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr) error: 0x{:x}", dumpPath.wstring(), GetLastError())) << std::endl;
+                    dumpError = std::format(L"CreateFileW({}, GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr) error: 0x{:x}", dumpPath.wstring(), GetLastError());
+                    logging::E(dumpError);
                     break;
                 }
 
                 std::unique_ptr<std::remove_pointer_t<HANDLE>, decltype(&CloseHandle)> hDumpFilePtr(hDumpFile, &CloseHandle);
                 if (!MiniDumpWriteDump(g_hProcess, dwProcessId, hDumpFile, fullDump ? MiniDumpWithFullMemory : static_cast<MINIDUMP_TYPE>(MiniDumpWithDataSegs | MiniDumpWithModuleHeaders), &mdmp_info, nullptr, nullptr)) {
-                    std::wcerr << (dumpError = std::format(L"MiniDumpWriteDump(0x{:x}, {}, 0x{:x}({}), MiniDumpWithFullMemory, ..., nullptr, nullptr) error: 0x{:x}", reinterpret_cast<size_t>(g_hProcess), dwProcessId, reinterpret_cast<size_t>(hDumpFile), dumpPath.wstring(), GetLastError())) << std::endl;
+                    dumpError = std::format(L"MiniDumpWriteDump(0x{:x}, {}, 0x{:x}({}), MiniDumpWithFullMemory, ..., nullptr, nullptr) error: 0x{:x}", reinterpret_cast<size_t>(g_hProcess), dwProcessId, reinterpret_cast<size_t>(hDumpFile), dumpPath.wstring(), GetLastError());
+                    logging::E(dumpError);
                     break;
                 }
 
-                std::wcout << "Dump written to path: " << dumpPath << std::endl;
+                logging::I("Dump written to path: {}", dumpPath);
             } while (false);
         }
 
+        const bool is_external_event = exinfo.ExceptionRecord.ExceptionCode == CUSTOM_EXCEPTION_EXTERNAL_EVENT;
+
         std::wostringstream log;
-        log << std::format(L"Unhandled native exception occurred at {}", to_address_string(exinfo.ContextRecord.Rip, false)) << std::endl;
-        log << std::format(L"Code: {:X}", exinfo.ExceptionRecord.ExceptionCode) << std::endl;
+
+        if (!is_external_event)
+        {
+            log << std::format(L"Unhandled native exception occurred at {}", to_address_string(exinfo.ContextRecord.Rip, false)) << std::endl;
+            log << std::format(L"Code: {:X}", exinfo.ExceptionRecord.ExceptionCode) << std::endl;
+        }
+        else
+        {
+            log << L"CLR error occurred" << std::endl;
+        }
 
         if (shutup)
             log << L"======= Crash handler was globally muted(shutdown?) =======" << std::endl;
-        
+
         if (dumpPath.empty())
             log << L"Dump skipped" << std::endl;
         else if (dumpError.empty())
@@ -942,16 +2126,38 @@ int main() {
         else
             log << std::format(L"Dump error: {}", dumpError) << std::endl;
         log << std::format(L"System Time: {0:%F} {0:%T} {0:%Ez}", std::chrono::system_clock::now()) << std::endl;
-        log << L"\n" << stackTrace << std::endl;
+
+        for (const auto& line : hardware_info::collect_lines())
+            log << line << std::endl;
+
+        if (!stackTrace.empty())
+        {
+            log << L"\nAdditional Information\n{";
+            log << L"\n" << stackTrace;
+            log << L"\n}\n";
+        }
 
         if (pProgressDialog)
             pProgressDialog->SetLine(3, L"Refreshing Module List", FALSE, NULL);
 
-        SymRefreshModuleList(GetCurrentProcess());
-        print_exception_info(exinfo.hThreadHandle, exinfo.ExceptionPointers, exinfo.ContextRecord, log);
-        const auto window_log_str = log.str();
+        SymRefreshModuleList(g_hProcess);
+        print_exception_info(crashingThreadOsId, exinfo.hThreadHandle, exinfo.ExceptionPointers, exinfo.ContextRecord, log);
+
+        // Capture the log content we show in the dialog window (after the call stack is appended).
+        const std::wstring window_log_str = log.str();
+
         print_exception_info_extended(exinfo.ExceptionPointers, exinfo.ContextRecord, log);
-        std::wofstream(logPath) << log.str();
+
+        log << L"\n======= All threads follow (except crashing thread) =======\n";
+        print_all_threads_info(crashingThreadOsId, log);
+        if (const auto temp = ws_to_u8(log.str()); !temp.empty()) {
+            std::ofstream(logPath, std::ios::binary).write(temp.data(), temp.size());
+        } else {
+            // for some reason couldn't be converted to UTF-8; write in UTF-16
+            const auto temp2 = log.str();
+            const auto temp3 = std::span(reinterpret_cast<const char*>(temp2.data()), temp2.size() * sizeof(temp2[0]));
+            std::ofstream(logPath, std::ios::binary).write(temp3.data(), temp3.size());
+        }
 
         TASKDIALOGCONFIG config = { 0 };
 
@@ -984,8 +2190,8 @@ int main() {
         config.pButtons = buttons;
         config.cButtons = ARRAYSIZE(buttons);
         config.nDefaultButton = IdButtonRestart;
-        config.pszExpandedControlText = L"Hide stack trace";
-        config.pszCollapsedControlText = L"Stack trace for plugin developers";
+        config.pszExpandedControlText = L"Hide further information";
+        config.pszCollapsedControlText = L"Further information for developers";
         config.pszExpandedInformation = window_log_str.c_str();
         config.pszWindowTitle = L"Dalamud Crash Handler";
         config.pRadioButtons = radios;
@@ -1001,7 +2207,7 @@ int main() {
             R"aa(<a href="help">Help</a> | <a href="logdir">Open log directory</a> | <a href="logfile">Open log file</a>)aa"
         );
 #endif
-        
+
         // Can't do this, xiv stops pumping messages here
         //config.hwndParent = FindWindowA("FFXIVGAME", NULL);
 
@@ -1054,13 +2260,13 @@ int main() {
             return (*reinterpret_cast<decltype(callback)*>(dwRefData))(hwnd, uNotification, wParam, lParam);
         };
         config.lpCallbackData = reinterpret_cast<LONG_PTR>(&callback);
-        
+
         if (pProgressDialog) {
             pProgressDialog->StopProgressDialog();
             pProgressDialog->Release();
             pProgressDialog = NULL;
         }
-        
+
         const auto kill_game = [&] { TerminateProcess(g_hProcess, exinfo.ExceptionRecord.ExceptionCode); };
 
         if (shutup) {

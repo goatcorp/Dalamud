@@ -1,12 +1,8 @@
 using System.Numerics;
 using System.Text;
 
-using Dalamud.Interface.Internal;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Textures.TextureWraps;
-
-using ImGuiNET;
-
-using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.Textures;
 

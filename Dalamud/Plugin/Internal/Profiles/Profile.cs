@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
@@ -14,18 +15,21 @@ namespace Dalamud.Plugin.Internal.Profiles;
 /// </summary>
 internal class Profile
 {
-    private static readonly ModuleLog Log = new("PROFILE");
+    private static readonly ModuleLog Log = ModuleLog.Create<Profile>();
 
     private readonly ProfileManager manager;
     private readonly ProfileModelV1 modelV1;
+
+    private readonly Dictionary<Guid, bool> ephemeralWantOverrides = new();
+    private readonly Lock profileLock = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Profile"/> class.
     /// </summary>
     /// <param name="manager">The manager this profile belongs to.</param>
     /// <param name="model">The model this profile is tied to.</param>
-    /// <param name="isDefaultProfile">Whether or not this profile is the default profile.</param>
-    /// <param name="isBoot">Whether or not this profile was initialized during bootup.</param>
+    /// <param name="isDefaultProfile">Whether this profile is the default profile.</param>
+    /// <param name="isBoot">Whether this profile was initialized during bootup.</param>
     public Profile(ProfileManager manager, ProfileModel model, bool isDefaultProfile, bool isBoot)
     {
         this.manager = manager;
@@ -40,20 +44,42 @@ internal class Profile
             this.IsEnabled = this.modelV1.IsEnabled = true;
             this.Name = this.modelV1.Name = "DEFAULT";
         }
-        else if (this.modelV1.AlwaysEnableOnBoot && isBoot)
+        else if (isBoot)
         {
-            this.IsEnabled = true;
-            Log.Verbose("{Guid} set enabled because bootup", this.modelV1.Guid);
-        }
-        else if (this.modelV1.IsEnabled)
-        {
-            this.IsEnabled = true;
-            Log.Verbose("{Guid} set enabled because remember", this.modelV1.Guid);
+            if (this.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.AlwaysEnable)
+            {
+                this.IsEnabled = true;
+                Log.Verbose("{Guid} set enabled because always enable", this.modelV1.Guid);
+            }
+            else if (this.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.AlwaysDisable)
+            {
+                this.IsEnabled = false;
+                Log.Verbose("{Guid} set disabled because always disable", this.modelV1.Guid);
+            }
+            else if (this.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.RememberState)
+            {
+                this.IsEnabled = this.modelV1.IsEnabled;
+                Log.Verbose("{Guid} set enabled because remember", this.modelV1.Guid);
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException(nameof(this.StartupPolicy));
+            }
         }
         else
         {
             Log.Verbose("{Guid} not enabled", this.modelV1.Guid);
         }
+
+        Log.Verbose("Init profile {Guid} ({Name}) enabled:{Enabled} policy:{Policy} plugins:{NumPlugins} wants enable:{Status} with character filter:{EnableForCharacters} enabled characters:{NumEnabledCharacters}",
+                    this.modelV1.Guid,
+                    this.modelV1.Name,
+                    this.modelV1.IsEnabled,
+                    this.modelV1.StartupPolicy,
+                    this.modelV1.Plugins.Count,
+                    this.IsEnabled,
+                    this.modelV1.EnableForCharacters,
+                    this.modelV1.EnabledCharacters?.Count ?? 0);
     }
 
     /// <summary>
@@ -72,12 +98,12 @@ internal class Profile
     /// <summary>
     /// Gets or sets a value indicating whether this profile shall always be enabled at boot.
     /// </summary>
-    public bool AlwaysEnableAtBoot
+    public ProfileModelV1.ProfileStartupPolicy StartupPolicy
     {
-        get => this.modelV1.AlwaysEnableOnBoot;
+        get => this.modelV1.StartupPolicy ?? ProfileModelV1.ProfileStartupPolicy.RememberState;
         set
         {
-            this.modelV1.AlwaysEnableOnBoot = value;
+            this.modelV1.StartupPolicy = value;
             Service<DalamudConfiguration>.Get().QueueSave();
         }
     }
@@ -88,12 +114,12 @@ internal class Profile
     public Guid Guid => this.modelV1.Guid;
 
     /// <summary>
-    /// Gets a value indicating whether or not this profile is currently enabled.
+    /// Gets a value indicating whether this profile is currently enabled.
     /// </summary>
     public bool IsEnabled { get; private set; }
 
     /// <summary>
-    /// Gets a value indicating whether or not this profile is the default profile.
+    /// Gets a value indicating whether this profile is the default profile.
     /// </summary>
     public bool IsDefaultProfile { get; }
 
@@ -119,8 +145,8 @@ internal class Profile
     /// Set this profile's state. This cannot be called for the default profile.
     /// This will block until all states have been applied.
     /// </summary>
-    /// <param name="enabled">Whether or not the profile is enabled.</param>
-    /// <param name="apply">Whether or not the current state should immediately be applied.</param>
+    /// <param name="enabled">Whether the profile is enabled.</param>
+    /// <param name="apply">Whether the current state should immediately be applied.</param>
     /// <exception cref="InvalidOperationException">Thrown when an untoggleable profile is toggled.</exception>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task SetStateAsync(bool enabled, bool apply = true)
@@ -135,7 +161,7 @@ internal class Profile
         Service<DalamudConfiguration>.Get().QueueSave();
 
         if (apply)
-            await this.manager.ApplyAllWantStatesAsync();
+            await this.manager.ApplyAllWantStatesAsync("SetStateAsync");
     }
 
     /// <summary>
@@ -145,10 +171,33 @@ internal class Profile
     /// <returns>Null if this profile does not declare the plugin, true if the profile declares the plugin and wants it enabled, false if the profile declares the plugin and does not want it enabled.</returns>
     public bool? WantsPlugin(Guid workingPluginId)
     {
-        lock (this)
+        using (this.profileLock.EnterScope())
         {
+            if (this.ephemeralWantOverrides.TryGetValue(workingPluginId, out var overrideState))
+            {
+                return overrideState;
+            }
+
             var entry = this.modelV1.Plugins.FirstOrDefault(x => x.WorkingPluginId == workingPluginId);
             return entry?.IsEnabled;
+        }
+    }
+
+    /// <summary>
+    /// Override the state of a particular plugin in this profile without modifying the profile itself.
+    /// The plugin must already be in the profile. Does not apply.
+    /// </summary>
+    /// <param name="workingPluginId">The ID of the plugin.</param>
+    /// <param name="state">Whether the plugin should be enabled.</param>
+    /// <exception cref="PluginNotFoundException">Thrown if the plugin is not present in the profile.</exception>
+    public void SetEphemeralOverride(Guid workingPluginId, bool state)
+    {
+        if (this.modelV1.Plugins.All(x => x.WorkingPluginId != workingPluginId))
+            throw new PluginNotFoundException(workingPluginId);
+
+        lock (this.ephemeralWantOverrides)
+        {
+            this.ephemeralWantOverrides[workingPluginId] = state;
         }
     }
 
@@ -158,14 +207,14 @@ internal class Profile
     /// </summary>
     /// <param name="workingPluginId">The ID of the plugin.</param>
     /// <param name="internalName">The internal name of the plugin, if available.</param>
-    /// <param name="state">Whether or not the plugin should be enabled.</param>
-    /// <param name="apply">Whether or not the current state should immediately be applied.</param>
+    /// <param name="state">Whether the plugin should be enabled.</param>
+    /// <param name="apply">Whether the current state should immediately be applied.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task AddOrUpdateAsync(Guid workingPluginId, string? internalName, bool state, bool apply = true)
     {
         Debug.Assert(workingPluginId != Guid.Empty, "Trying to add plugin with empty guid");
-        
-        lock (this)
+
+        using (this.profileLock.EnterScope())
         {
             var existing = this.modelV1.Plugins.FirstOrDefault(x => x.WorkingPluginId == workingPluginId);
             if (existing != null)
@@ -182,9 +231,11 @@ internal class Profile
                 });
             }
         }
-        
+
         Log.Information("Adding plugin {Plugin}({Guid}) to profile {Profile} with state {State}", internalName, workingPluginId, this.Guid, state);
-        
+
+        this.ClearEphemeralOverride(workingPluginId);
+
         // We need to remove this plugin from the default profile, if it declares it.
         if (!this.IsDefaultProfile && this.manager.DefaultProfile.WantsPlugin(workingPluginId) != null)
         {
@@ -195,7 +246,7 @@ internal class Profile
         Service<DalamudConfiguration>.Get().QueueSave();
 
         if (apply)
-            await this.manager.ApplyAllWantStatesAsync();
+            await this.manager.ApplyAllWantStatesAsync("AddOrUpdateAsync");
     }
 
     /// <summary>
@@ -203,26 +254,26 @@ internal class Profile
     /// This will block until all states have been applied.
     /// </summary>
     /// <param name="workingPluginId">The ID of the plugin.</param>
-    /// <param name="apply">Whether or not the current state should immediately be applied.</param>
+    /// <param name="apply">Whether the current state should immediately be applied.</param>
     /// <param name="checkDefault">
-    /// Whether or not to throw when a plugin is removed from the default profile, without being in another profile.
+    /// Whether to throw when a plugin is removed from the default profile, without being in another profile.
     /// Used to prevent orphan plugins, but can be ignored when cleaning up old entries.
     /// </param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task RemoveAsync(Guid workingPluginId, bool apply = true, bool checkDefault = true)
     {
         ProfileModelV1.ProfileModelV1Plugin entry;
-        lock (this)
+        using (this.profileLock.EnterScope())
         {
-            entry = this.modelV1.Plugins.FirstOrDefault(x => x.WorkingPluginId == workingPluginId);
-            if (entry == null)
-                throw new PluginNotFoundException(workingPluginId);
-
+            entry = this.modelV1.Plugins.FirstOrDefault(x => x.WorkingPluginId == workingPluginId)
+                ?? throw new PluginNotFoundException(workingPluginId);
             if (!this.modelV1.Plugins.Remove(entry))
                 throw new Exception("Couldn't remove plugin from model collection");
         }
-        
+
         Log.Information("Removing plugin {Plugin}({Guid}) from profile {Profile}", entry.InternalName, entry.WorkingPluginId, this.Guid);
+
+        this.ClearEphemeralOverride(workingPluginId);
 
         // We need to add this plugin back to the default profile, if we were the last profile to have it.
         if (!this.manager.IsInAnyProfile(workingPluginId))
@@ -241,7 +292,21 @@ internal class Profile
         Service<DalamudConfiguration>.Get().QueueSave();
 
         if (apply)
-            await this.manager.ApplyAllWantStatesAsync();
+            await this.manager.ApplyAllWantStatesAsync("RemoveAsync");
+    }
+
+    /// <summary>
+    /// Check if this profile wants to be active based on the current game state and its policy.
+    /// Separate from <see cref="IsEnabled"/> - a profile may be enabled, but not want to be active in the current game state.
+    /// </summary>
+    /// <param name="currentCharacterContentId">The content ID of the character we are logged in with, or about to log in with.</param>
+    /// <returns>Whether the profile wants to be active.</returns>
+    public bool CheckWantsActiveFromGameState(ulong currentCharacterContentId)
+    {
+        if (!this.modelV1.EnableForCharacters)
+            return true;
+
+        return this.modelV1.EnabledCharacters?.Any(x => x.ContentId == currentCharacterContentId) == true;
     }
 
     /// <summary>
@@ -253,14 +318,14 @@ internal class Profile
     /// <param name="newGuid">Guid to use.</param>
     public void MigrateProfilesToGuidsForPlugin(string internalName, Guid newGuid)
     {
-        lock (this)
+        using (this.profileLock.EnterScope())
         {
             foreach (var plugin in this.modelV1.Plugins)
             {
                 // TODO: What should happen if a profile has a GUID locked in, but the plugin
                 // is not installed anymore? That probably means that the user uninstalled the plugin
                 // and is now reinstalling it. We should still satisfy that and update the ID.
-                
+
                 if (plugin.InternalName == internalName && plugin.WorkingPluginId == Guid.Empty)
                 {
                     plugin.WorkingPluginId = newGuid;
@@ -268,12 +333,23 @@ internal class Profile
                 }
             }
         }
-        
+
         Service<DalamudConfiguration>.Get().QueueSave();
     }
 
     /// <inheritdoc/>
     public override string ToString() => $"{this.Guid} ({this.Name})";
+
+    private void ClearEphemeralOverride(Guid workingPluginId)
+    {
+        lock (this.ephemeralWantOverrides)
+        {
+            if (this.ephemeralWantOverrides.Remove(workingPluginId))
+            {
+                Log.Information("=> Removing ephemeral override for plugin {Guid} in profile {Profile}", workingPluginId, this.Guid);
+            }
+        }
+    }
 }
 
 /// <summary>
@@ -319,7 +395,7 @@ internal sealed class PluginNotFoundException : ProfileOperationException
         : base($"The plugin '{internalName}' was not found in the profile")
     {
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginNotFoundException"/> class.
     /// </summary>
