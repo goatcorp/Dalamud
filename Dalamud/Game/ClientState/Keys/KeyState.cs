@@ -69,9 +69,19 @@ internal class KeyState : IServiceType, IKeyState, IInternalDisposableService
     }
 
     /// <inheritdoc/>
+    [Api16ToDo("Undo conditional and keep as `(raw & (int)KeyStateFlags.Down) != 0`")]
     public bool this[int vkCode]
     {
-        get => (this.GetRawValue(vkCode) & (int)KeyStateFlags.Down) != 0;
+        get
+        {
+            var raw = this.GetRawValue(vkCode);
+
+            // If extended keybind, check raw code and down state
+            // If normal keybind, check raw code only
+            return this.IsExtendedVirtualKeyValid(vkCode)
+                       ? (raw & (int)KeyStateFlags.Down) != 0
+                       : raw != 0;
+        }
         set => this.SetRawValue(vkCode, value ? 1 : 0);
     }
 
