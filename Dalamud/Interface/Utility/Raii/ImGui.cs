@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 using Dalamud.Bindings.ImGui;
 
@@ -196,6 +197,22 @@ public static partial class ImRaii
 
     public static TreeNodeDisposable TreeNode(ImU8String label, ImGuiTreeNodeFlags flags)
         => new(label, flags);
+
+    [OverloadResolutionPriority(100)]
+    public static ClipRectDisposable PushClipRect(in Rectangle rectangle, bool intersectWithCurrentClipRect = false)
+        => new ClipRectDisposable().Push(rectangle, intersectWithCurrentClipRect);
+
+    [OverloadResolutionPriority(50)]
+    public static ClipRectDisposable PushClipRect(in Rectangle rectangle, bool intersectWithCurrentClipRect = false, bool condition = true)
+        => new ClipRectDisposable().Push(rectangle, intersectWithCurrentClipRect, condition);
+
+    [OverloadResolutionPriority(100)]
+    public static ClipRectDisposable PushClipRect(in Vector2 upperLeftCorner, in Vector2 lowerRightCorner, bool intersectWithCurrentClipRect = false)
+        => new ClipRectDisposable().Push(upperLeftCorner, lowerRightCorner, intersectWithCurrentClipRect);
+
+    [OverloadResolutionPriority(50)]
+    public static ClipRectDisposable PushClipRect(in Vector2 upperLeftCorner, in Vector2 lowerRightCorner, bool intersectWithCurrentClipRect = false, bool condition = true)
+        => new ClipRectDisposable().Push(upperLeftCorner, lowerRightCorner, intersectWithCurrentClipRect, condition);
 
     public static DisabledDisposable Disabled()
         => new DisabledDisposable().Push();

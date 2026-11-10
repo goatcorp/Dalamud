@@ -580,6 +580,49 @@ public static partial class ImGuiHelpers
     }
 
     /// <summary>
+    /// Show a centered SeString.
+    /// </summary>
+    /// <param name="sss">The SeString to show.</param>
+    /// <param name="style">
+    /// The initial draw params to use. If <see cref="SeStringDrawParams.TargetDrawList"/> is set, the text is centered in the box
+    /// starting at <see cref="SeStringDrawParams.ScreenOffset"/>, <see cref="SeStringDrawParams.WrapWidth"/> wide.
+    /// You have to set both.
+    /// </param>
+    /// <returns>Interaction result of the rendered text.</returns>
+    public static SeStringDrawResult CenteredSeString(ReadOnlySpan<byte> sss, scoped in SeStringDrawParams style = default)
+    {
+        var drawParams = style.TargetDrawList is null
+                             ? style with { WrapWidth = style.WrapWidth ?? float.MaxValue }
+                             : style;
+
+        var renderer = Service<SeStringRenderer>.Get();
+        var width = renderer.Draw(
+            sss,
+            drawParams with
+            {
+                TargetDrawList = default(ImDrawListPtr),
+                ScreenOffset = Vector2.Zero,
+                Font = style.Font ?? ImGui.GetFont(),
+                FontSize = style.FontSize ?? ImGui.GetFontSize(),
+            }).Size.X;
+
+        if (style.TargetDrawList is null)
+        {
+            CenterCursorFor(width);
+            return renderer.Draw(sss, drawParams);
+        }
+
+        var offset = style.ScreenOffset ?? throw new ArgumentException(
+                         $"{nameof(style.ScreenOffset)} must be set when specifying a target draw list.",
+                         nameof(style));
+        var boxWidth = style.WrapWidth ?? throw new ArgumentException(
+                           $"{nameof(style.WrapWidth)} must be set when specifying a target draw list.",
+                           nameof(style));
+
+        return renderer.Draw(sss, drawParams with { ScreenOffset = offset with { X = offset.X + ((boxWidth - width) / 2) } });
+    }
+
+    /// <summary>
     /// Center the ImGui cursor for a certain text.
     /// </summary>
     /// <param name="text">The text to center for.</param>

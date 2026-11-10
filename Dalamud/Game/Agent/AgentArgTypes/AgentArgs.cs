@@ -17,12 +17,12 @@ public unsafe class AgentArgs
     /// <summary>
     /// Gets the pointer to the Agents AgentInterface*.
     /// </summary>
-    public AgentInterfacePtr Agent { get; internal set; }
+    public AgentInterfacePtr Agent { get; internal init; }
 
     /// <summary>
     /// Gets the agent id.
     /// </summary>
-    public AgentId AgentId { get; internal set; }
+    public AgentId AgentId { get; internal init; }
 
     /// <summary>
     /// Gets the type of these args.

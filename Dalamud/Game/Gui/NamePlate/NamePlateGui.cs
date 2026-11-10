@@ -170,7 +170,7 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
                 foreach (var handler in activeHandlers)
                 {
                     handler.ResetState();
-                    handler.IsUpdating = true;
+                    handler.UpdateFlags |= 3;
                 }
 
                 return;
@@ -184,7 +184,7 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
                 foreach (var handler in activeHandlers)
                 {
                     handler.ResetState();
-                    handler.IsUpdating = true;
+                    handler.UpdateFlags |= 3;
                 }
 
                 this.OnDataUpdate?.InvokeSafely(this.context, activeHandlers);

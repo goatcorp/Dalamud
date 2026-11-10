@@ -323,6 +323,20 @@ internal static class ServiceManager
 
             while (servicesToLoad.Count != 0)
             {
+                // Unload started while initializing, i.e. due to fault elsewhere
+                if (UnloadCancellationToken.IsCancellationRequested)
+                {
+                    Log.Information("Unload requested during service initialization, stopping");
+
+                    while (tasks.Count != 0)
+                    {
+                        await Task.WhenAny(tasks);
+                        tasks.RemoveAll(x => x.IsCompleted);
+                    }
+
+                    return;
+                }
+
                 foreach (var serviceType in servicesToLoad)
                 {
                     var hasDeps = true;

@@ -106,6 +106,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
 
     private readonly AssertHandler assertHandler = new();
+    private readonly GamepadAutoExit gamepadAutoExit = new();
 
     private IWin32Backend? backend;
 
@@ -324,7 +325,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         // Framework.Destroy has never been called and thus Framework.IsFrameworkUnloading cannot be true, and this
         // function will actually run the destroy from the framework thread.
         // Otherwise, as Framework.IsFrameworkUnloading should have been set, this code should run immediately.
-        this.framework.RunOnFrameworkThread(ClearHooks).Wait();
+        this.framework.RunOnFrameworkThread(this.ClearHooks).Wait();
 
         // Below this point, hooks are guaranteed to be no longer called.
 
@@ -346,19 +347,6 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         Interlocked.Exchange(ref this.dalamudAtlas, null)?.Dispose();
         Interlocked.Exchange(ref this.backend, null)?.Dispose();
-
-        return;
-
-        void ClearHooks()
-        {
-            this.wndProcHookManager.PreWndProc -= this.WndProcHookManagerOnPreWndProc;
-            Interlocked.Exchange(ref this.setCursorHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.dxgiSwapChainPresentHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.reShadeDxgiSwapChainPresentHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.dxgiSwapChainResizeBuffersHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.dxgiSwapChainHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.reShadeAddonInterface, null)?.Dispose();
-        }
     }
 
     /// <summary>
@@ -612,7 +600,32 @@ internal partial class InterfaceManager : IInternalDisposableService
             return;
 
         this.framework.Update -= this.FrameworkOnUpdate;
-        this.SetupHooks(Service<TargetSigScanner>.Get(), Service<FontAtlasFactory>.Get());
+
+        try
+        {
+            this.SetupHooks(Service<FontAtlasFactory>.Get());
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not set up interface hooks");
+
+            // Fail init immediately and let service init deal with it
+            Service<InterfaceManagerWithScene>.ProvideException(ex);
+
+            // Make sure we don't get any calls from hooks, since we might have been setup half way
+            this.ClearHooks();
+        }
+    }
+
+    private void ClearHooks()
+    {
+        this.wndProcHookManager.PreWndProc -= this.WndProcHookManagerOnPreWndProc;
+        Interlocked.Exchange(ref this.setCursorHook, null)?.Dispose();
+        Interlocked.Exchange(ref this.dxgiSwapChainPresentHook, null)?.Dispose();
+        Interlocked.Exchange(ref this.reShadeDxgiSwapChainPresentHook, null)?.Dispose();
+        Interlocked.Exchange(ref this.dxgiSwapChainResizeBuffersHook, null)?.Dispose();
+        Interlocked.Exchange(ref this.dxgiSwapChainHook, null)?.Dispose();
+        Interlocked.Exchange(ref this.reShadeAddonInterface, null)?.Dispose();
     }
 
     /// <summary>Checks if the provided swap chain is the target that Dalamud should draw its interface onto,
@@ -846,7 +859,6 @@ internal partial class InterfaceManager : IInternalDisposableService
     }
 
     private unsafe void SetupHooks(
-        TargetSigScanner sigScanner,
         FontAtlasFactory fontAtlasFactory)
     {
         this.dalamudAtlas = fontAtlasFactory
@@ -1034,13 +1046,6 @@ internal partial class InterfaceManager : IInternalDisposableService
                 }
 
                 Log.Information("Registered as a ReShade addon");
-                this.reShadeAddonInterface.InitSwapChain += this.ReShadeAddonInterfaceOnInitSwapChain;
-                this.reShadeAddonInterface.DestroySwapChain += this.ReShadeAddonInterfaceOnDestroySwapChain;
-                if (this.dalamudConfiguration.ReShadeHandlingMode == ReShadeHandlingMode.ReShadeAddonPresent)
-                    this.reShadeAddonInterface.Present += this.ReShadeAddonInterfaceOnPresent;
-                else
-                    this.reShadeAddonInterface.ReShadeOverlay += this.ReShadeAddonInterfaceOnReShadeOverlay;
-
                 dxgiSwapChainResizeBuffersDelegate = this.AsReShadeAddonDxgiSwapChainResizeBuffersDetour;
                 break;
 
@@ -1133,6 +1138,23 @@ internal partial class InterfaceManager : IInternalDisposableService
         this.dxgiSwapChainResizeBuffersHook.Enable();
         this.dxgiSwapChainPresentHook?.Enable();
         this.dxgiSwapChainHook?.Enable();
+
+        // Set up ReShade callbacks after we are sure we are set
+        if (this.reShadeAddonInterface is null)
+        {
+            return;
+        }
+
+        this.reShadeAddonInterface.InitSwapChain += this.ReShadeAddonInterfaceOnInitSwapChain;
+        this.reShadeAddonInterface.DestroySwapChain += this.ReShadeAddonInterfaceOnDestroySwapChain;
+        if (this.dalamudConfiguration.ReShadeHandlingMode == ReShadeHandlingMode.ReShadeAddonPresent)
+        {
+            this.reShadeAddonInterface.Present += this.ReShadeAddonInterfaceOnPresent;
+        }
+        else
+        {
+            this.reShadeAddonInterface.ReShadeOverlay += this.ReShadeAddonInterfaceOnReShadeOverlay;
+        }
     }
 
     private nint SetCursorDetour(nint hCursor)
@@ -1171,6 +1193,9 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         var gamepadEnabled = (io.BackendFlags & ImGuiBackendFlags.HasGamepad) > 0;
 
+        // Plugins can enable/disable this in io state without us noticing or showing the notifier
+        gamepadState.EnableGamepadNav = (io.ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0;
+
         // NOTE (Chiv) Activate ImGui navigation  via L1+L3 press
         // (mimicking how mouse navigation is activated via L1+R3 press in game).
         if (gamepadEnabled
@@ -1178,6 +1203,15 @@ internal partial class InterfaceManager : IInternalDisposableService
             && gamepadState.Pressed(GamepadButtons.L3) > 0)
         {
             gamepadState.EnableGamepadNav ^= true;
+        }
+
+        if (!gamepadState.EnableGamepadNav || !this.dalamudConfiguration.AutoExitGamepadNavigation)
+        {
+            this.gamepadAutoExit.Reset();
+        }
+        else if (this.gamepadAutoExit.ShouldExit())
+        {
+            gamepadState.EnableGamepadNav = false;
         }
 
         if (gamepadEnabled && (io.ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0)

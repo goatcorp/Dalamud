@@ -2,7 +2,6 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Hooking;
-using Dalamud.Interface.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
@@ -23,9 +22,6 @@ namespace Dalamud.Game.ClientState.GamePad;
 internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
 {
     private static readonly ModuleLog Log = ModuleLog.Create<GamepadState>();
-
-    [ServiceManager.ServiceDependency]
-    private readonly DalamudInterface dalamudInterface = Service<DalamudInterface>.Get();
 
     private Hook<PadDevice.Delegates.Update> gamepadPollHook;
     private int leftStickX;
@@ -53,19 +49,17 @@ internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
         get => field;
         set
         {
-            field = value;
-
             var gamepadEnabled = (ImGui.GetIO().BackendFlags & ImGuiBackendFlags.HasGamepad) > 0;
 
-            if (value && gamepadEnabled)
+            field = value && gamepadEnabled;
+
+            if (field)
             {
                 ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableGamepad;
-                this.dalamudInterface.OpenGamepadModeNotifierWindow();
             }
             else
             {
                 ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
-                this.dalamudInterface.CloseGamepadModeNotifierWindow();
             }
         }
     }
@@ -182,7 +176,7 @@ internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
             Log.Error(e, "Unexpected error in PadDeviceUpdateDetour. Gamepad navigation will not work!");
 
             // NOTE (Chiv) Explicitly deactivate on error
-            ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
+            this.EnableGamepadNav = false;
         }
     }
 }

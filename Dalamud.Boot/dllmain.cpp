@@ -3,9 +3,7 @@
 #include <thread>
 
 #include <Windows.h>
-#include <CommCtrl.h>
 #include <PathCch.h>
-#include <shellapi.h>
 
 #include <d3d11.h>
 #include <dxgi.h>
@@ -26,117 +24,6 @@
 
 HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
-
-static void CheckMsvcrtVersion() {
-    if (utils::is_running_on_wine())
-        return;
-
-    // 14.51.36247.0 is what is shipped with windows-2025 on GitHub actions at time of writing (v145 build tools)
-    constexpr WORD RequiredMsvcrtVersionComponents[] = {14, 51, 36247, 0};
-    constexpr auto RequiredMsvcrtVersion = 0ULL
-        | (static_cast<uint64_t>(RequiredMsvcrtVersionComponents[0]) << 48)
-        | (static_cast<uint64_t>(RequiredMsvcrtVersionComponents[1]) << 32)
-        | (static_cast<uint64_t>(RequiredMsvcrtVersionComponents[2]) << 16)
-        | (static_cast<uint64_t>(RequiredMsvcrtVersionComponents[3]) << 0);
-
-    constexpr const wchar_t* RuntimeDllNames[] = {
-#ifdef _DEBUG
-        L"msvcp140d.dll",
-        L"vcruntime140d.dll",
-        L"vcruntime140_1d.dll",
-#else
-        L"msvcp140.dll",
-        L"vcruntime140.dll",
-        L"vcruntime140_1.dll",
-#endif
-    };
-
-    uint64_t lowestVersion = 0;
-    for (const auto& runtimeDllName : RuntimeDllNames) {
-        const utils::loaded_module mod(GetModuleHandleW(runtimeDllName));
-        if (!mod) {
-            logging::E("MSVCRT DLL not found: {}", runtimeDllName);
-            continue;
-        }
-
-        const auto path = mod.path()
-            .transform([](const auto& p) { return p.wstring(); })
-            .value_or(runtimeDllName);
-
-        if (const auto versionResult = mod.get_file_version()) {
-            const auto& versionFull = versionResult->get();
-            logging::I("MSVCRT DLL {} has version {}.", path, utils::format_file_version(versionFull));
-
-            const auto version = 0ULL |
-                (static_cast<uint64_t>(versionFull.dwFileVersionMS) << 32) |
-                (static_cast<uint64_t>(versionFull.dwFileVersionLS) << 0);
-
-            if (version < RequiredMsvcrtVersion && (lowestVersion == 0 || lowestVersion > version))
-                lowestVersion = version;
-        } else {
-            logging::E("Failed to detect MSVCRT DLL version for {}: {}", path, versionResult.error().describe());
-        }
-    }
-
-    if (!lowestVersion)
-        return;
-
-    enum IdTaskDialogAction {
-        IdTaskDialogActionOpenDownload = 101,
-        IdTaskDialogActionIgnore,
-    };
-
-    const TASKDIALOG_BUTTON buttons[]{
-        {IdTaskDialogActionOpenDownload, MAKEINTRESOURCEW(IDS_MSVCRT_ACTION_OPENDOWNLOAD)},
-        {IdTaskDialogActionIgnore, MAKEINTRESOURCEW(IDS_MSVCRT_ACTION_IGNORE)},
-    };
-
-    const WORD lowestVersionComponents[]{
-        static_cast<WORD>(lowestVersion >> 48),
-        static_cast<WORD>(lowestVersion >> 32),
-        static_cast<WORD>(lowestVersion >> 16),
-        static_cast<WORD>(lowestVersion >> 0),
-    };
-
-    const auto dialogContent = std::vformat(
-        utils::get_string_resource(IDS_MSVCRT_DIALOG_CONTENT),
-        std::make_wformat_args(
-            lowestVersionComponents[0],
-            lowestVersionComponents[1],
-            lowestVersionComponents[2],
-            lowestVersionComponents[3]));
-
-    const TASKDIALOGCONFIG config{
-        .cbSize = sizeof config,
-        .hInstance = g_hModule,
-        .dwFlags = TDF_CAN_BE_MINIMIZED | TDF_ALLOW_DIALOG_CANCELLATION | TDF_USE_COMMAND_LINKS,
-        .pszWindowTitle = MAKEINTRESOURCEW(IDS_APPNAME),
-        .pszMainIcon = MAKEINTRESOURCEW(IDI_ICON1),
-        .pszMainInstruction = MAKEINTRESOURCEW(IDS_MSVCRT_DIALOG_MAININSTRUCTION),
-        .pszContent = dialogContent.c_str(),
-        .cButtons = _countof(buttons),
-        .pButtons = buttons,
-        .nDefaultButton = IdTaskDialogActionOpenDownload,
-    };
-
-    int buttonPressed;
-    if (utils::scoped_dpi_awareness_context ctx;
-        FAILED(TaskDialogIndirect(&config, &buttonPressed, nullptr, nullptr)))
-        buttonPressed = IdTaskDialogActionOpenDownload;
-
-    switch (buttonPressed) {
-        case IdTaskDialogActionOpenDownload:
-            ShellExecuteW(
-                nullptr,
-                L"open",
-                utils::get_string_resource(IDS_MSVCRT_DOWNLOADURL).c_str(),
-                nullptr,
-                nullptr,
-                SW_SHOW);
-            ExitProcess(0);
-            break;
-    }
-}
 
 static void PrintCpuGpuInfo() {
     for (const auto& line : hardware_info::collect_lines())
@@ -228,7 +115,6 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
         MessageBoxW(nullptr, L"Press OK to continue (BeforeInitialize)", L"Dalamud Boot", MB_OK);
 
     PrintCpuGpuInfo();
-    CheckMsvcrtVersion();
 
     if (g_startInfo.BootDebugDirectX) {
         logging::I("Enabling DirectX Debugging.");

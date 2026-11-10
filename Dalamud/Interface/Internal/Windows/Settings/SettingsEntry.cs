@@ -1,3 +1,4 @@
+using Dalamud.Utility;
 using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.Internal.Windows.Settings;
@@ -63,5 +64,15 @@ internal abstract class SettingsEntry
     public virtual void OnClose()
     {
         // ignored
+    }
+
+    /// <summary>
+    /// Function to be called when we are searching for settings.
+    /// </summary>
+    /// <param name="search">The term we are searching for.</param>
+    /// <returns>Whether this setting matches the term.</returns>
+    public virtual bool MatchesSearch(string search)
+    {
+        return !this.Name.Key.IsNullOrEmpty() && this.Name.ToString().Contains(search, StringComparison.InvariantCultureIgnoreCase);
     }
 }

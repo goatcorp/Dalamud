@@ -66,7 +66,26 @@ internal sealed class SettingsTabExperimental : SettingsTab
 
             new GapSettingsEntry(5, true),
 
-            this.devModeEntry,
+            new GroupSettingsEntry(
+                this.devModeEntry,
+                new HintSettingsEntry(
+                    LazyLoc.Localize(
+                        "DalamudSettingEnableDeveloperModeDescription",
+                        "Developer mode adds various features to Dalamud that are useful to plugin developers. This includes, but is not limited to:")),
+                new BulletSettingsEntry(
+                    LazyLoc.Localize("DalamudSettingEnableDeveloperModeDevPlugins", "Loading plugins from local paths")),
+                new BulletSettingsEntry(
+                    LazyLoc.Localize("DalamudSettingEnableDeveloperModeTitleMenu", "A developer menu entry on the title screen")),
+                new BulletSettingsEntry(
+                    LazyLoc.Localize("DalamudSettingEnableDeveloperModeAsserts", "A window showing failed ImGui asserts")),
+                new BulletSettingsEntry(
+                    LazyLoc.Localize("DalamudSettingEnableDeveloperModeMainThread", "Checks that plugins call game APIs in safe ways")),
+                new BulletSettingsEntry(
+                    LazyLoc.Localize("DalamudSettingEnableDeveloperModeHooks", "Verification of plugin hooks")),
+                new HintSettingsEntry(
+                    LazyLoc.Localize(
+                        "DalamudSettingEnableDeveloperModeDescriptionEnd",
+                        "These can sometimes cause plugins to behave differently. If you are encountering issues, please try again with developer mode disabled."))),
 
             new DevPluginsSettingsEntry(
                 visibility: () => this.devModeEntry.Value),

@@ -23,6 +23,12 @@ set(CMAKE_VS_JUST_MY_CODE_DEBUGGING $<CONFIG:Debug>)
 # No C++20 modules
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
+# Hybrid CRT
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+add_link_options(
+    "$<$<CONFIG:Debug>:/NODEFAULTLIB:libucrtd.lib;/DEFAULTLIB:ucrtd.lib>"
+    "$<$<NOT:$<CONFIG:Debug>>:/NODEFAULTLIB:libucrt.lib;/DEFAULTLIB:ucrt.lib>")
+
 add_compile_definitions(UNICODE _UNICODE _WINDOWS)
 
 # Shared flags
