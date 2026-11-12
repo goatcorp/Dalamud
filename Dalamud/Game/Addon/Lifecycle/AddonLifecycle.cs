@@ -144,10 +144,11 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="blame">What to blame on errors.</param>
     internal void InvokeListenersSafely(AddonEvent eventType, AddonArgs args, [CallerMemberName] string blame = "")
     {
+        var wasInvokingListeners = this.isInvokingListeners;
         this.isInvokingListeners = true;
 
-        // Always clear this guard, including on the no-listener early return, so later registrations and removals
-        // are not indefinitely treated as re-entrant listener changes.
+        // Preserve an outer dispatch's guard across nested events, including no-listener early returns.
+        // Only the outermost invocation restores the guard to false so listener changes remain deferred.
         try
         {
             // Early return if we don't have any listeners of this type
@@ -193,7 +194,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         }
         finally
         {
-            this.isInvokingListeners = false;
+            this.isInvokingListeners = wasInvokingListeners;
         }
     }
 
