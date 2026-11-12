@@ -31,14 +31,7 @@ internal sealed unsafe class DrawDataSnapshot : IDisposable
     /// <summary>Number of list entries currently allocated in the two arrays above.</summary>
     private int listCapacity;
 
-    private void*[] cmdBuffers = [];
-    private int[] cmdCapacities = [];
-
-    private void*[] idxBuffers = [];
-    private int[] idxCapacities = [];
-
-    private void*[] vtxBuffers = [];
-    private int[] vtxCapacities = [];
+    private DrawListBuffers[] listBuffers = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DrawDataSnapshot"/> class and allocates its native header.
@@ -81,6 +74,9 @@ internal sealed unsafe class DrawDataSnapshot : IDisposable
         // Retain draw-list storage until a frame needs more lists.
         if (count > this.listCapacity)
         {
+            // Preserve each list's native allocations and capacities when adding new slots.
+            Array.Resize(ref this.listBuffers, count);
+
             if (this.drawListArray is not null)
             {
                 NativeMemory.Free(this.drawListArray);
@@ -101,13 +97,6 @@ internal sealed unsafe class DrawDataSnapshot : IDisposable
                     (ImDrawList**)NativeMemory.AllocZeroed((nuint)count, (nuint)sizeof(nint));
             }
 
-            this.cmdBuffers = new void*[count];
-            this.cmdCapacities = new int[count];
-            this.idxBuffers = new void*[count];
-            this.idxCapacities = new int[count];
-            this.vtxBuffers = new void*[count];
-            this.vtxCapacities = new int[count];
-
             this.listCapacity = count;
         }
 
@@ -119,28 +108,29 @@ internal sealed unsafe class DrawDataSnapshot : IDisposable
         for (var i = 0; i < count; i++)
         {
             var srcList = src->CmdLists[i];
+            ref var buffers = ref this.listBuffers[i];
 
             var cmdCount = srcList->CmdBuffer.Size;
-            GrowBuffer(ref this.cmdBuffers[i], ref this.cmdCapacities[i], cmdCount, sizeof(ImDrawCmd));
+            GrowBuffer(ref buffers.CmdBuffer, ref buffers.CmdCapacity, cmdCount, sizeof(ImDrawCmd));
             new Span<ImDrawCmd>(srcList->CmdBuffer.Data, cmdCount)
-                .CopyTo(new Span<ImDrawCmd>((ImDrawCmd*)this.cmdBuffers[i], cmdCount));
+                .CopyTo(new Span<ImDrawCmd>((ImDrawCmd*)buffers.CmdBuffer, cmdCount));
 
             var idxCount = srcList->IdxBuffer.Size;
-            GrowBuffer(ref this.idxBuffers[i], ref this.idxCapacities[i], idxCount, sizeof(ushort));
+            GrowBuffer(ref buffers.IdxBuffer, ref buffers.IdxCapacity, idxCount, sizeof(ushort));
             new Span<ushort>(srcList->IdxBuffer.Data, idxCount)
-                .CopyTo(new Span<ushort>((ushort*)this.idxBuffers[i], idxCount));
+                .CopyTo(new Span<ushort>((ushort*)buffers.IdxBuffer, idxCount));
 
             var vtxCount = srcList->VtxBuffer.Size;
-            GrowBuffer(ref this.vtxBuffers[i], ref this.vtxCapacities[i], vtxCount, sizeof(ImDrawVert));
+            GrowBuffer(ref buffers.VtxBuffer, ref buffers.VtxCapacity, vtxCount, sizeof(ImDrawVert));
             new Span<ImDrawVert>(srcList->VtxBuffer.Data, vtxCount)
-                .CopyTo(new Span<ImDrawVert>((ImDrawVert*)this.vtxBuffers[i], vtxCount));
+                .CopyTo(new Span<ImDrawVert>((ImDrawVert*)buffers.VtxBuffer, vtxCount));
 
             // Reconstruct only the ImDrawList fields consumed by the DX11 renderer.
             var dstList = this.drawListArray + i;
             *dstList = default;
-            dstList->CmdBuffer = new ImVector<ImDrawCmd>(cmdCount, this.cmdCapacities[i], (ImDrawCmd*)this.cmdBuffers[i]);
-            dstList->IdxBuffer = new ImVector<ushort>(idxCount, this.idxCapacities[i], (ushort*)this.idxBuffers[i]);
-            dstList->VtxBuffer = new ImVector<ImDrawVert>(vtxCount, this.vtxCapacities[i], (ImDrawVert*)this.vtxBuffers[i]);
+            dstList->CmdBuffer = new ImVector<ImDrawCmd>(cmdCount, buffers.CmdCapacity, (ImDrawCmd*)buffers.CmdBuffer);
+            dstList->IdxBuffer = new ImVector<ushort>(idxCount, buffers.IdxCapacity, (ushort*)buffers.IdxBuffer);
+            dstList->VtxBuffer = new ImVector<ImDrawVert>(vtxCount, buffers.VtxCapacity, (ImDrawVert*)buffers.VtxBuffer);
 
             // The pointer array is allocated whenever this loop can run.
             this.cmdListPtrArray![i] = dstList;
@@ -179,19 +169,24 @@ internal sealed unsafe class DrawDataSnapshot : IDisposable
             this.cmdListPtrArray = null;
         }
 
-        for (var i = 0; i < this.cmdBuffers.Length; i++)
+        foreach (var buffers in this.listBuffers)
         {
-            if (this.cmdBuffers[i] is not null) NativeMemory.Free(this.cmdBuffers[i]);
-            if (this.idxBuffers[i] is not null) NativeMemory.Free(this.idxBuffers[i]);
-            if (this.vtxBuffers[i] is not null) NativeMemory.Free(this.vtxBuffers[i]);
+            if (buffers.CmdBuffer is not null) NativeMemory.Free(buffers.CmdBuffer);
+            if (buffers.IdxBuffer is not null) NativeMemory.Free(buffers.IdxBuffer);
+            if (buffers.VtxBuffer is not null) NativeMemory.Free(buffers.VtxBuffer);
         }
 
-        this.cmdBuffers = [];
-        this.idxBuffers = [];
-        this.vtxBuffers = [];
-        this.cmdCapacities = [];
-        this.idxCapacities = [];
-        this.vtxCapacities = [];
+        this.listBuffers = [];
         this.listCapacity = 0;
+    }
+
+    private struct DrawListBuffers
+    {
+        public void* CmdBuffer;
+        public int CmdCapacity;
+        public void* IdxBuffer;
+        public int IdxCapacity;
+        public void* VtxBuffer;
+        public int VtxCapacity;
     }
 }
