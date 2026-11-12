@@ -11,6 +11,7 @@ using Xunit;
 
 namespace Dalamud.Test.Utility;
 
+[Collection("Native framework render synchronization")]
 public class NativePresentationScopeTests
 {
     private static readonly TimeSpan WorkerTimeout = TimeSpan.FromSeconds(5);
@@ -198,7 +199,7 @@ public class NativePresentationScopeTests
             Assert.Null(workerFailure);
             Assert.True(syncRoot.IsHeldByCurrentThread);
             Assert.Equal(0, manager.CumulativePresentCalls);
-            Assert.False(manager.IsAnyThreadInPresent);
+            Assert.False(manager.IsCurrentThreadInPresent);
         }
         finally
         {
@@ -226,7 +227,7 @@ public class NativePresentationScopeTests
             // A missing queue fails after both guards are entered, before native ImGui access.
             Assert.Throws<NullReferenceException>(() => draw(null!));
             Assert.Equal(1, manager.CumulativePresentCalls);
-            Assert.False(manager.IsAnyThreadInPresent);
+            Assert.False(manager.IsCurrentThreadInPresent);
             Assert.False(renderLock.IsHeldByCurrentThread);
 
             for (var remaining = recursionDepth; remaining > 0; remaining--)

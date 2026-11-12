@@ -395,25 +395,25 @@ internal sealed partial class TextureManager
 
     private void ReleaseUnmanagedResources() => this.device.Reset();
 
-    /// <summary>Runs the action inline when presentation is reported active, otherwise queues it before rendering.</summary>
-    /// <remarks>The activity flag does not establish that the caller owns the DXGI or ReShade presentation callback's locks.</remarks>
+    /// <summary>Runs the action inline for the presentation owner, otherwise queues it before rendering.</summary>
+    /// <remarks>Presentation activity on another thread does not authorize immediate-context work on this caller.</remarks>
     /// <param name="action">The action to run.</param>
     private async Task RunDuringPresent(Action action)
     {
-        if (this.interfaceManager.IsAnyThreadInPresent)
+        if (this.interfaceManager.IsCurrentThreadInPresent)
             action();
         else
             await this.interfaceManager.RunBeforeImGuiRender(action);
     }
 
-    /// <summary>Runs the function inline when presentation is reported active, otherwise queues it before rendering.</summary>
-    /// <remarks>The activity flag does not establish that the caller owns the DXGI or ReShade presentation callback's locks.</remarks>
+    /// <summary>Runs the function inline for the presentation owner, otherwise queues it before rendering.</summary>
+    /// <remarks>Presentation activity on another thread does not authorize immediate-context work on this caller.</remarks>
     /// <typeparam name="T">The type of the return value.</typeparam>
     /// <param name="func">The function to run.</param>
     /// <returns>The return value from the function.</returns>
     private async Task<T> RunDuringPresent<T>(Func<T> func)
     {
-        if (this.interfaceManager.IsAnyThreadInPresent)
+        if (this.interfaceManager.IsCurrentThreadInPresent)
             return func();
         return await this.interfaceManager.RunBeforeImGuiRender(func);
     }

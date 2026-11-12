@@ -250,12 +250,12 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// </summary>
     public bool IsDispatchingEvents { get; set; } = true;
 
-    /// <summary>Gets a value indicating whether Dalamud is executing a serialized presentation callback.</summary>
+    /// <summary>Gets a value indicating whether the calling thread owns the serialized presentation transaction.</summary>
     /// <remarks>
-    /// Reports presentation activity across threads. A true value does not establish that the calling thread
-    /// is executing the callback or holds its synchronization locks.
+    /// Presentation callbacks may run on workers. Only the owner may execute texture work inline;
+    /// other callers must queue it for an admitted presentation.
     /// </remarks>
-    public bool IsAnyThreadInPresent { get; private set; }
+    public bool IsCurrentThreadInPresent => this.renderDalamudLock.IsHeldByCurrentThread;
 
     /// <summary>
     /// Gets a value indicating the native handle of the game main window.
@@ -701,7 +701,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     private void RenderDalamudDraw(IImGuiBackend activeBackend)
     {
         // A middleware callback may own the device lock needed by Step. Waiting for framework exclusion
-        // would deadlock; reject contention before counters, activity flags, or queued work change.
+        // would deadlock; reject contention before counters or queued work change.
         if (!ThreadSafety.NativeFrameworkRenderSyncRoot.TryEnter())
             return;
 
@@ -710,30 +710,22 @@ internal partial class InterfaceManager : IInternalDisposableService
             using (this.renderDalamudLock.EnterScope())
             {
                 this.CumulativePresentCalls++;
-                this.IsAnyThreadInPresent = true;
 
-                try
-                {
-                    this.PreImGuiRender();
+                this.PreImGuiRender();
 
-                    // Enable viewports if there are no issues.
-                    var viewportsDisabled = this.dalamudConfiguration.IsDisableViewport ||
-                                          activeBackend.IsMainViewportFullScreen() ||
-                                          ImGui.GetPlatformIO().Monitors.Size == 1;
-                    if (viewportsDisabled)
-                        ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
-                    else
-                        ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+                // Enable viewports if there are no issues.
+                var viewportsDisabled = this.dalamudConfiguration.IsDisableViewport ||
+                                      activeBackend.IsMainViewportFullScreen() ||
+                                      ImGui.GetPlatformIO().Monitors.Size == 1;
+                if (viewportsDisabled)
+                    ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
+                else
+                    ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
 
-                    // Render the captured frame; UI construction and Draw callbacks run during Step().
-                    activeBackend.Render();
+                // Render the captured frame; UI construction and Draw callbacks run during Step().
+                activeBackend.Render();
 
-                    this.PostImGuiRender();
-                }
-                finally
-                {
-                    this.IsAnyThreadInPresent = false;
-                }
+                this.PostImGuiRender();
             }
         }
         finally
