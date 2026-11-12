@@ -49,6 +49,12 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     // Capture secondary viewports so presentation threads do not enumerate ImGui's live platform viewport list.
     private readonly ViewportSnapshot viewportSnapshots = new();
 
+    // Protected by drawDataLock. Only a complete capture may publish borrowed resource pointers for rendering.
+    private bool hasSnapshot;
+
+    // A Step builds live UI outside drawDataLock. Reject its capture if the presentation target changed meanwhile.
+    private long resizeGeneration;
+
     // Lock-free early-out for a resize; drawDataLock remains the synchronization mechanism.
     private volatile bool resizeInProgress;
 
@@ -223,6 +229,9 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// <inheritdoc/>
     public void Step()
     {
+        // Sample before checking resize or running callbacks so even a complete resize during construction is seen.
+        var generation = Volatile.Read(ref this.resizeGeneration);
+
         // Avoid constructing a frame that cannot be captured while resize owns the snapshot write lock.
         if (this.resizeInProgress)
             return;
@@ -246,7 +255,18 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         this.drawDataLock.EnterWriteLock();
         try
         {
+            // Platform-window mutation or a partial copy can invalidate the previous captures even if Step fails.
+            this.hasSnapshot = false;
+
+            // Complete every rendered ImGui frame, including one whose capture must be discarded after resize.
+            // ImGui requires platform completion before the next NewFrame; viewport mutations stay excluded
+            // from snapshot readers and resize by this writer lock.
             ImGui.UpdatePlatformWindows();
+
+            // Resize may have changed the presentation target while UI construction was in progress.
+            // Discard capture without publishing snapshots or advancing retirement batches.
+            if (this.resizeInProgress || generation != Volatile.Read(ref this.resizeGeneration))
+                return;
 
             this.snapshot.CopyFrom(ImGui.GetDrawData().Handle);
 
@@ -272,6 +292,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
             // Let Render() present secondary windows under the same serialization as the main snapshot.
             Volatile.Write(ref this.platformWindowsRenderedForStep, 0);
+            this.hasSnapshot = true;
         }
         finally
         {
@@ -296,6 +317,10 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             this.drawDataLock.EnterReadLock();
             try
             {
+                // Resize invalidates the captured presentation target; wait for a complete, fresh capture.
+                if (!this.hasSnapshot)
+                    return;
+
                 // The main snapshot may be composited once for every generated frame.
                 this.imguiRenderer.RenderDrawData(new ImDrawDataPtr(this.snapshot.Handle));
 
@@ -339,7 +364,10 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         this.drawDataLock.EnterWriteLock();
         this.resizeOwnerThreadId = currentThreadId;
 
-        // Drop secondary viewport captures associated with the old buffers. The separate main snapshot is retained.
+        // Revoke replay for the old target. Storage can be reused by a fresh capture; deferred resources must
+        // survive resize because an already-started Step may still be using them during live UI construction.
+        this.hasSnapshot = false;
+        Interlocked.Increment(ref this.resizeGeneration);
         this.viewportSnapshots.BeginCapture();
     }
 
@@ -354,6 +382,9 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             return;
         }
 
+        // Also reject construction that began while resize owned the writer lock, even if the advisory flag
+        // was cleared by an earlier resize releasing ahead of this one.
+        Interlocked.Increment(ref this.resizeGeneration);
         this.resizeOwnerThreadId = 0;
         this.drawDataLock.ExitWriteLock();
         this.resizeInProgress = false;

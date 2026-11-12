@@ -121,9 +121,6 @@ internal unsafe partial class InterfaceManager
         this.backend?.EnterResize();
         try
         {
-            // Drain deferred render cleanup while no render pass is active.
-            this.RetireResourcesForResize();
-
             this.ResizeBuffers?.InvokeSafely();
 
             this.backend?.OnPreResize();

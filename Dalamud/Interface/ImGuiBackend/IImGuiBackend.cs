@@ -41,12 +41,16 @@ internal interface IImGuiBackend : IDisposable
     bool IsResizeInProgress { get; }
 
     /// <summary>Builds the ImGui frame and captures main and secondary viewport draw data for subsequent rendering.</summary>
-    /// <remarks>Call on the game thread. An announced resize can cause the step to be skipped.</remarks>
+    /// <remarks>
+    /// Call on the game thread. A resize can cause the step to be skipped or its capture to be discarded.
+    /// A completed ImGui frame still updates platform windows under snapshot write exclusion before discarding capture.
+    /// </remarks>
     void Step();
 
     /// <summary>Renders the latest main snapshot and attempts secondary presentation at most once per captured step.</summary>
     /// <remarks>
-    /// May run repeatedly on presentation threads without invoking <see cref="BuildUi"/>. Skips rendering during resize.
+    /// May run repeatedly on presentation threads without invoking <see cref="BuildUi"/>. Skips rendering during resize
+    /// and until a complete capture built after that resize is available.
     /// </remarks>
     void Render();
 
@@ -54,7 +58,8 @@ internal interface IImGuiBackend : IDisposable
     /// <remarks>
     /// Must be paired with <see cref="ExitResize"/> on the same thread. Acquisitions must not be nested with each
     /// other or with <see cref="Step"/>/<see cref="Render"/> on that thread. The write lock excludes snapshot capture
-    /// and rendering; UI construction in an already-started step runs outside that lock.
+    /// and rendering; UI construction in an already-started step runs outside that lock, but its capture is discarded.
+    /// Invalidates snapshot replay. Deferred construction resources must survive until normal frame retirement.
     /// </remarks>
     void EnterResize();
 

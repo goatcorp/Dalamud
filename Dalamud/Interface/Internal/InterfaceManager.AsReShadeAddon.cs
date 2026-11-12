@@ -25,9 +25,6 @@ internal unsafe partial class InterfaceManager
         this.backend?.EnterResize();
         this.reShadeResizeEntered = true;
 
-        // Drain deferred render cleanup while no render pass is active.
-        this.RetireResourcesForResize();
-
         this.backend?.OnPreResize();
     }
 
@@ -95,7 +92,6 @@ internal unsafe partial class InterfaceManager
         this.backend?.EnterResize();
         try
         {
-            this.RetireResourcesForResize();
             this.ResizeBuffers?.InvokeSafely();
             return this.dxgiSwapChainResizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
         }

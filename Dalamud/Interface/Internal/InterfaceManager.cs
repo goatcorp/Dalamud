@@ -377,7 +377,8 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// <remarks>
     /// May be queued from any thread. During normal frame processing, pending actions are promoted after a
     /// capture and executed after the following capture replaces that snapshot, under snapshot write exclusion.
-    /// Resize drains both batches under resize exclusion; shutdown drains them after backend disposal.
+    /// Resize preserves both batches because live UI construction can still be using their resources.
+    /// Shutdown drains them after backend disposal.
     /// Actions must not re-enter snapshot rendering, capture, or resize while write exclusion is held.
     /// This coordinates CPU-side snapshot use; it does not wait for GPU completion or preserve thread affinity.
     /// </remarks>
@@ -927,21 +928,6 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         while (this.pendingRetireQueue.TryDequeue(out var action))
             this.frameRetireActions.Add(action);
-    }
-
-    /// <summary>Drains all deferred render cleanup before a swap-chain resize.</summary>
-    /// <remarks>Must be called while the backend's resize write lock is held (i.e. between
-    /// <see cref="IImGuiBackend.EnterResize"/> and <see cref="IImGuiBackend.ExitResize"/>), so that no render
-    /// pass is active.</remarks>
-    private void RetireResourcesForResize()
-    {
-        // Resize entry clears secondary captures but retains the main snapshot. Draining these queues does not
-        // invalidate borrowed pointers in that snapshot or require a fresh capture before rendering resumes.
-        foreach (var action in this.frameRetireActions)
-            action.InvokeSafely();
-        this.frameRetireActions.Clear();
-        while (this.pendingRetireQueue.TryDequeue(out var action))
-            action.InvokeSafely();
     }
 
     private unsafe void SetupHooks(
