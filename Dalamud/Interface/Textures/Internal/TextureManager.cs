@@ -396,7 +396,6 @@ internal sealed partial class TextureManager
     private void ReleaseUnmanagedResources() => this.device.Reset();
 
     /// <summary>Runs the action inline for the presentation owner, otherwise queues it before rendering.</summary>
-    /// <remarks>Presentation activity on another thread does not authorize immediate-context work on this caller.</remarks>
     /// <param name="action">The action to run.</param>
     private async Task RunDuringPresent(Action action)
     {
@@ -407,7 +406,6 @@ internal sealed partial class TextureManager
     }
 
     /// <summary>Runs the function inline for the presentation owner, otherwise queues it before rendering.</summary>
-    /// <remarks>Presentation activity on another thread does not authorize immediate-context work on this caller.</remarks>
     /// <typeparam name="T">The type of the return value.</typeparam>
     /// <param name="func">The function to run.</param>
     /// <returns>The return value from the function.</returns>

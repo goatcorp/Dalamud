@@ -241,7 +241,7 @@ public class TexturePresentationDispatchTests
 
         public DispatchFixture()
         {
-            // Exercise the production dispatcher and queue without initializing game services or D3D.
+            // Initialize the dispatcher and queue without starting game services or D3D.
             this.manager = (InterfaceManager)RuntimeHelpers.GetUninitializedObject(typeof(InterfaceManager));
             GC.SuppressFinalize(this.manager);
             typeof(InterfaceManager).GetField("renderDalamudLock", PrivateInstance)!.SetValue(this.manager, this.RenderLock);
@@ -273,7 +273,7 @@ public class TexturePresentationDispatchTests
 
         public void Present(Action action)
         {
-            // Hold admission across this call so unrelated lock tests cannot cause a skipped callback.
+            // Retain framework ownership so presentation admission succeeds deterministically.
             Assert.True(ThreadSafety.NativeFrameworkRenderSyncRoot.TryEnter(WorkerTimeout));
             try
             {
@@ -295,8 +295,7 @@ public class TexturePresentationDispatchTests
                     }
                 });
 
-                // Actual presentation admission and queue dispatch run before missing configuration stops
-                // the fixture. This also exercises release of the production guards on that failure.
+                // Unset configuration fails after queue dispatch, exercising guard release on failure.
                 Assert.Throws<NullReferenceException>(() => this.draw(null!));
                 Assert.True(callbackFinished);
                 callbackFailure?.Throw();

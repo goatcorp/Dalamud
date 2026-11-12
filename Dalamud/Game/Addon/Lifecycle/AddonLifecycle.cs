@@ -137,24 +137,22 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     }
 
     /// <summary>
-    /// Invoke listeners for the specified event type.
+    /// Invokes event listeners and logs callback failures.
     /// </summary>
-    /// <param name="eventType">Event Type.</param>
-    /// <param name="args">AddonArgs.</param>
-    /// <param name="blame">What to blame on errors.</param>
+    /// <param name="eventType">The event to dispatch.</param>
+    /// <param name="args">The event arguments.</param>
+    /// <param name="blame">The calling method used for error context.</param>
     internal void InvokeListenersSafely(AddonEvent eventType, AddonArgs args, [CallerMemberName] string blame = "")
     {
+        // Keep listener changes deferred until the outermost dispatch completes.
         var wasInvokingListeners = this.isInvokingListeners;
         this.isInvokingListeners = true;
 
-        // Preserve an outer dispatch's guard across nested events, including no-listener early returns.
-        // Only the outermost invocation restores the guard to false so listener changes remain deferred.
         try
         {
-            // Early return if we don't have any listeners of this type
             if (!this.EventListeners.TryGetValue(eventType, out var addonListeners)) return;
 
-            // Handle listeners for this event type that don't care which addon is triggering it
+            // Dispatch listeners registered for all addons.
             if (addonListeners.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(default, out var globalListeners))
             {
                 foreach (var listener in globalListeners)
@@ -172,7 +170,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
                 }
             }
 
-            // Handle listeners that are listening for this addon and event type specifically
+            // Dispatch listeners registered for this addon.
             Span<char> nameBuffer = stackalloc char[32];
             var nameLength = Encoding.UTF8.GetChars(args.AddonNameSpan, nameBuffer);
             if (addonListeners.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(nameBuffer[..nameLength], out var addonListener))

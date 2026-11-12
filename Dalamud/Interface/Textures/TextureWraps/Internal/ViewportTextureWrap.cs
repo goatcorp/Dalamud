@@ -213,8 +213,8 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
 
             if (this.srv.Get() is not null)
             {
-                // Snapshots borrow the old SRV and may replay after this replacement. Transfer the entire
-                // destination generation to retirement before publishing the new one.
+                // Retain replaced resources until snapshots stop borrowing the old SRV.
+                // Detach the fields to transfer their COM references to the retirement callback.
                 var retiredSrv = this.srv;
                 var retiredRtv = this.rtv;
                 var retiredTex = this.tex;

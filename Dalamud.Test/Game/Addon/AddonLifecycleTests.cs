@@ -44,8 +44,7 @@ public class AddonLifecycleTests
         var originalOperationReached = false;
         var added = fixture.Listener(AddonEvent.PreDraw, addonName, (_, _) => addedCalls++);
 
-        // Cover an absent event, an event with no matching addon, nonempty dispatch, deeper
-        // dispatch ending in an absent event, and a nested listener throwing an exception.
+        // Cover missing/mismatched listeners, normal dispatch, recursion, and listener failure.
         switch (nestedCase)
         {
             case 1:
@@ -181,7 +180,7 @@ public class AddonLifecycleTests
 
         public LifecycleFixture()
         {
-            // Bypass only hook/service construction; dispatch and framework scheduling use production code.
+            // Initialize dispatch and framework scheduling without installing game hooks.
             var framework = (Framework)RuntimeHelpers.GetUninitializedObject(typeof(Framework));
             SetField(framework, "frameworkDestroy", this.frameworkDestroy);
             SetField(framework, "frameworkDestroyed", this.frameworkDestroyed);
@@ -196,7 +195,7 @@ public class AddonLifecycleTests
             SetField(this.lifecycle, "framework", framework);
             SetField(this.lifecycle, "<EventListeners>k__BackingField", new Dictionary<AddonEvent, Dictionary<string, HashSet<AddonLifecycleEventListener>>>());
 
-            // Only the native name buffer is read; no game virtual functions or hooks run.
+            // Dispatch reads the name buffer from this zero-initialized native addon.
             var addonSize = Marshal.SizeOf<AtkUnitBase>();
             this.addon = Marshal.AllocHGlobal(addonSize);
             Marshal.Copy(new byte[addonSize], 0, this.addon, addonSize);

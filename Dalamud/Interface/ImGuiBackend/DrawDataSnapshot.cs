@@ -14,23 +14,24 @@ namespace Dalamud.Interface.ImGuiBackend;
 /// on a presentation worker thread.
 /// </para>
 /// <para>
-/// The only fields of each <see cref="ImDrawList"/> that are populated are the three that the DX11 renderer
-/// reads: CmdBuffer, IdxBuffer and VtxBuffer. All other fields are zeroed, including in lists passed to callbacks.
+/// Copied <see cref="ImDrawList"/> headers expose only CmdBuffer, IdxBuffer, and VtxBuffer. All other fields
+/// are zeroed, including those seen by callbacks.
 /// </para>
 /// </remarks>
 internal sealed unsafe class DrawDataSnapshot : IDisposable
 {
     private readonly ImDrawData* header;
 
-    /// <summary>Array of <see cref="ImDrawList"/> structs. Only CmdBuffer/IdxBuffer/VtxBuffer are populated.</summary>
+    /// <summary>Owned draw-list headers.</summary>
     private ImDrawList* drawListArray;
 
     /// <summary>Array of <see cref="ImDrawList"/>* assigned to <see cref="header"/>.CmdLists.</summary>
     private ImDrawList** cmdListPtrArray;
 
-    /// <summary>Number of list entries currently allocated in the two arrays above.</summary>
+    /// <summary>Number of allocated draw-list slots.</summary>
     private int listCapacity;
 
+    /// <summary>Native vector storage for all allocated slots, including those unused by the current frame.</summary>
     private DrawListBuffers[] listBuffers = [];
 
     /// <summary>
@@ -71,10 +72,9 @@ internal sealed unsafe class DrawDataSnapshot : IDisposable
     {
         var count = src->CmdListsCount;
 
-        // Retain draw-list storage until a frame needs more lists.
+        // Grow the draw-list headers while retaining each slot's native vectors.
         if (count > this.listCapacity)
         {
-            // Preserve each list's native allocations and capacities when adding new slots.
             Array.Resize(ref this.listBuffers, count);
 
             if (this.drawListArray is not null)
@@ -103,7 +103,7 @@ internal sealed unsafe class DrawDataSnapshot : IDisposable
         // Copy scalar frame metadata, redirect CmdLists to owned storage, and clear the unused OwnerViewport.
         NativeMemory.Copy(src, this.header, (nuint)sizeof(ImDrawData));
         this.header->CmdLists = count > 0 ? this.cmdListPtrArray : null;
-        this.header->OwnerViewport = null; // viewport pointer is not used by the renderer
+        this.header->OwnerViewport = null;
 
         for (var i = 0; i < count; i++)
         {
@@ -132,7 +132,6 @@ internal sealed unsafe class DrawDataSnapshot : IDisposable
             dstList->IdxBuffer = new ImVector<ushort>(idxCount, buffers.IdxCapacity, (ushort*)buffers.IdxBuffer);
             dstList->VtxBuffer = new ImVector<ImDrawVert>(vtxCount, buffers.VtxCapacity, (ImDrawVert*)buffers.VtxBuffer);
 
-            // The pointer array is allocated whenever this loop can run.
             this.cmdListPtrArray![i] = dstList;
         }
     }
@@ -180,6 +179,7 @@ internal sealed unsafe class DrawDataSnapshot : IDisposable
         this.listCapacity = 0;
     }
 
+    /// <summary>Owned native vectors and their capacities for one reusable draw-list slot.</summary>
     private struct DrawListBuffers
     {
         public void* CmdBuffer;

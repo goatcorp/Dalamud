@@ -252,8 +252,8 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     /// <summary>Gets a value indicating whether the calling thread owns the serialized presentation transaction.</summary>
     /// <remarks>
-    /// Presentation callbacks may run on workers. Only the owner may execute texture work inline;
-    /// other callers must queue it for an admitted presentation.
+    /// The owner may execute texture work inline, including on worker callbacks.
+    /// Other threads must queue it for an admitted presentation.
     /// </remarks>
     public bool IsCurrentThreadInPresent => this.renderDalamudLock.IsHeldByCurrentThread;
 
@@ -713,7 +713,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
                 this.PreImGuiRender();
 
-                // Enable viewports if there are no issues.
+                // Secondary viewports require windowed mode and multiple monitors.
                 var viewportsDisabled = this.dalamudConfiguration.IsDisableViewport ||
                                       activeBackend.IsMainViewportFullScreen() ||
                                       ImGui.GetPlatformIO().Monitors.Size == 1;
