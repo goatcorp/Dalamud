@@ -54,6 +54,18 @@ internal interface IImGuiBackend : IDisposable
     /// </remarks>
     void Render();
 
+    /// <summary>Reads a viewport's back buffer while excluding renderer mutations and swap-chain reallocation.</summary>
+    /// <remarks>
+    /// Call within the serialized presentation transaction, which protects live ImGui viewport metadata.
+    /// The callback borrows an ID3D11Texture2D pointer for the duration of the call and must not retain it or
+    /// re-enter rendering, snapshot capture, or resize. The temporary buffer reference is released before
+    /// snapshot exclusion ends.
+    /// </remarks>
+    /// <param name="viewportId">The live ImGui viewport ID.</param>
+    /// <param name="reader">The callback that reads the borrowed texture pointer.</param>
+    /// <returns>False if resize has suspended capture; otherwise true after invoking the callback.</returns>
+    bool TryReadViewportBackBuffer(uint viewportId, Action<nint> reader);
+
     /// <summary>Suspends rendering and snapshot capture for swap-chain reallocation, draining active readers.</summary>
     /// <remarks>
     /// Dispose the returned scope after reallocation and resource updates. Scopes may nest, overlap, or be disposed

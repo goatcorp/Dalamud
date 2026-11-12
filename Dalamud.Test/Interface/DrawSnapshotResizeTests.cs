@@ -23,6 +23,132 @@ public class DrawSnapshotResizeTests
     }
 
     [Fact]
+    public void ViewportReadDuringResizeSkipsCallbackAndReleasesLocks()
+    {
+        using var fixture = new BackendFixture();
+        var callbackInvoked = false;
+
+        using (fixture.Backend.BeginResize())
+        {
+            Assert.False(fixture.Backend.TryReadViewportBackBuffer(1, _ => callbackInvoked = true));
+            Assert.False(callbackInvoked);
+            fixture.AssertLocksReleased();
+        }
+
+        Assert.False(fixture.Backend.IsResizeInProgress);
+        fixture.AssertLocksReleased();
+    }
+
+    [Fact]
+    public void ViewportReadRejectsResizeAnnouncedWhileWaitingForSnapshotExclusion()
+    {
+        using var fixture = new BackendFixture();
+        using var readCompleted = new ManualResetEventSlim();
+        using var resizeAcquired = new ManualResetEventSlim();
+        using var finishResize = new ManualResetEventSlim();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        Exception? readException = null;
+        Exception? resizeException = null;
+        bool? readResult = null;
+        var callbackInvoked = false;
+        var reader = new Thread(() =>
+        {
+            try
+            {
+                readResult = fixture.Backend.TryReadViewportBackBuffer(1, _ => callbackInvoked = true);
+            }
+            catch (Exception exception)
+            {
+                readException = exception;
+            }
+            finally
+            {
+                readCompleted.Set();
+            }
+        }) { IsBackground = true };
+        var resizer = new Thread(() =>
+        {
+            try
+            {
+                using var scope = fixture.Backend.BeginResize();
+                resizeAcquired.Set();
+                if (!finishResize.Wait(TimeSpan.FromSeconds(5), cancellationToken))
+                    throw new TimeoutException("The test did not release the resize scope.");
+            }
+            catch (Exception exception)
+            {
+                resizeException = exception;
+            }
+        }) { IsBackground = true };
+
+        var readerStarted = false;
+        var resizerStarted = false;
+        try
+        {
+            fixture.DrawDataLock.EnterWriteLock();
+            try
+            {
+                reader.Start();
+                readerStarted = true;
+                Assert.True(SpinWait.SpinUntil(() => fixture.DrawDataLock.WaitingReadCount == 1, TimeSpan.FromSeconds(5)));
+                resizer.Start();
+                resizerStarted = true;
+                Assert.True(SpinWait.SpinUntil(() => fixture.DrawDataLock.WaitingWriteCount == 1, TimeSpan.FromSeconds(5)));
+                Assert.True(fixture.Backend.IsResizeInProgress);
+            }
+            finally
+            {
+                fixture.DrawDataLock.ExitWriteLock();
+            }
+
+            Assert.True(resizeAcquired.Wait(TimeSpan.FromSeconds(5), cancellationToken));
+            Assert.True(readCompleted.Wait(TimeSpan.FromSeconds(5), cancellationToken));
+            Assert.Null(readException);
+            Assert.Equal(false, readResult);
+            Assert.False(callbackInvoked);
+            fixture.AssertLocksReleased();
+        }
+        finally
+        {
+            finishResize.Set();
+            if (readerStarted)
+                Assert.True(reader.Join(TimeSpan.FromSeconds(5)));
+            if (resizerStarted)
+                Assert.True(resizer.Join(TimeSpan.FromSeconds(5)));
+        }
+
+        Assert.Null(resizeException);
+        Assert.False(fixture.Backend.IsResizeInProgress);
+        using (fixture.Backend.BeginResize())
+            Assert.True(fixture.Backend.IsResizeInProgress);
+        fixture.AssertLocksReleased();
+    }
+
+    [Fact]
+    public void RecursiveViewportReadFailsWithoutLeakingRenderExclusion()
+    {
+        using var fixture = new BackendFixture();
+        var callbackInvoked = false;
+
+        fixture.DrawDataLock.EnterReadLock();
+        try
+        {
+            Assert.Throws<LockRecursionException>(
+                () => fixture.Backend.TryReadViewportBackBuffer(1, _ => callbackInvoked = true));
+        }
+        finally
+        {
+            fixture.DrawDataLock.ExitReadLock();
+        }
+
+        Assert.False(callbackInvoked);
+        fixture.AssertLocksReleased();
+        using (fixture.Backend.BeginResize())
+            Assert.True(fixture.Backend.IsResizeInProgress);
+        fixture.AssertLocksReleased();
+    }
+
+    [Fact]
     public void ResizePreventsReplayUntilAnotherCaptureSucceeds()
     {
         using var fixture = new BackendFixture();
@@ -263,6 +389,9 @@ public class DrawSnapshotResizeTests
 
                 // A pending resize must suppress new work even before its existing reader has drained.
                 fixture.Backend.Render();
+                var callbackInvoked = false;
+                Assert.False(fixture.Backend.TryReadViewportBackBuffer(1, _ => callbackInvoked = true));
+                Assert.False(callbackInvoked);
             }
             finally
             {
@@ -337,6 +466,8 @@ public class DrawSnapshotResizeTests
         public void AssertLocksReleased()
         {
             Assert.False(this.renderLock.IsHeldByCurrentThread);
+            Assert.True(this.renderLock.TryEnter());
+            this.renderLock.Exit();
             Assert.False(this.drawDataLock.IsReadLockHeld);
             Assert.False(this.drawDataLock.IsWriteLockHeld);
             Assert.True(this.drawDataLock.TryEnterWriteLock(0));

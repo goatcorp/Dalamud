@@ -8,6 +8,7 @@ using Dalamud.Interface.ImGuiBackend.Delegates;
 using Dalamud.Interface.ImGuiBackend.Helpers;
 using Dalamud.Interface.ImGuiBackend.InputHandler;
 using Dalamud.Interface.ImGuiBackend.Renderers;
+using Dalamud.Interface.Internal;
 using Dalamud.Utility;
 
 using Serilog;
@@ -35,7 +36,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     // Lock-acquisition order / contract for drawDataLock:
     //   - Graphics transactions take the native device lock before any snapshot lock. ReShade resource callbacks
     //     can arrive holding that device lock, and secondary viewport creation can acquire it through native hooks.
-    //   - Render() takes the device lock, renderLock, then the read lock for the complete render pass.
+    //   - Render() and viewport texture reads take device, renderLock, then read for the entire graphics operation.
     //   - Step() takes the device lock, then the write lock across platform updates, capture, and retirement.
     //   - Counted resize scopes suspend rendering/capture across reallocation without retaining a thread-owned lock.
     //     BeginResize drains existing readers under the writer lock; pre/post-resize resource changes also take it.
@@ -345,6 +346,66 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             finally
             {
                 this.drawDataLock.ExitReadLock();
+            }
+        }
+    }
+
+    /// <inheritdoc/>
+    public bool TryReadViewportBackBuffer(uint viewportId, Action<nint> reader)
+    {
+        if (this.IsResizeInProgress)
+            return false;
+
+        using (new DeviceLock(this.deviceMultithread.Get()))
+        using (this.renderLock.EnterScope())
+        {
+            this.drawDataLock.EnterReadLock();
+            try
+            {
+                if (this.IsResizeInProgress)
+                    return false;
+
+                // The surrounding presentation/framework transaction excludes live ImGui platform mutations.
+                var viewports = ImGui.GetPlatformIO().Viewports;
+                for (var i = 0; i < viewports.Size; i++)
+                {
+                    var viewport = viewports[i];
+                    if (viewport.ID != viewportId)
+                        continue;
+
+                    using var texture = i == 0
+                                            ? GetMainViewportBackBuffer()
+                                            : this.imguiRenderer.GetViewportBackBuffer((nint)viewport.RendererUserData);
+                    reader((nint)texture.Get());
+                    return true;
+                }
+
+                throw new ArgumentOutOfRangeException(nameof(viewportId), viewportId, "Could not find a viewport with the given ID.");
+            }
+            finally
+            {
+                this.drawDataLock.ExitReadLock();
+            }
+        }
+
+        static ComPtr<ID3D11Texture2D> GetMainViewportBackBuffer()
+        {
+            // Preserve the effective display-chain source used by main-viewport capture.
+            var texture = default(ComPtr<ID3D11Texture2D>);
+            try
+            {
+                fixed (Guid* piid = &IID.IID_ID3D11Texture2D)
+                {
+                    SwapChainHelper.GameDisplaySwapChain->GetBuffer(0, piid, (void**)texture.GetAddressOf())
+                        .ThrowOnError();
+                }
+
+                return texture;
+            }
+            catch
+            {
+                texture.Dispose();
+                throw;
             }
         }
     }

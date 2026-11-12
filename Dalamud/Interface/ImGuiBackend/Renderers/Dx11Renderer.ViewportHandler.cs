@@ -23,6 +23,18 @@ namespace Dalamud.Interface.ImGuiBackend.Renderers;
     Justification = "Multiple fixed/using scopes")]
 internal unsafe partial class Dx11Renderer
 {
+    /// <summary>Acquires an owned reference to a secondary viewport's current back buffer.</summary>
+    /// <remarks>The caller must exclude viewport destruction, resize, and other renderer operations.</remarks>
+    /// <param name="rendererUserData">The live viewport's opaque renderer handle.</param>
+    /// <returns>An independently retained texture reference.</returns>
+    public ComPtr<ID3D11Texture2D> GetViewportBackBuffer(nint rendererUserData)
+    {
+        if (rendererUserData == nint.Zero)
+            throw new InvalidOperationException("The viewport renderer is not initialized.");
+
+        return ViewportData.Attach((void*)rendererUserData).GetBackBuffer(this);
+    }
+
     private class ViewportHandler : IDisposable
     {
         private readonly Dx11Renderer renderer;
@@ -282,6 +294,18 @@ internal unsafe partial class Dx11Renderer
             this.dcompTarget.Reset();
             this.swapChain.Reset();
             this.selfGcHandle.Free();
+        }
+
+        public ComPtr<ID3D11Texture2D> GetBackBuffer(Dx11Renderer renderer)
+        {
+            if (!ReferenceEquals(this.parent, renderer))
+                throw new InvalidOperationException("The viewport belongs to another renderer.");
+            if (this.width < 1 || this.height < 1)
+                throw new InvalidOperationException("The viewport has no drawable back buffer.");
+
+            // Targets are lazy: capture can run before this viewport has ever been drawn.
+            this.EnsureRenderTarget();
+            return new(this.renderTarget.Get());
         }
 
         public void Draw(ImDrawDataPtr drawData, bool clearRenderTarget)

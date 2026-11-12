@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -98,55 +97,8 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
         this.rtv.Reset();
     }
 
-    private static unsafe ComPtr<ID3D11Texture2D> GetImGuiViewportBackBuffer(uint viewportId)
-    {
-        // This lookup reads live ImGui metadata and requires the surrounding presentation/framework coordination.
-        var viewports = ImGui.GetPlatformIO().Viewports;
-        var viewportIndex = 0;
-        for (; viewportIndex < viewports.Size; viewportIndex++)
-        {
-            if (viewports[viewportIndex].ID == viewportId)
-                break;
-        }
-
-        if (viewportIndex >= viewports.Size)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(viewportId),
-                viewportId,
-                "Could not find a viewport with the given ID.");
-        }
-
-        var texture = default(ComPtr<ID3D11Texture2D>);
-
-        Debug.Assert(viewports[0].ID == ImGui.GetMainViewport().ID, "ImGui has changed");
-        if (viewportId == viewports[0].ID)
-        {
-            // The game may store a middleware wrapper, so copy from Dalamud's effective display chain.
-            fixed (Guid* piid = &IID.IID_ID3D11Texture2D)
-            {
-                SwapChainHelper.GameDisplaySwapChain->GetBuffer(0, piid, (void**)texture.GetAddressOf())
-                    .ThrowOnError();
-            }
-        }
-        else
-        {
-            // TODO: Resolve the back buffer through the renderer. RendererUserData is a GCHandle token in
-            // Dx11Renderer, whereas the access below assumes a native swap-chain/render-target pointer layout.
-            var rud = (nint*)viewports[viewportIndex].RendererUserData;
-            if (rud == null || rud[0] == nint.Zero || rud[1] == nint.Zero)
-                throw new InvalidOperationException();
-
-            using var resource = default(ComPtr<ID3D11Resource>);
-            ((ID3D11RenderTargetView*)rud[1])->GetResource(resource.GetAddressOf());
-            resource.As(&texture).ThrowOnError();
-        }
-
-        return texture;
-    }
-
     /// <summary>Copies the source viewport within the serialized presentation callback.</summary>
-    private unsafe void Update()
+    private void Update()
     {
         if (this.disposed)
             return;
@@ -159,100 +111,23 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
 
         try
         {
-            using var backBuffer = GetImGuiViewportBackBuffer(this.args.ViewportId);
-            D3D11_TEXTURE2D_DESC newDesc;
-            backBuffer.Get()->GetDesc(&newDesc);
-
-            if (newDesc.SampleDesc.Count > 1)
-                throw new NotSupportedException("Multisampling is not expected");
-
-            using var device = default(ComPtr<ID3D11Device>);
-            backBuffer.Get()->GetDevice(device.GetAddressOf());
-
-            using var context = default(ComPtr<ID3D11DeviceContext>);
-            device.Get()->GetImmediateContext(context.GetAddressOf());
-
-            var copyBox = new D3D11_BOX
+            var backend = Service<InterfaceManager>.Get().Backend
+                          ?? throw new InvalidOperationException("The ImGui backend is not available.");
+            var textureChanged = false;
+            if (!backend.TryReadViewportBackBuffer(this.args.ViewportId, handle => textureChanged = this.UpdateFromBackBuffer(handle)))
             {
-                left = (uint)MathF.Round(newDesc.Width * this.args.Uv0.X),
-                top = (uint)MathF.Round(newDesc.Height * this.args.Uv0.Y),
-                right = (uint)MathF.Round(newDesc.Width * this.args.Uv1Effective.X),
-                bottom = (uint)MathF.Round(newDesc.Height * this.args.Uv1Effective.Y),
-                front = 0,
-                back = 1,
-            };
+                // Resize suspension is temporary, including for a one-shot capture.
+                this.QueueUpdate();
+                return;
+            }
 
-            if (this.desc.Width != copyBox.right - copyBox.left
-                || this.desc.Height != copyBox.bottom - copyBox.top
-                || this.desc.Format != newDesc.Format)
+            // Bookkeeping can take other managed locks; keep it outside the graphics transaction.
+            if (textureChanged)
             {
-                var texDesc = new D3D11_TEXTURE2D_DESC
-                {
-                    Width = copyBox.right - copyBox.left,
-                    Height = copyBox.bottom - copyBox.top,
-                    MipLevels = 1,
-                    ArraySize = 1,
-                    Format = newDesc.Format,
-                    SampleDesc = new(1, 0),
-                    Usage = D3D11_USAGE.D3D11_USAGE_DEFAULT,
-                    BindFlags = (uint)(D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE |
-                                       D3D11_BIND_FLAG.D3D11_BIND_RENDER_TARGET),
-                    CPUAccessFlags = 0u,
-                    MiscFlags = 0u,
-                };
-
-                using var texTemp = default(ComPtr<ID3D11Texture2D>);
-                device.Get()->CreateTexture2D(&texDesc, null, texTemp.GetAddressOf()).ThrowOnError();
-
-                var rtvDesc = new D3D11_RENDER_TARGET_VIEW_DESC(
-                    texTemp,
-                    D3D11_RTV_DIMENSION.D3D11_RTV_DIMENSION_TEXTURE2D);
-                using var rtvTemp = default(ComPtr<ID3D11RenderTargetView>);
-                device.Get()->CreateRenderTargetView(
-                    (ID3D11Resource*)texTemp.Get(),
-                    &rtvDesc,
-                    rtvTemp.GetAddressOf()).ThrowOnError();
-
-                var srvDesc = new D3D11_SHADER_RESOURCE_VIEW_DESC(
-                    texTemp,
-                    D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
-                using var srvTemp = default(ComPtr<ID3D11ShaderResourceView>);
-                device.Get()->CreateShaderResourceView(
-                        (ID3D11Resource*)texTemp.Get(),
-                        &srvDesc,
-                        srvTemp.GetAddressOf())
-                    .ThrowOnError();
-
-                this.desc = texDesc;
-                srvTemp.Swap(ref this.srv);
-                rtvTemp.Swap(ref this.rtv);
-                texTemp.Swap(ref this.tex);
-
                 Service<TextureManager>.Get().Blame(this, this.ownerPlugin);
                 Service<TextureManager>.Get().BlameSetName(
                     this,
                     this.debugName ?? $"{nameof(ViewportTextureWrap)}({this.args})");
-            }
-
-            // context.Get()->CopyResource((ID3D11Resource*)this.tex.Get(), (ID3D11Resource*)backBuffer.Get());
-            context.Get()->CopySubresourceRegion(
-                (ID3D11Resource*)this.tex.Get(),
-                0,
-                0,
-                0,
-                0,
-                (ID3D11Resource*)backBuffer.Get(),
-                0,
-                &copyBox);
-
-            if (!this.args.KeepTransparency)
-            {
-                var rtvLocal = this.rtv.Get();
-                context.Get()->OMSetRenderTargets(1u, &rtvLocal, null);
-                Service<TextureManager>.Get().SimpleDrawer.StripAlpha(context.Get());
-
-                var dummy = default(ID3D11RenderTargetView*);
-                context.Get()->OMSetRenderTargets(1u, &dummy, null);
             }
 
             this.firstUpdateTaskCompletionSource.TrySetResult(this);
@@ -264,6 +139,103 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
 
         if (this.args.AutoUpdate)
             this.QueueUpdate();
+    }
+
+    /// <summary>Copies the borrowed texture while the backend retains graphics and snapshot exclusion.</summary>
+    private unsafe bool UpdateFromBackBuffer(nint backBufferHandle)
+    {
+        var backBuffer = (ID3D11Texture2D*)backBufferHandle;
+        D3D11_TEXTURE2D_DESC newDesc;
+        backBuffer->GetDesc(&newDesc);
+
+        if (newDesc.SampleDesc.Count > 1)
+            throw new NotSupportedException("Multisampling is not expected");
+
+        using var device = default(ComPtr<ID3D11Device>);
+        backBuffer->GetDevice(device.GetAddressOf());
+
+        using var context = default(ComPtr<ID3D11DeviceContext>);
+        device.Get()->GetImmediateContext(context.GetAddressOf());
+
+        var copyBox = new D3D11_BOX
+        {
+            left = (uint)MathF.Round(newDesc.Width * this.args.Uv0.X),
+            top = (uint)MathF.Round(newDesc.Height * this.args.Uv0.Y),
+            right = (uint)MathF.Round(newDesc.Width * this.args.Uv1Effective.X),
+            bottom = (uint)MathF.Round(newDesc.Height * this.args.Uv1Effective.Y),
+            front = 0,
+            back = 1,
+        };
+
+        var textureChanged = this.desc.Width != copyBox.right - copyBox.left
+                             || this.desc.Height != copyBox.bottom - copyBox.top
+                             || this.desc.Format != newDesc.Format;
+        if (textureChanged)
+        {
+            var texDesc = new D3D11_TEXTURE2D_DESC
+            {
+                Width = copyBox.right - copyBox.left,
+                Height = copyBox.bottom - copyBox.top,
+                MipLevels = 1,
+                ArraySize = 1,
+                Format = newDesc.Format,
+                SampleDesc = new(1, 0),
+                Usage = D3D11_USAGE.D3D11_USAGE_DEFAULT,
+                BindFlags = (uint)(D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE |
+                                   D3D11_BIND_FLAG.D3D11_BIND_RENDER_TARGET),
+                CPUAccessFlags = 0u,
+                MiscFlags = 0u,
+            };
+
+            using var texTemp = default(ComPtr<ID3D11Texture2D>);
+            device.Get()->CreateTexture2D(&texDesc, null, texTemp.GetAddressOf()).ThrowOnError();
+
+            var rtvDesc = new D3D11_RENDER_TARGET_VIEW_DESC(
+                texTemp,
+                D3D11_RTV_DIMENSION.D3D11_RTV_DIMENSION_TEXTURE2D);
+            using var rtvTemp = default(ComPtr<ID3D11RenderTargetView>);
+            device.Get()->CreateRenderTargetView(
+                (ID3D11Resource*)texTemp.Get(),
+                &rtvDesc,
+                rtvTemp.GetAddressOf()).ThrowOnError();
+
+            var srvDesc = new D3D11_SHADER_RESOURCE_VIEW_DESC(
+                texTemp,
+                D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
+            using var srvTemp = default(ComPtr<ID3D11ShaderResourceView>);
+            device.Get()->CreateShaderResourceView(
+                    (ID3D11Resource*)texTemp.Get(),
+                    &srvDesc,
+                    srvTemp.GetAddressOf())
+                .ThrowOnError();
+
+            this.desc = texDesc;
+            srvTemp.Swap(ref this.srv);
+            rtvTemp.Swap(ref this.rtv);
+            texTemp.Swap(ref this.tex);
+        }
+
+        context.Get()->CopySubresourceRegion(
+            (ID3D11Resource*)this.tex.Get(),
+            0,
+            0,
+            0,
+            0,
+            (ID3D11Resource*)backBuffer,
+            0,
+            &copyBox);
+
+        if (!this.args.KeepTransparency)
+        {
+            var rtvLocal = this.rtv.Get();
+            context.Get()->OMSetRenderTargets(1u, &rtvLocal, null);
+            Service<TextureManager>.Get().SimpleDrawer.StripAlpha(context.Get());
+
+            var dummy = default(ID3D11RenderTargetView*);
+            context.Get()->OMSetRenderTargets(1u, &dummy, null);
+        }
+
+        return textureChanged;
     }
 
     private void Dispose(bool disposing)
