@@ -211,6 +211,25 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
                     srvTemp.GetAddressOf())
                 .ThrowOnError();
 
+            if (this.srv.Get() is not null)
+            {
+                // Snapshots borrow the old SRV and may replay after this replacement. Transfer the entire
+                // destination generation to retirement before publishing the new one.
+                var retiredSrv = this.srv;
+                var retiredRtv = this.rtv;
+                var retiredTex = this.tex;
+                Service<InterfaceManager>.Get().DeferUntilFrameRetired(
+                    () =>
+                    {
+                        retiredSrv.Dispose();
+                        retiredRtv.Dispose();
+                        retiredTex.Dispose();
+                    });
+                this.srv.Detach();
+                this.rtv.Detach();
+                this.tex.Detach();
+            }
+
             this.desc = texDesc;
             srvTemp.Swap(ref this.srv);
             rtvTemp.Swap(ref this.rtv);
