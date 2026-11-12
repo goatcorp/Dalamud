@@ -1,3 +1,7 @@
+using System.Collections.Generic;
+using System.Threading;
+
+using Dalamud.Interface.ImGuiBackend;
 using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Utility;
 
@@ -11,46 +15,107 @@ namespace Dalamud.Interface.Internal;
 /// </summary>
 internal unsafe partial class InterfaceManager
 {
-    // Records an enter from the destroy callback for release during init. Callbacks must pair on the same thread;
-    // this flag does not track the swap-chain identity or count overlapping resize acquisitions.
-    private bool reShadeResizeEntered;
+    // Only short callback transactions take this lock. No thread-owned lock spans destroy/init callbacks.
+    // Filter secondary targets before taking it: Step can emit their callbacks while holding the snapshot writer.
+    private readonly Lock reShadeResizeLock = new();
+    private readonly Dictionary<nint, ReShadeResizeState> reShadeResizes = new();
 
     private void ReShadeAddonInterfaceOnDestroySwapChain(ref ReShadeAddonInterface.ApiObject swapChain)
     {
         var swapChainNative = swapChain.GetNative<IDXGISwapChain>();
-        if (this.backend?.IsAttachedToPresentationTarget((nint)swapChainNative) is not true)
+        var activeBackend = this.backend;
+        if (activeBackend?.IsAttachedToPresentationTarget((nint)swapChainNative) is not true)
             return;
 
-        // The corresponding init callback must release resize exclusion on this thread.
-        this.backend?.EnterResize();
-        this.reShadeResizeEntered = true;
+        using (this.reShadeResizeLock.EnterScope())
+        {
+            var identity = (nint)swapChain.AsPointer();
+            if (!this.reShadeResizes.TryGetValue(identity, out var state))
+                this.reShadeResizes.Add(identity, state = new());
 
-        this.backend?.OnPreResize();
+            // Retain the exact backend and acquisition. Nested callbacks and the DXGI detour own other scopes.
+            // A destroy without an init leaves the target suspended, without stranding a thread-owned writer.
+            state.AwaitingInit.Push((activeBackend, activeBackend.BeginResize()));
+            activeBackend.OnPreResize();
+        }
     }
 
     private void ReShadeAddonInterfaceOnInitSwapChain(ref ReShadeAddonInterface.ApiObject swapChain)
     {
-        // Run the release check even if target validation or GetDesc returns early.
-        try
+        var swapChainNative = swapChain.GetNative<IDXGISwapChain>();
+        var activeBackend = this.backend;
+        if (activeBackend?.IsAttachedToPresentationTarget((nint)swapChainNative) is not true)
+            return;
+
+        using (this.reShadeResizeLock.EnterScope())
         {
-            var swapChainNative = swapChain.GetNative<IDXGISwapChain>();
-            if (this.backend?.IsAttachedToPresentationTarget((nint)swapChainNative) is not true)
+            var identity = (nint)swapChain.AsPointer();
+            if (!this.reShadeResizes.TryGetValue(identity, out var state))
                 return;
+
+            (IWin32Backend Backend, IDisposable Scope) pending;
+            if (state.AwaitingInit.TryPeek(out pending))
+            {
+                if (!ReferenceEquals(pending.Backend, activeBackend))
+                    return;
+
+                // This native init has arrived even if our descriptor query or resource update fails.
+                // Keep its suspension for recovery, separately from genuine outer callbacks still awaiting init.
+                state.Recovery.Add(pending);
+                state.AwaitingInit.Pop();
+            }
+            else
+            {
+                if (state.Recovery.Count == 0)
+                    return;
+
+                pending = state.Recovery[^1];
+                if (!ReferenceEquals(pending.Backend, activeBackend))
+                    return;
+            }
 
             DXGI_SWAP_CHAIN_DESC desc;
             if (swapChainNative->GetDesc(&desc).FAILED)
                 return;
 
-            this.backend?.OnPostResize((int)desc.BufferDesc.Width, (int)desc.BufferDesc.Height);
-        }
-        finally
-        {
-            // Release the recorded destroy-callback acquisition; same-thread pairing is required.
-            if (this.reShadeResizeEntered)
+            // A successful native lifecycle may follow an earlier init we rejected. Restoring this backend
+            // also recovers those completed callbacks, without releasing outer callbacks or detour scopes.
+            pending.Backend.OnPostResize((int)desc.BufferDesc.Width, (int)desc.BufferDesc.Height);
+            for (var i = state.Recovery.Count - 1; i >= 0; i--)
             {
-                this.reShadeResizeEntered = false;
-                this.backend?.ExitResize();
+                var recovery = state.Recovery[i];
+                if (!ReferenceEquals(recovery.Backend, activeBackend))
+                    continue;
+
+                recovery.Scope.Dispose();
+                state.Recovery.RemoveAt(i);
             }
+
+            if (state.AwaitingInit.Count == 0 && state.Recovery.Count == 0)
+                this.reShadeResizes.Remove(identity);
+        }
+    }
+
+    private void ClearReShadeResizeScopes()
+    {
+        using (this.reShadeResizeLock.EnterScope())
+        {
+            foreach (var state in this.reShadeResizes.Values)
+            {
+                while (state.AwaitingInit.TryPeek(out var pending))
+                {
+                    pending.Scope.Dispose();
+                    state.AwaitingInit.Pop();
+                }
+
+                while (state.Recovery.Count != 0)
+                {
+                    state.Recovery[^1].Scope.Dispose();
+                    state.Recovery.RemoveAt(state.Recovery.Count - 1);
+                }
+            }
+
+            this.reShadeResizes.Clear();
         }
     }
 
@@ -87,17 +152,15 @@ internal unsafe partial class InterfaceManager
         if (!SwapChainHelper.IsGameDeviceSwapChain(swapChain))
             return this.dxgiSwapChainResizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
 
-        // Request snapshot exclusion across reallocation. Destroy/init callbacks may also enter resize;
-        // the backend does not count nested acquisitions, so their exits can release this acquisition.
-        this.backend?.EnterResize();
-        try
-        {
-            this.ResizeBuffers?.InvokeSafely();
-            return this.dxgiSwapChainResizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
-        }
-        finally
-        {
-            this.backend?.ExitResize();
-        }
+        using var resize = this.backend?.BeginResize();
+        this.ResizeBuffers?.InvokeSafely();
+        return this.dxgiSwapChainResizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
+    }
+
+    private sealed class ReShadeResizeState
+    {
+        public Stack<(IWin32Backend Backend, IDisposable Scope)> AwaitingInit { get; } = new();
+
+        public List<(IWin32Backend Backend, IDisposable Scope)> Recovery { get; } = new();
     }
 }

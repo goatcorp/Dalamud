@@ -54,24 +54,25 @@ internal interface IImGuiBackend : IDisposable
     /// </remarks>
     void Render();
 
-    /// <summary>Acquires exclusive access to snapshot storage for swap-chain reallocation.</summary>
+    /// <summary>Suspends rendering and snapshot capture for swap-chain reallocation, draining active readers.</summary>
     /// <remarks>
-    /// Must be paired with <see cref="ExitResize"/> on the same thread. Acquisitions must not be nested with each
-    /// other or with <see cref="Step"/>/<see cref="Render"/> on that thread. The write lock excludes snapshot capture
-    /// and rendering; UI construction in an already-started step runs outside that lock, but its capture is discarded.
+    /// Dispose the returned scope after reallocation and resource updates. Scopes may nest, overlap, or be disposed
+    /// on another thread; rendering remains suspended until every scope completes. No thread-owned lock is retained.
+    /// Do not begin or dispose a scope inside a snapshot lock. UI construction in an already-started step may finish,
+    /// including platform-window completion under the writer lock, but its capture is discarded.
     /// Invalidates snapshot replay. Deferred construction resources must survive until normal frame retirement.
     /// </remarks>
-    void EnterResize();
-
-    /// <summary>Leaves the resize-exclusive section opened by <see cref="EnterResize"/>.</summary>
-    void ExitResize();
+    /// <returns>An independently owned, idempotent resize scope.</returns>
+    IDisposable BeginResize();
 
     /// <summary>Releases renderer references to the main viewport buffers before reallocation.</summary>
-    /// <remarks>Hold resize exclusion across this call, buffer reallocation, and <see cref="OnPostResize"/>.</remarks>
+    /// <remarks>Keep a resize scope across this call, buffer reallocation, and <see cref="OnPostResize"/>.
+    /// Renderer mutations acquire snapshot writer exclusion internally.</remarks>
     void OnPreResize();
 
     /// <summary>Recreates main viewport renderer resources and updates the target dimensions after reallocation.</summary>
-    /// <remarks>Call while holding the resize exclusion acquired before <see cref="OnPreResize"/>.</remarks>
+    /// <remarks>Call before completing the resize scope opened before <see cref="OnPreResize"/>.
+    /// Renderer mutations acquire snapshot writer exclusion internally.</remarks>
     /// <param name="newWidth">The new width.</param>
     /// <param name="newHeight">The new height.</param>
     void OnPostResize(int newWidth, int newHeight);

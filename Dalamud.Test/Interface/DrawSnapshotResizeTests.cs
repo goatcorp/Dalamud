@@ -34,15 +34,10 @@ public class DrawSnapshotResizeTests
         Assert.Throws<NullReferenceException>(fixture.Backend.Render);
         fixture.AssertLocksReleased();
 
-        fixture.Backend.EnterResize();
-        try
+        using (fixture.Backend.BeginResize())
         {
             Assert.True(fixture.Backend.IsResizeInProgress);
             fixture.Backend.Render();
-        }
-        finally
-        {
-            fixture.Backend.ExitResize();
         }
 
         Assert.False(fixture.Backend.IsResizeInProgress);
@@ -50,6 +45,262 @@ public class DrawSnapshotResizeTests
         fixture.Backend.Render();
 
         fixture.AssertLocksReleased();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void NestedResizeScopesKeepExclusionUntilBothAreDisposed(bool disposeOuterFirst)
+    {
+        using var fixture = new BackendFixture();
+        using var outer = fixture.Backend.BeginResize();
+        using var inner = fixture.Backend.BeginResize();
+
+        (disposeOuterFirst ? outer : inner).Dispose();
+
+        Assert.True(fixture.Backend.IsResizeInProgress);
+        fixture.Backend.Render();
+        fixture.AssertLocksReleased();
+
+        (disposeOuterFirst ? inner : outer).Dispose();
+
+        Assert.False(fixture.Backend.IsResizeInProgress);
+        fixture.AssertLocksReleased();
+    }
+
+    [Fact]
+    public void ResizeScopeCanBeDisposedOnAnotherThread()
+    {
+        using var fixture = new BackendFixture();
+        using var scope = fixture.Backend.BeginResize();
+
+        RunOnWorker(scope.Dispose);
+
+        Assert.False(fixture.Backend.IsResizeInProgress);
+        fixture.AssertLocksReleased();
+
+        using (fixture.Backend.BeginResize())
+            Assert.True(fixture.Backend.IsResizeInProgress);
+
+        Assert.False(fixture.Backend.IsResizeInProgress);
+    }
+
+    [Fact]
+    public void DisposingOldScopeAgainCannotReleaseANewerResize()
+    {
+        using var fixture = new BackendFixture();
+        using var previous = fixture.Backend.BeginResize();
+        previous.Dispose();
+        using var current = fixture.Backend.BeginResize();
+
+        RunOnWorker(previous.Dispose);
+
+        Assert.True(fixture.Backend.IsResizeInProgress);
+        fixture.Backend.Render();
+
+        current.Dispose();
+        Assert.False(fixture.Backend.IsResizeInProgress);
+        fixture.AssertLocksReleased();
+    }
+
+    [Fact]
+    public void ConcurrentDisposalsCannotReleaseAnotherActiveScope()
+    {
+        using var fixture = new BackendFixture();
+        using var shared = fixture.Backend.BeginResize();
+        using var other = fixture.Backend.BeginResize();
+        using var ready = new Barrier(2);
+        var cancellationToken = TestContext.Current.CancellationToken;
+        Exception? workerException = null;
+        var worker = new Thread(() =>
+        {
+            try
+            {
+                if (!ready.SignalAndWait(TimeSpan.FromSeconds(5), cancellationToken))
+                    throw new TimeoutException("The disposing threads did not rendezvous.");
+                shared.Dispose();
+            }
+            catch (Exception exception)
+            {
+                workerException = exception;
+            }
+        }) { IsBackground = true };
+        worker.Start();
+
+        try
+        {
+            Assert.True(ready.SignalAndWait(TimeSpan.FromSeconds(5), cancellationToken));
+            shared.Dispose();
+        }
+        finally
+        {
+            Assert.True(worker.Join(TimeSpan.FromSeconds(5)));
+        }
+
+        Assert.Null(workerException);
+        Assert.True(fixture.Backend.IsResizeInProgress);
+        other.Dispose();
+        Assert.False(fixture.Backend.IsResizeInProgress);
+        fixture.AssertLocksReleased();
+    }
+
+    [Fact]
+    public void FailedResizeAcquisitionDoesNotLeavePendingState()
+    {
+        using var fixture = new BackendFixture();
+        fixture.DrawDataLock.EnterReadLock();
+        try
+        {
+            Assert.Throws<LockRecursionException>(() => fixture.Backend.BeginResize());
+            Assert.False(fixture.Backend.IsResizeInProgress);
+        }
+        finally
+        {
+            fixture.DrawDataLock.ExitReadLock();
+        }
+
+        fixture.AssertLocksReleased();
+    }
+
+    [Fact]
+    public void FailedResizeDisposalPreservesOwnershipUntilItCanBeRetried()
+    {
+        using var fixture = new BackendFixture();
+        using var scope = fixture.Backend.BeginResize();
+        fixture.DrawDataLock.EnterReadLock();
+        try
+        {
+            Assert.Throws<LockRecursionException>(scope.Dispose);
+            Assert.True(fixture.Backend.IsResizeInProgress);
+        }
+        finally
+        {
+            fixture.DrawDataLock.ExitReadLock();
+        }
+
+        scope.Dispose();
+        Assert.False(fixture.Backend.IsResizeInProgress);
+        fixture.AssertLocksReleased();
+    }
+
+    [Fact]
+    public void AnotherThreadCanBeginResizeWhileAnOuterScopeIsActive()
+    {
+        using var fixture = new BackendFixture();
+        using var outer = fixture.Backend.BeginResize();
+        using var acquired = new ManualResetEventSlim();
+        using var finish = new ManualResetEventSlim();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        Exception? workerException = null;
+        var worker = new Thread(() =>
+        {
+            try
+            {
+                using var inner = fixture.Backend.BeginResize();
+                acquired.Set();
+                if (!finish.Wait(TimeSpan.FromSeconds(5), cancellationToken))
+                    throw new TimeoutException("The test did not release the inner resize scope.");
+            }
+            catch (Exception exception)
+            {
+                workerException = exception;
+            }
+        }) { IsBackground = true };
+        worker.Start();
+
+        try
+        {
+            Assert.True(acquired.Wait(TimeSpan.FromSeconds(5), cancellationToken));
+            outer.Dispose();
+            Assert.True(fixture.Backend.IsResizeInProgress);
+            fixture.Backend.Render();
+            fixture.AssertLocksReleased();
+        }
+        finally
+        {
+            // Also release the outer scope after a timeout so an incorrectly blocked acquisition can finish.
+            outer.Dispose();
+            finish.Set();
+            Assert.True(worker.Join(TimeSpan.FromSeconds(5)));
+        }
+
+        Assert.Null(workerException);
+        Assert.False(fixture.Backend.IsResizeInProgress);
+    }
+
+    [Fact]
+    public void PendingResizeAnnouncesAndWaitsForAnActiveReader()
+    {
+        using var fixture = new BackendFixture();
+        using var acquired = new ManualResetEventSlim();
+        using var finish = new ManualResetEventSlim();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        Exception? workerException = null;
+        var worker = new Thread(() =>
+        {
+            try
+            {
+                using var scope = fixture.Backend.BeginResize();
+                acquired.Set();
+                if (!finish.Wait(TimeSpan.FromSeconds(5), cancellationToken))
+                    throw new TimeoutException("The test did not release the resize scope.");
+            }
+            catch (Exception exception)
+            {
+                workerException = exception;
+            }
+        }) { IsBackground = true };
+
+        fixture.DrawDataLock.EnterReadLock();
+        try
+        {
+            try
+            {
+                worker.Start();
+                Assert.True(SpinWait.SpinUntil(() => fixture.DrawDataLock.WaitingWriteCount == 1, TimeSpan.FromSeconds(5)));
+                Assert.True(fixture.Backend.IsResizeInProgress);
+                Assert.False(acquired.IsSet);
+
+                // A pending resize must suppress new work even before its existing reader has drained.
+                fixture.Backend.Render();
+            }
+            finally
+            {
+                fixture.DrawDataLock.ExitReadLock();
+            }
+
+            Assert.True(acquired.Wait(TimeSpan.FromSeconds(5), cancellationToken));
+            Assert.True(fixture.Backend.IsResizeInProgress);
+            fixture.AssertLocksReleased();
+        }
+        finally
+        {
+            finish.Set();
+            Assert.True(worker.Join(TimeSpan.FromSeconds(5)));
+        }
+
+        Assert.Null(workerException);
+        Assert.False(fixture.Backend.IsResizeInProgress);
+        fixture.AssertLocksReleased();
+    }
+
+    private static void RunOnWorker(Action action)
+    {
+        Exception? workerException = null;
+        var worker = new Thread(() =>
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception exception)
+            {
+                workerException = exception;
+            }
+        }) { IsBackground = true };
+        worker.Start();
+        Assert.True(worker.Join(TimeSpan.FromSeconds(5)));
+        Assert.Null(workerException);
     }
 
     private sealed class BackendFixture : IDisposable
@@ -73,6 +324,8 @@ public class DrawSnapshotResizeTests
         public Dx11Win32Backend Backend { get; }
 
         public ViewportSnapshot Viewports { get; } = new();
+
+        public ReaderWriterLockSlim DrawDataLock => this.drawDataLock;
 
         public void Dispose()
         {

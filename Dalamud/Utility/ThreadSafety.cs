@@ -23,7 +23,9 @@ public static class ThreadSafety
     /// </summary>
     /// <remarks>
     /// The kernel swap-chain Present call temporarily releases all game-thread recursion levels so presentation
-    /// workers can render. The managed framework tick runs before this lock is acquired.
+    /// workers can render. Presentation callbacks must use nonblocking acquisition: middleware can arrive holding
+    /// the native device lock needed by a game thread that owns this lock. The managed framework tick runs before
+    /// this lock is acquired.
     /// </remarks>
     internal static Lock NativeFrameworkRenderSyncRoot { get; } = new();
 

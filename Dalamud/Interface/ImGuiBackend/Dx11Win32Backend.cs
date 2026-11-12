@@ -33,12 +33,14 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     // Snapshots separate draw submission from live UI construction; their resources still require retirement.
     //
     // Lock-acquisition order / contract for drawDataLock:
-    //   - Render() takes renderLock, then the read lock for the complete main and secondary render pass.
-    //   - Step() holds the write lock across platform-window updates, snapshot capture, and resource retirement.
-    //   - Resize callers must hold the write lock across reallocation via paired EnterResize()/ExitResize() calls.
-    //   - resizeInProgress provides an early skip; the write lock excludes snapshot readers and writers.
-    //   - Resize acquisitions must be paired on the same thread and must not be nested with each other or
-    //     Step()/Render() on that thread because drawDataLock is non-recursive.
+    //   - Graphics transactions take the native device lock before any snapshot lock. ReShade resource callbacks
+    //     can arrive holding that device lock, and secondary viewport creation can acquire it through native hooks.
+    //   - Render() takes the device lock, renderLock, then the read lock for the complete render pass.
+    //   - Step() takes the device lock, then the write lock across platform updates, capture, and retirement.
+    //   - Counted resize scopes suspend rendering/capture across reallocation without retaining a thread-owned lock.
+    //     BeginResize drains existing readers under the writer lock; pre/post-resize resource changes also take it.
+    //   - Step()/Render() recheck the suspension under their snapshot lock before publishing or submitting data.
+    //   - Resize scopes may overlap or finish on another thread. Do not begin/end them from inside a snapshot lock.
     //
     // The shared immediate context and dynamic renderer buffers require serialized rendering. Taking renderLock
     // first keeps competing renders outside drawDataLock instead of letting idle readers block capture or resize.
@@ -55,12 +57,8 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     // A Step builds live UI outside drawDataLock. Reject its capture if the presentation target changed meanwhile.
     private long resizeGeneration;
 
-    // Lock-free early-out for a resize; drawDataLock remains the synchronization mechanism.
-    private volatile bool resizeInProgress;
-
-    // Records the acquiring thread to detect duplicate enters and exits with no recorded owner.
-    // This is not a nesting count; callers must pair each acquisition and release on the same thread.
-    private int resizeOwnerThreadId;
+    // Includes scopes waiting to drain snapshot readers. Each scope owns exactly one count, independently of thread.
+    private int resizeRequests;
 
     // Retain the input interface for presentation-target identity checks, even when drawing uses a peeled chain.
     private ComPtr<IDXGISwapChain> swapChainPossiblyWrapped;
@@ -100,26 +98,31 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             fixed (ID3D11DeviceContext** pp = &this.deviceContext.GetPinnableReference())
                 this.device.Get()->GetImmediateContext(pp);
 
+            // Retain the native lock in every presentation mode. ReShade callbacks can hold it even when this
+            // backend did not request runtime protection; lock ordering must not depend on Smooth Motion detection.
+            fixed (Guid* guid = &IID.IID_ID3D11Multithread)
+            fixed (ID3D11Multithread** pp = &this.deviceMultithread.GetPinnableReference())
+            {
+                if (this.deviceContext.Get()->QueryInterface(guid, (void**)pp).FAILED)
+                    this.deviceMultithread.Reset();
+            }
+
             if (enableMultithreadProtection)
             {
                 // Request runtime protection for the shared immediate context because graphics middleware can use it
                 // from other threads. Dalamud's managed locks cannot serialize callers outside Dalamud.
-                fixed (Guid* guid = &IID.IID_ID3D11Multithread)
-                fixed (ID3D11Multithread** pp = &this.deviceMultithread.GetPinnableReference())
+                if (!this.deviceMultithread.IsEmpty())
                 {
-                    if (this.deviceContext.Get()->QueryInterface(guid, (void**)pp).SUCCEEDED)
-                    {
-                        var alreadyProtected = this.deviceMultithread.Get()->SetMultithreadProtected(BOOL.TRUE);
-                        this.restoreMultithreadProtection = !alreadyProtected;
-                        Log.Information(
-                            "D3D11 multithread protection enabled for Smooth Motion (was already protected: {Already}).",
-                            (bool)alreadyProtected);
-                    }
-                    else
-                    {
-                        Log.Warning(
-                            "D3D11 multithread protection NOT enabled for Smooth Motion: ID3D11Multithread unavailable.");
-                    }
+                    var alreadyProtected = this.deviceMultithread.Get()->SetMultithreadProtected(BOOL.TRUE);
+                    this.restoreMultithreadProtection = !alreadyProtected;
+                    Log.Information(
+                        "D3D11 multithread protection enabled for Smooth Motion (was already protected: {Already}).",
+                        (bool)alreadyProtected);
+                }
+                else
+                {
+                    Log.Warning(
+                        "D3D11 multithread protection NOT enabled for Smooth Motion: ID3D11Multithread unavailable.");
                 }
             }
 
@@ -188,7 +191,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     public IImGuiRenderer Renderer => this.imguiRenderer;
 
     /// <inheritdoc/>
-    public bool IsResizeInProgress => this.resizeInProgress;
+    public bool IsResizeInProgress => Volatile.Read(ref this.resizeRequests) != 0;
 
     /// <summary>
     /// Gets the pointer to an instance of <see cref="IDXGISwapChain"/>.
@@ -232,8 +235,8 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         // Sample before checking resize or running callbacks so even a complete resize during construction is seen.
         var generation = Volatile.Read(ref this.resizeGeneration);
 
-        // Avoid constructing a frame that cannot be captured while resize owns the snapshot write lock.
-        if (this.resizeInProgress)
+        // Avoid constructing a frame that cannot be captured while resize is pending or in progress.
+        if (this.IsResizeInProgress)
             return;
 
         this.imguiRenderer.OnNewFrame();
@@ -251,7 +254,9 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         ImGui.Render();
 
         // Keep platform-window mutation and capture in one write transaction to exclude snapshot rendering
-        // while a viewport is created, resized, or destroyed.
+        // while a viewport is created, resized, or destroyed. Native factory hooks can take the device lock;
+        // acquire it first so an init callback holding it cannot wait for a writer that is waiting for the device.
+        using var deviceLock = new DeviceLock(this.deviceMultithread.Get());
         this.drawDataLock.EnterWriteLock();
         try
         {
@@ -259,13 +264,13 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             this.hasSnapshot = false;
 
             // Complete every rendered ImGui frame, including one whose capture must be discarded after resize.
-            // ImGui requires platform completion before the next NewFrame; viewport mutations stay excluded
-            // from snapshot readers and resize by this writer lock.
+            // ImGui requires platform completion before the next NewFrame. This only mutates secondary viewports;
+            // the writer lock excludes snapshot readers and main-target pre/post-resize resource changes.
             ImGui.UpdatePlatformWindows();
 
             // Resize may have changed the presentation target while UI construction was in progress.
             // Discard capture without publishing snapshots or advancing retirement batches.
-            if (this.resizeInProgress || generation != Volatile.Read(ref this.resizeGeneration))
+            if (this.IsResizeInProgress || generation != Volatile.Read(ref this.resizeGeneration))
                 return;
 
             this.snapshot.CopyFrom(ImGui.GetDrawData().Handle);
@@ -303,14 +308,15 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// <inheritdoc/>
     public void Render()
     {
-        // Skip work while resize is announced; the write lock supplies snapshot exclusion.
-        if (this.resizeInProgress)
+        // Skip work while resize is announced, including the interval between resource callbacks.
+        if (this.IsResizeInProgress)
             return;
 
+        using (new DeviceLock(this.deviceMultithread.Get()))
         using (this.renderLock.EnterScope())
         {
             // Resize may have started while this render call was waiting for another render to finish.
-            if (this.resizeInProgress)
+            if (this.IsResizeInProgress)
                 return;
 
             // Hold the snapshot stable for the complete main and secondary render pass.
@@ -318,7 +324,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             try
             {
                 // Resize invalidates the captured presentation target; wait for a complete, fresh capture.
-                if (!this.hasSnapshot)
+                if (this.IsResizeInProgress || !this.hasSnapshot)
                     return;
 
                 // The main snapshot may be composited once for every generated frame.
@@ -344,61 +350,66 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     }
 
     /// <inheritdoc/>
-    public void EnterResize()
+    public IDisposable BeginResize()
     {
-        // Detect a same-thread duplicate enter before attempting the non-recursive write lock.
-        // Ignoring it does not acquire another level of ownership or balance a later nested exit.
-        var currentThreadId = Environment.CurrentManagedThreadId;
-        if (this.resizeOwnerThreadId == currentThreadId)
+        var scope = new ResizeScope(this);
+        // Announce before waiting so new Step/Render calls skip while existing readers drain. Count every scope,
+        // including nested and queued scopes, so no completion can resume rendering on behalf of another caller.
+        Interlocked.Increment(ref this.resizeRequests);
+        try
         {
-            Log.Warning(
-                "EnterResize() called re-entrantly on thread {ThreadId}; ignoring the nested enter to avoid a self-deadlock.",
-                currentThreadId);
-            return;
+            this.drawDataLock.EnterWriteLock();
+            try
+            {
+                // Deferred resources survive resize because an already-started Step can still use them.
+                this.hasSnapshot = false;
+                Interlocked.Increment(ref this.resizeGeneration);
+                this.viewportSnapshots.BeginCapture();
+            }
+            finally
+            {
+                this.drawDataLock.ExitWriteLock();
+            }
+        }
+        catch
+        {
+            Interlocked.Decrement(ref this.resizeRequests);
+            throw;
         }
 
-        // Publish intent before waiting so new Step()/Render() calls do not queue behind the resize writer.
-        this.resizeInProgress = true;
+        return scope;
+    }
 
-        // Wait for active snapshot readers, then exclude frame capture and rendering until ExitResize().
+    /// <inheritdoc/>
+    public void OnPreResize()
+    {
+        using var deviceLock = new DeviceLock(this.deviceMultithread.Get());
         this.drawDataLock.EnterWriteLock();
-        this.resizeOwnerThreadId = currentThreadId;
-
-        // Revoke replay for the old target. Storage can be reused by a fresh capture; deferred resources must
-        // survive resize because an already-started Step may still be using them during live UI construction.
-        this.hasSnapshot = false;
-        Interlocked.Increment(ref this.resizeGeneration);
-        this.viewportSnapshots.BeginCapture();
-    }
-
-    /// <inheritdoc/>
-    public void ExitResize()
-    {
-        // Ignore an exit with no recorded owner. Exits with an owner still require the acquiring thread.
-        if (this.resizeOwnerThreadId == 0)
+        try
         {
-            Log.Warning("ExitResize() called without a matching EnterResize(); ignoring.");
-            this.resizeInProgress = false;
-            return;
+            this.imguiRenderer.OnPreResize();
         }
-
-        // Also reject construction that began while resize owned the writer lock, even if the advisory flag
-        // was cleared by an earlier resize releasing ahead of this one.
-        Interlocked.Increment(ref this.resizeGeneration);
-        this.resizeOwnerThreadId = 0;
-        this.drawDataLock.ExitWriteLock();
-        this.resizeInProgress = false;
+        finally
+        {
+            this.drawDataLock.ExitWriteLock();
+        }
     }
-
-    /// <inheritdoc/>
-    public void OnPreResize() => this.imguiRenderer.OnPreResize();
 
     /// <inheritdoc/>
     public void OnPostResize(int newWidth, int newHeight)
     {
-        this.imguiRenderer.OnPostResize(newWidth, newHeight);
-        this.targetWidth = newWidth;
-        this.targetHeight = newHeight;
+        using var deviceLock = new DeviceLock(this.deviceMultithread.Get());
+        this.drawDataLock.EnterWriteLock();
+        try
+        {
+            this.imguiRenderer.OnPostResize(newWidth, newHeight);
+            this.targetWidth = newWidth;
+            this.targetHeight = newHeight;
+        }
+        finally
+        {
+            this.drawDataLock.ExitWriteLock();
+        }
     }
 
     /// <inheritdoc/>
@@ -445,6 +456,21 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         }
     }
 
+    private void EndResize()
+    {
+        this.drawDataLock.EnterWriteLock();
+        try
+        {
+            // Reject construction that began anywhere within this scope, even if no capture was attempted then.
+            Interlocked.Increment(ref this.resizeGeneration);
+            Interlocked.Decrement(ref this.resizeRequests);
+        }
+        finally
+        {
+            this.drawDataLock.ExitWriteLock();
+        }
+    }
+
     private void ReleaseUnmanagedResources()
     {
         if (this.device.IsEmpty())
@@ -468,5 +494,39 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         this.deviceContext.Dispose();
         this.device.Dispose();
         this.swapChainPossiblyWrapped.Dispose();
+    }
+
+    private readonly ref struct DeviceLock
+    {
+        private readonly ID3D11Multithread* multithread;
+
+        public DeviceLock(ID3D11Multithread* multithread)
+        {
+            this.multithread = multithread;
+            if (multithread is not null)
+                multithread->Enter();
+        }
+
+        public void Dispose()
+        {
+            if (this.multithread is not null)
+                this.multithread->Leave();
+        }
+    }
+
+    private sealed class ResizeScope(Dx11Win32Backend backend) : IDisposable
+    {
+        private readonly Lock disposeLock = new();
+        private Dx11Win32Backend? backend = backend;
+
+        public void Dispose()
+        {
+            using (this.disposeLock.EnterScope())
+            {
+                // Clear only after release succeeds, so an invalid recursive call does not lose its ownership.
+                this.backend?.EndResize();
+                this.backend = null;
+            }
+        }
     }
 }

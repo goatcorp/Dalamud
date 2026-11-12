@@ -1,6 +1,10 @@
 using System;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
+using Dalamud.Interface.ImGuiBackend;
+using Dalamud.Interface.Internal;
 using Dalamud.Utility;
 
 using Xunit;
@@ -166,6 +170,97 @@ public class NativePresentationScopeTests
             ReleaseCurrentThreadOwnership();
         }
     }
+
+    [Fact]
+    public void ContendedPresentationReturnsWithoutEnteringRenderTransaction()
+    {
+        var syncRoot = ThreadSafety.NativeFrameworkRenderSyncRoot;
+        var (manager, draw, _) = CreateRenderFixture();
+        Exception? workerFailure = null;
+        var worker = new Thread(() =>
+        {
+            try
+            {
+                // No backend or render queue is initialized. A skipped callback must not touch either.
+                draw(null!);
+            }
+            catch (Exception exception)
+            {
+                workerFailure = exception;
+            }
+        }) { IsBackground = true };
+
+        syncRoot.Enter();
+        try
+        {
+            worker.Start();
+            Assert.True(worker.Join(WorkerTimeout), "A contended presentation callback must return while native update still owns the framework lock.");
+            Assert.Null(workerFailure);
+            Assert.True(syncRoot.IsHeldByCurrentThread);
+            Assert.Equal(0, manager.CumulativePresentCalls);
+            Assert.False(manager.IsAnyThreadInPresent);
+        }
+        finally
+        {
+            ReleaseCurrentThreadOwnership();
+            // Also unblock the original implementation before reporting its failed nonblocking assertion.
+            Assert.True(worker.Join(WorkerTimeout), "The presentation worker did not finish after cleanup.");
+        }
+
+        Assert.True(CanWorkerAcquireLock());
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(3)]
+    public void PresentationFailurePreservesCallingThreadsFrameworkOwnership(int recursionDepth)
+    {
+        var syncRoot = ThreadSafety.NativeFrameworkRenderSyncRoot;
+        var (manager, draw, renderLock) = CreateRenderFixture();
+        for (var depth = 0; depth < recursionDepth; depth++)
+            syncRoot.Enter();
+
+        try
+        {
+            // The missing render queue injects a managed failure after entering both presentation guards,
+            // before any native ImGui access. Same-thread framework ownership must allow recursive entry.
+            Assert.Throws<NullReferenceException>(() => draw(null!));
+            Assert.Equal(1, manager.CumulativePresentCalls);
+            Assert.False(manager.IsAnyThreadInPresent);
+            Assert.False(renderLock.IsHeldByCurrentThread);
+
+            for (var remaining = recursionDepth; remaining > 0; remaining--)
+            {
+                Assert.True(syncRoot.IsHeldByCurrentThread);
+                Assert.False(CanWorkerAcquireLock());
+                syncRoot.Exit();
+            }
+
+            Assert.False(syncRoot.IsHeldByCurrentThread);
+            Assert.True(CanWorkerAcquireLock());
+        }
+        finally
+        {
+            ReleaseCurrentThreadOwnership();
+        }
+    }
+
+    private static (InterfaceManager Manager, Action<IImGuiBackend> Draw, Lock RenderLock) CreateRenderFixture()
+    {
+        // Exercise the real manager's outer guard without services, a graphics device, or an ImGui context.
+        var manager = (InterfaceManager)RuntimeHelpers.GetUninitializedObject(typeof(InterfaceManager));
+        GC.SuppressFinalize(manager);
+        var renderLock = new Lock();
+        const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
+        SetRenderField(manager, "renderDalamudLock", renderLock);
+        var draw = typeof(InterfaceManager).GetMethod("RenderDalamudDraw", flags)!
+            .CreateDelegate<Action<IImGuiBackend>>(manager);
+        return (manager, draw, renderLock);
+    }
+
+    private static void SetRenderField<T>(InterfaceManager manager, string name, T value) =>
+        typeof(InterfaceManager).GetField(name, BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(manager, value);
 
     private static bool CanWorkerAcquireLock()
     {

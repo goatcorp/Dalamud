@@ -291,8 +291,9 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// </summary>
     public Task FontBuildTask => WhenFontsReady().dalamudAtlas!.BuildTask;
 
-    /// <summary>Gets the number of calls to <see cref="DxgiSwapChainPresentDetour"/> so far.</summary>
+    /// <summary>Gets the number of presentation callbacks admitted to the overlay render transaction so far.</summary>
     /// <remarks>
+    /// Contended callbacks that skip the overlay transaction are not counted.
     /// The value increases even when Dalamud is hidden via &quot;/xlui hide&quot;.
     /// <see cref="DalamudInterface.FrameCount"/> does not.
     /// </remarks>
@@ -657,6 +658,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         Interlocked.Exchange(ref this.dxgiSwapChainResizeBuffersHook, null)?.Dispose();
         Interlocked.Exchange(ref this.dxgiSwapChainHook, null)?.Dispose();
         Interlocked.Exchange(ref this.reShadeAddonInterface, null)?.Dispose();
+        this.ClearReShadeResizeScopes();
     }
 
     /// <summary>Checks if the provided swap chain is the target that Dalamud should draw its interface onto,
@@ -699,9 +701,12 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// <param name="activeBackend">The scene to draw to.</param>
     private void RenderDalamudDraw(IImGuiBackend activeBackend)
     {
-        // Serialize presentation callbacks and live ImGui access while excluding native UI updates.
-        // Lock order: NativeFrameworkRenderSyncRoot, renderDalamudLock, backend renderLock, snapshot read lock.
-        using (ThreadSafety.NativeFrameworkRenderSyncRoot.EnterScope())
+        // Middleware may already hold the native device lock while Step owns native-update exclusion and
+        // needs that device. Never wait here: skip this presentation before touching bookkeeping or queued work.
+        if (!ThreadSafety.NativeFrameworkRenderSyncRoot.TryEnter())
+            return;
+
+        try
         {
             using (this.renderDalamudLock.EnterScope())
             {
@@ -731,6 +736,10 @@ internal partial class InterfaceManager : IInternalDisposableService
                     this.IsAnyThreadInPresent = false;
                 }
             }
+        }
+        finally
+        {
+            ThreadSafety.NativeFrameworkRenderSyncRoot.Exit();
         }
     }
 
