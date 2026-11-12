@@ -29,6 +29,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 {
     private readonly Dx11Renderer imguiRenderer;
     private readonly Win32InputHandler imguiInput;
+    private readonly bool enableMultithreadProtection;
 
     // Presentation callbacks may call Render() repeatedly from different threads for one game-thread Step().
     // Snapshots separate draw submission from live UI construction; their resources still require retirement.
@@ -80,11 +81,10 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// Initializes a new instance of the <see cref="Dx11Win32Backend"/> class.
     /// </summary>
     /// <param name="swapChain">The pointer to an instance of <see cref="IDXGISwapChain"/>. The reference is copied.</param>
-    /// <param name="enableMultithreadProtection">
-    /// Whether to request D3D11 runtime protection for shared immediate-context access. Logs if unavailable.
-    /// </param>
+    /// <param name="enableMultithreadProtection">Whether NvPresent participation requires automatic context protection.</param>
     public Dx11Win32Backend(IDXGISwapChain* swapChain, bool enableMultithreadProtection)
     {
+        this.enableMultithreadProtection = enableMultithreadProtection;
         try
         {
             this.swapChainPossiblyWrapped = new(swapChain);
@@ -99,8 +99,8 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             fixed (ID3D11DeviceContext** pp = &this.deviceContext.GetPinnableReference())
                 this.device.Get()->GetImmediateContext(pp);
 
-            // Retain the native lock in every presentation mode. ReShade callbacks can hold it even when this
-            // backend did not request runtime protection; lock ordering must not depend on Smooth Motion detection.
+            // Keep native locking in every mode, even when automatic context protection is not requested.
+            // ReShade callbacks can already hold this lock; native lock ordering is independent of detection.
             fixed (Guid* guid = &IID.IID_ID3D11Multithread)
             fixed (ID3D11Multithread** pp = &this.deviceMultithread.GetPinnableReference())
             {
@@ -108,23 +108,19 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
                     this.deviceMultithread.Reset();
             }
 
-            if (enableMultithreadProtection)
+            if (enableMultithreadProtection && !this.deviceMultithread.IsEmpty())
             {
-                // Request runtime protection for the shared immediate context because graphics middleware can use it
-                // from other threads. Dalamud's managed locks cannot serialize callers outside Dalamud.
-                if (!this.deviceMultithread.IsEmpty())
+                using (new DeviceLock(this))
                 {
-                    var alreadyProtected = this.deviceMultithread.Get()->SetMultithreadProtected(BOOL.TRUE);
-                    this.restoreMultithreadProtection = !alreadyProtected;
                     Log.Information(
-                        "D3D11 multithread protection enabled for Smooth Motion (was already protected: {Already}).",
-                        (bool)alreadyProtected);
+                        "D3D11 multithread protection enabled for NvPresent (was already protected: {Already}).",
+                        !this.restoreMultithreadProtection);
                 }
-                else
-                {
-                    Log.Warning(
-                        "D3D11 multithread protection NOT enabled for Smooth Motion: ID3D11Multithread unavailable.");
-                }
+            }
+            else if (enableMultithreadProtection)
+            {
+                Log.Warning(
+                    "D3D11 multithread protection NOT enabled for NvPresent: ID3D11Multithread unavailable.");
             }
 
             using var buffer = default(ComPtr<ID3D11Resource>);
@@ -257,7 +253,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         // Keep platform-window mutation and capture in one write transaction to exclude snapshot rendering
         // while a viewport is created, resized, or destroyed. Native factory hooks can take the device lock;
         // acquire it first so an init callback holding it cannot wait for a writer that is waiting for the device.
-        using var deviceLock = new DeviceLock(this.deviceMultithread.Get());
+        using var deviceLock = new DeviceLock(this);
         this.drawDataLock.EnterWriteLock();
         try
         {
@@ -313,7 +309,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         if (this.IsResizeInProgress)
             return;
 
-        using (new DeviceLock(this.deviceMultithread.Get()))
+        using (new DeviceLock(this))
         using (this.renderLock.EnterScope())
         {
             // Resize may have started while this render call was waiting for another render to finish.
@@ -356,7 +352,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         if (this.IsResizeInProgress)
             return false;
 
-        using (new DeviceLock(this.deviceMultithread.Get()))
+        using (new DeviceLock(this))
         using (this.renderLock.EnterScope())
         {
             this.drawDataLock.EnterReadLock();
@@ -444,7 +440,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// <inheritdoc/>
     public void OnPreResize()
     {
-        using var deviceLock = new DeviceLock(this.deviceMultithread.Get());
+        using var deviceLock = new DeviceLock(this);
         this.drawDataLock.EnterWriteLock();
         try
         {
@@ -459,7 +455,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// <inheritdoc/>
     public void OnPostResize(int newWidth, int newHeight)
     {
-        using var deviceLock = new DeviceLock(this.deviceMultithread.Get());
+        using var deviceLock = new DeviceLock(this);
         this.drawDataLock.EnterWriteLock();
         try
         {
@@ -547,7 +543,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         ImGui.DestroyContext();
 
         // Disable protection only if this backend enabled it from a previously disabled state.
-        if (this.restoreMultithreadProtection && !this.deviceMultithread.IsEmpty())
+        if (this.enableMultithreadProtection && this.restoreMultithreadProtection && !this.deviceMultithread.IsEmpty())
             this.deviceMultithread.Get()->SetMultithreadProtected(BOOL.FALSE);
         this.deviceMultithread.Dispose();
 
@@ -561,11 +557,19 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     {
         private readonly ID3D11Multithread* multithread;
 
-        public DeviceLock(ID3D11Multithread* multithread)
+        public DeviceLock(Dx11Win32Backend backend)
         {
-            this.multithread = multithread;
-            if (multithread is not null)
-                multithread->Enter();
+            this.multithread = backend.deviceMultithread.Get();
+            if (this.multithread is null)
+                return;
+
+            this.multithread->Enter();
+
+            // ReShade can restore a temporarily enabled state after the callback that initialized this backend.
+            // When NvPresent requires protection, reassert it before render/snapshot locks and context use.
+            // Remember any disabled-to-enabled transition so disposal preserves an already-protected context.
+            if (backend.enableMultithreadProtection && !this.multithread->SetMultithreadProtected(BOOL.TRUE))
+                backend.restoreMultithreadProtection = true;
         }
 
         public void Dispose()

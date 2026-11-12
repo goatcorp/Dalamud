@@ -14,6 +14,13 @@ internal abstract unsafe class ComHookUnwrapper
     /// <summary>Gets a value indicating whether an unresolved recognized wrapper causes unwrapping to throw.</summary>
     protected virtual bool FailOnUnwrapFailure => false;
 
+    /// <summary>Checks whether an interface is recognized without inspecting its forwarding layout.</summary>
+    /// <param name="obj">The interface to recognize.</param>
+    /// <typeparam name="T">A COM type that is or extends <see cref="IUnknown"/>.</typeparam>
+    /// <returns>Whether the interface belongs to this wrapper implementation.</returns>
+    public bool Recognizes<T>(T* obj)
+        where T : unmanaged, IUnknown.Interface => this.IsRelevantComObject(obj);
+
     /// <summary>Removes consecutive wrappers recognized by <see cref="IsRelevantComObject{T}"/>.</summary>
     /// <param name="comptr">[inout] The COM pointer to an instance of <typeparamref name="T"/>.</param>
     /// <param name="visited">Removed wrapper addresses shared across discovery passes.</param>

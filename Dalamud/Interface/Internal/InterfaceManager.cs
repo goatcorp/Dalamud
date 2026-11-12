@@ -26,6 +26,7 @@ using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Asserts;
 using Dalamud.Interface.Internal.DesignSystem;
 using Dalamud.Interface.Internal.ReShadeHandling;
+using Dalamud.Interface.Internal.Unwrapper;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Style;
@@ -102,8 +103,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private IWin32Backend? backend;
 
-    // Successful NvPresent unwrapping supplies the Smooth Motion signal for D3D11 runtime protection.
-    // This does not query driver settings; successful ReShade addon and legacy hook selection bypass detection.
+    // Recognized NvPresent participation, independent of presentation-hook selection; not a driver-settings query.
     private bool isSmoothMotionDetected;
 
     private Hook<SetCursorDelegate>? setCursorHook;
@@ -1013,6 +1013,22 @@ internal partial class InterfaceManager : IInternalDisposableService
         _ = this.dalamudAtlas.BuildFontsAsync();
 
         SwapChainHelper.BusyWaitForGameDeviceSwapChain();
+
+        // Inspect an owned local reference before hook selection can peel the cached original chain.
+        // Successful addon/legacy selection must not bypass detection or change the selected presentation target.
+        var nvPresent = NvPresentDetector.Inspect(SwapChainHelper.GameDisplaySwapChain);
+        this.isSmoothMotionDetected = nvPresent == NvPresentDetector.DetectionResult.Detected;
+        if (nvPresent == NvPresentDetector.DetectionResult.Unknown)
+        {
+            Log.Warning(
+                "Could not determine NvPresent participation in the game swap chain. " +
+                "Keeping the existing conditional D3D11 protection policy; middleware compatibility is undetermined.");
+        }
+        else
+        {
+            Log.Information("Game swap-chain NvPresent participation: {Result}.", nvPresent);
+        }
+
         var swapChainDesc = default(DXGI_SWAP_CHAIN_DESC);
         if (SwapChainHelper.GameDisplaySwapChain->GetDesc(&swapChainDesc).SUCCEEDED)
             this.gameWindowHandle = swapChainDesc.OutputWindow;
