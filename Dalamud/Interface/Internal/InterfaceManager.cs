@@ -103,7 +103,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private IWin32Backend? backend;
 
-    // Recognized NvPresent participation, independent of presentation-hook selection; not a driver-settings query.
+    // NvPresent participation controls automatic D3D11 protection; it does not report the driver setting.
     private bool isSmoothMotionDetected;
 
     private Hook<SetCursorDelegate>? setCursorHook;
@@ -378,8 +378,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// <remarks>
     /// May be queued from any thread. During normal frame processing, pending actions are promoted after a
     /// capture and executed after the following capture replaces that snapshot, under snapshot write exclusion.
-    /// Resize preserves both batches because live UI construction can still be using their resources.
-    /// Shutdown drains them after backend disposal.
+    /// Resize preserves both batches for live UI construction; shutdown drains them after backend disposal.
     /// Actions must not re-enter snapshot rendering, capture, or resize while write exclusion is held.
     /// This coordinates CPU-side snapshot use; it does not wait for GPU completion or preserve thread affinity.
     /// </remarks>
@@ -697,12 +696,12 @@ internal partial class InterfaceManager : IInternalDisposableService
         return activeBackend;
     }
 
-    /// <summary>Draws Dalamud to the given scene representing the ImGui context.</summary>
-    /// <param name="activeBackend">The scene to draw to.</param>
+    /// <summary>Runs a serialized overlay transaction when native framework exclusion is available.</summary>
+    /// <param name="activeBackend">The backend to render.</param>
     private void RenderDalamudDraw(IImGuiBackend activeBackend)
     {
-        // Middleware may already hold the native device lock while Step owns native-update exclusion and
-        // needs that device. Never wait here: skip this presentation before touching bookkeeping or queued work.
+        // A middleware callback may own the device lock needed by Step. Waiting for framework exclusion
+        // would deadlock; reject contention before counters, activity flags, or queued work change.
         if (!ThreadSafety.NativeFrameworkRenderSyncRoot.TryEnter())
             return;
 
@@ -1014,8 +1013,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         SwapChainHelper.BusyWaitForGameDeviceSwapChain();
 
-        // Inspect an owned local reference before hook selection can peel the cached original chain.
-        // Successful addon/legacy selection must not bypass detection or change the selected presentation target.
+        // Detect NvPresent before hook selection unwraps the cache or selects a ReShade presentation path.
         var nvPresent = NvPresentDetector.Inspect(SwapChainHelper.GameDisplaySwapChain);
         this.isSmoothMotionDetected = nvPresent == NvPresentDetector.DetectionResult.Detected;
         if (nvPresent == NvPresentDetector.DetectionResult.Unknown)

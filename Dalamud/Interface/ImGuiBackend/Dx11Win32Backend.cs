@@ -31,21 +31,13 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     private readonly Win32InputHandler imguiInput;
     private readonly bool enableMultithreadProtection;
 
-    // Presentation callbacks may call Render() repeatedly from different threads for one game-thread Step().
-    // Snapshots separate draw submission from live UI construction; their resources still require retirement.
-    //
-    // Lock-acquisition order / contract for drawDataLock:
-    //   - Graphics transactions take the native device lock before any snapshot lock. ReShade resource callbacks
-    //     can arrive holding that device lock, and secondary viewport creation can acquire it through native hooks.
-    //   - Render() and viewport texture reads take device, renderLock, then read for the entire graphics operation.
-    //   - Step() takes the device lock, then the write lock across platform updates, capture, and retirement.
-    //   - Counted resize scopes suspend rendering/capture across reallocation without retaining a thread-owned lock.
-    //     BeginResize drains existing readers under the writer lock; pre/post-resize resource changes also take it.
-    //   - Step()/Render() recheck the suspension under their snapshot lock before publishing or submitting data.
-    //   - Resize scopes may overlap or finish on another thread. Do not begin/end them from inside a snapshot lock.
-    //
-    // The shared immediate context and dynamic renderer buffers require serialized rendering. Taking renderLock
-    // first keeps competing renders outside drawDataLock instead of letting idle readers block capture or resize.
+    // Snapshot synchronization: presentation threads may replay each game-thread Step multiple times.
+    // Graphics operations take the native device lock first, matching callbacks that already hold it.
+    // Render and viewport reads then take renderLock -> snapshot read; Step takes snapshot write for
+    // platform updates, capture, and retirement. Serializing readers first avoids blocking pending writers.
+    // Resize scopes suspend replay/capture without retaining a lock across reallocation. Begin/end take
+    // snapshot write alone; resource changes take device -> snapshot write. All readers recheck suspension.
+    // The snapshot lock is non-recursive: do not begin/end resize scopes or re-enter graphics while holding it.
     private readonly Lock renderLock = new();
     private readonly ReaderWriterLockSlim drawDataLock = new(LockRecursionPolicy.NoRecursion);
     private readonly DrawDataSnapshot snapshot = new();
@@ -53,13 +45,13 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     // Capture secondary viewports so presentation threads do not enumerate ImGui's live platform viewport list.
     private readonly ViewportSnapshot viewportSnapshots = new();
 
-    // Protected by drawDataLock. Only a complete capture may publish borrowed resource pointers for rendering.
+    // Protected by drawDataLock; replay is allowed only after a complete capture.
     private bool hasSnapshot;
 
-    // A Step builds live UI outside drawDataLock. Reject its capture if the presentation target changed meanwhile.
+    // Detects resize during UI construction, which runs outside drawDataLock.
     private long resizeGeneration;
 
-    // Includes scopes waiting to drain snapshot readers. Each scope owns exactly one count, independently of thread.
+    // Counts pending and active resize scopes, regardless of their acquiring or completing thread.
     private int resizeRequests;
 
     // Retain the input interface for presentation-target identity checks, even when drawing uses a peeled chain.
@@ -99,8 +91,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             fixed (ID3D11DeviceContext** pp = &this.deviceContext.GetPinnableReference())
                 this.device.Get()->GetImmediateContext(pp);
 
-            // Keep native locking in every mode, even when automatic context protection is not requested.
-            // ReShade callbacks can already hold this lock; native lock ordering is independent of detection.
+            // Native lock ordering applies in every mode, independently of automatic context protection.
             fixed (Guid* guid = &IID.IID_ID3D11Multithread)
             fixed (ID3D11Multithread** pp = &this.deviceMultithread.GetPinnableReference())
             {
@@ -229,10 +220,9 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// <inheritdoc/>
     public void Step()
     {
-        // Sample before checking resize or running callbacks so even a complete resize during construction is seen.
+        // Sample before callbacks to detect resize even if it finishes during UI construction.
         var generation = Volatile.Read(ref this.resizeGeneration);
 
-        // Avoid constructing a frame that cannot be captured while resize is pending or in progress.
         if (this.IsResizeInProgress)
             return;
 
@@ -250,9 +240,8 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
         ImGui.Render();
 
-        // Keep platform-window mutation and capture in one write transaction to exclude snapshot rendering
-        // while a viewport is created, resized, or destroyed. Native factory hooks can take the device lock;
-        // acquire it first so an init callback holding it cannot wait for a writer that is waiting for the device.
+        // Complete platform updates and capture atomically. Native factory hooks may acquire the device lock,
+        // so enter it before the writer lock to match device-owning resource callbacks.
         using var deviceLock = new DeviceLock(this);
         this.drawDataLock.EnterWriteLock();
         try
@@ -260,13 +249,10 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             // Platform-window mutation or a partial copy can invalidate the previous captures even if Step fails.
             this.hasSnapshot = false;
 
-            // Complete every rendered ImGui frame, including one whose capture must be discarded after resize.
-            // ImGui requires platform completion before the next NewFrame. This only mutates secondary viewports;
-            // the writer lock excludes snapshot readers and main-target pre/post-resize resource changes.
+            // ImGui requires platform completion before the next NewFrame, even if resize discards this capture.
             ImGui.UpdatePlatformWindows();
 
-            // Resize may have changed the presentation target while UI construction was in progress.
-            // Discard capture without publishing snapshots or advancing retirement batches.
+            // Discard construction overlapping resize without publishing or advancing resource retirement.
             if (this.IsResizeInProgress || generation != Volatile.Read(ref this.resizeGeneration))
                 return;
 
@@ -292,7 +278,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             // Retire resources only after readers of the previous snapshot have drained.
             this.PostCopy?.Invoke();
 
-            // Let Render() present secondary windows under the same serialization as the main snapshot.
+            // Publish only after copying and retirement succeed; allow one secondary presentation attempt.
             Volatile.Write(ref this.platformWindowsRenderedForStep, 0);
             this.hasSnapshot = true;
         }
@@ -312,7 +298,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         using (new DeviceLock(this))
         using (this.renderLock.EnterScope())
         {
-            // Resize may have started while this render call was waiting for another render to finish.
+            // Resize may have been announced while waiting for the graphics locks.
             if (this.IsResizeInProgress)
                 return;
 
@@ -386,7 +372,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
         static ComPtr<ID3D11Texture2D> GetMainViewportBackBuffer()
         {
-            // Preserve the effective display-chain source used by main-viewport capture.
+            // Middleware can make the effective display chain differ from the raw game swap chain.
             var texture = default(ComPtr<ID3D11Texture2D>);
             try
             {
@@ -410,8 +396,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     public IDisposable BeginResize()
     {
         var scope = new ResizeScope(this);
-        // Announce before waiting so new Step/Render calls skip while existing readers drain. Count every scope,
-        // including nested and queued scopes, so no completion can resume rendering on behalf of another caller.
+        // Announce before draining readers. Every pending or active scope must finish before capture resumes.
         Interlocked.Increment(ref this.resizeRequests);
         try
         {
@@ -565,9 +550,8 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
             this.multithread->Enter();
 
-            // ReShade can restore a temporarily enabled state after the callback that initialized this backend.
-            // When NvPresent requires protection, reassert it before render/snapshot locks and context use.
-            // Remember any disabled-to-enabled transition so disposal preserves an already-protected context.
+            // ReShade may restore temporary protection after backend initialization. Reassert the NvPresent
+            // policy before context use and remember disabled-to-enabled transitions for disposal.
             if (backend.enableMultithreadProtection && !this.multithread->SetMultithreadProtected(BOOL.TRUE))
                 backend.restoreMultithreadProtection = true;
         }

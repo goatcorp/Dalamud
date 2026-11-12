@@ -256,8 +256,8 @@ internal sealed partial class TextureManager
 
             if (this.whiteTexture.IsEmpty())
             {
-                // Alpha filling needs a ready white sample. Loading an asset while drawing can wait on
-                // texture tracking, whose cleanup may itself need the device lock held by the caller.
+                // Keep the alpha-fill sample ready: asset loading can wait for tracking cleanup
+                // that needs the caller's device lock.
                 var pixel = uint.MaxValue;
                 var desc = new D3D11_TEXTURE2D_DESC
                 {

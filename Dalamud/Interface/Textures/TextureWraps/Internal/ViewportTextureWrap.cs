@@ -16,7 +16,7 @@ using NotSupportedException = System.NotSupportedException;
 
 namespace Dalamud.Interface.Textures.TextureWraps.Internal;
 
-/// <summary>A texture wrap that takes its buffer from the frame buffer (of swap chain).</summary>
+/// <summary>Owns a texture containing a copy of an ImGui viewport's back buffer.</summary>
 internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDisposable
 {
     private readonly string? debugName;
@@ -66,10 +66,10 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
     /// <inheritdoc/>
     public int Height => (int)this.desc.Height;
 
-    /// <summary>Gets the task representing the first <see cref="Update"/> call.</summary>
+    /// <summary>Gets the task for the initial viewport capture.</summary>
     public Task<IDalamudTextureWrap> FirstUpdateTask => this.firstUpdateTaskCompletionSource.Task;
 
-    /// <summary>Schedules a framework tick that queues the viewport copy before or after a subsequent backend render call.</summary>
+    /// <summary>Schedules a viewport copy before or after a subsequent render through the framework queue.</summary>
     public void QueueUpdate() =>
         Service<Framework>.Get().RunOnTick(
             () =>
@@ -97,7 +97,7 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
         this.rtv.Reset();
     }
 
-    /// <summary>Copies the source viewport within the serialized presentation callback.</summary>
+    /// <summary>Copies the viewport during a serialized presentation callback.</summary>
     private void Update()
     {
         if (this.disposed)
@@ -116,12 +116,12 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
             var textureChanged = false;
             if (!backend.TryReadViewportBackBuffer(this.args.ViewportId, handle => textureChanged = this.UpdateFromBackBuffer(handle)))
             {
-                // Resize suspension is temporary, including for a one-shot capture.
+                // Retry suspended captures even when automatic updates are disabled.
                 this.QueueUpdate();
                 return;
             }
 
-            // Bookkeeping can take other managed locks; keep it outside the graphics transaction.
+            // Keep tracking locks and task completion outside the backend graphics locks.
             if (textureChanged)
             {
                 Service<TextureManager>.Get().Blame(this, this.ownerPlugin);
@@ -141,7 +141,9 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
             this.QueueUpdate();
     }
 
-    /// <summary>Copies the borrowed texture while the backend retains graphics and snapshot exclusion.</summary>
+    /// <summary>Copies a borrowed back buffer under the backend's graphics and snapshot locks.</summary>
+    /// <param name="backBufferHandle">The texture pointer, valid only during this callback.</param>
+    /// <returns>Whether the destination texture was replaced.</returns>
     private unsafe bool UpdateFromBackBuffer(nint backBufferHandle)
     {
         var backBuffer = (ID3D11Texture2D*)backBufferHandle;

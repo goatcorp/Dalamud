@@ -14,7 +14,7 @@ internal abstract unsafe class ComHookUnwrapper
     /// <summary>Gets a value indicating whether an unresolved recognized wrapper causes unwrapping to throw.</summary>
     protected virtual bool FailOnUnwrapFailure => false;
 
-    /// <summary>Checks whether an interface is recognized without inspecting its forwarding layout.</summary>
+    /// <summary>Recognizes an interface implementation without resolving its underlying object.</summary>
     /// <param name="obj">The interface to recognize.</param>
     /// <typeparam name="T">A COM type that is or extends <see cref="IUnknown"/>.</typeparam>
     /// <returns>Whether the interface belongs to this wrapper implementation.</returns>

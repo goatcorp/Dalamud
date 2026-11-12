@@ -25,7 +25,7 @@ internal unsafe partial class Dx11Renderer
 {
     /// <summary>Acquires an owned reference to a secondary viewport's current back buffer.</summary>
     /// <remarks>The caller must exclude viewport destruction, resize, and other renderer operations.</remarks>
-    /// <param name="rendererUserData">The live viewport's opaque renderer handle.</param>
+    /// <param name="rendererUserData">The live viewport's renderer GCHandle.</param>
     /// <returns>An independently retained texture reference.</returns>
     public ComPtr<ID3D11Texture2D> GetViewportBackBuffer(nint rendererUserData)
     {
@@ -303,7 +303,7 @@ internal unsafe partial class Dx11Renderer
             if (this.width < 1 || this.height < 1)
                 throw new InvalidOperationException("The viewport has no drawable back buffer.");
 
-            // Targets are lazy: capture can run before this viewport has ever been drawn.
+            // Capture may precede the viewport's first draw, so initialize its target on demand.
             this.EnsureRenderTarget();
             return new(this.renderTarget.Get());
         }

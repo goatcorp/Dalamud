@@ -153,8 +153,7 @@ public class DrawSnapshotResizeTests
     {
         using var fixture = new BackendFixture();
 
-        // The original implementation had no validity flag; seed it when present so both versions reach
-        // the renderer before resize, and the regression is detected by replay behavior afterward.
+        // Enable replay so the rendererless fixture detects a draw attempt before resize.
         typeof(Dx11Win32Backend).GetField("hasSnapshot", BindingFlags.Instance | BindingFlags.NonPublic)?
             .SetValue(fixture.Backend, true);
         Assert.Throws<NullReferenceException>(fixture.Backend.Render);
@@ -344,7 +343,7 @@ public class DrawSnapshotResizeTests
         }
         finally
         {
-            // Also release the outer scope after a timeout so an incorrectly blocked acquisition can finish.
+            // Release the outer scope on timeout so a blocked worker can finish.
             outer.Dispose();
             finish.Set();
             Assert.True(worker.Join(TimeSpan.FromSeconds(5)));
@@ -387,7 +386,7 @@ public class DrawSnapshotResizeTests
                 Assert.True(fixture.Backend.IsResizeInProgress);
                 Assert.False(acquired.IsSet);
 
-                // A pending resize must suppress new work even before its existing reader has drained.
+                // Pending resize suppresses new work before existing readers drain.
                 fixture.Backend.Render();
                 var callbackInvoked = false;
                 Assert.False(fixture.Backend.TryReadViewportBackBuffer(1, _ => callbackInvoked = true));
@@ -440,8 +439,7 @@ public class DrawSnapshotResizeTests
 
         public BackendFixture()
         {
-            // Exercise actual resize/render coordination without constructing a D3D device or ImGui context.
-            // The absent renderer makes any attempt to submit an invalid snapshot fail the test.
+            // Omit graphics initialization so any draw submission fails while lock coordination remains testable.
             this.Backend = (Dx11Win32Backend)RuntimeHelpers.GetUninitializedObject(typeof(Dx11Win32Backend));
             GC.SuppressFinalize(this.Backend);
             this.SetField("renderLock", this.renderLock);

@@ -181,7 +181,7 @@ public class NativePresentationScopeTests
         {
             try
             {
-                // No backend or render queue is initialized. A skipped callback must not touch either.
+                // Uninitialized rendering state detects any work performed by a rejected callback.
                 draw(null!);
             }
             catch (Exception exception)
@@ -203,7 +203,7 @@ public class NativePresentationScopeTests
         finally
         {
             ReleaseCurrentThreadOwnership();
-            // Also unblock the original implementation before reporting its failed nonblocking assertion.
+            // Release a blocked worker even when the nonblocking assertion fails.
             Assert.True(worker.Join(WorkerTimeout), "The presentation worker did not finish after cleanup.");
         }
 
@@ -223,8 +223,7 @@ public class NativePresentationScopeTests
 
         try
         {
-            // The missing render queue injects a managed failure after entering both presentation guards,
-            // before any native ImGui access. Same-thread framework ownership must allow recursive entry.
+            // A missing queue fails after both guards are entered, before native ImGui access.
             Assert.Throws<NullReferenceException>(() => draw(null!));
             Assert.Equal(1, manager.CumulativePresentCalls);
             Assert.False(manager.IsAnyThreadInPresent);
@@ -248,7 +247,7 @@ public class NativePresentationScopeTests
 
     private static (InterfaceManager Manager, Action<IImGuiBackend> Draw, Lock RenderLock) CreateRenderFixture()
     {
-        // Exercise the real manager's outer guard without services, a graphics device, or an ImGui context.
+        // Initialize only the render guard; other state stays unset to detect access after admission.
         var manager = (InterfaceManager)RuntimeHelpers.GetUninitializedObject(typeof(InterfaceManager));
         GC.SuppressFinalize(manager);
         var renderLock = new Lock();

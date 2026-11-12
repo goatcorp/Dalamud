@@ -9,16 +9,16 @@ using TerraFX.Interop.Windows;
 
 namespace Dalamud.Interface.Internal.Unwrapper;
 
-/// <summary>Inspects a retained local swap-chain reference without changing presentation-hook targets.</summary>
+/// <summary>Detects NvPresent wrappers without changing cached swap-chain or presentation-hook targets.</summary>
 internal static unsafe class NvPresentDetector
 {
     /// <summary>Describes the evidence available from recognized swap-chain implementations.</summary>
     internal enum DetectionResult
     {
-        /// <summary>A recognized native chain was reached without an exposed NvPresent wrapper.</summary>
+        /// <summary>A system DXGI/D3D11 terminal was reached without recognizing NvPresent.</summary>
         NotDetected,
 
-        /// <summary>An exposed wrapper's IUnknown methods belong to NvPresent.</summary>
+        /// <summary>The current interface's IUnknown methods belong to NvPresent.</summary>
         Detected,
 
         /// <summary>An opaque, unresolved, cyclic, or unsupported chain prevented inspection.</summary>
@@ -27,7 +27,7 @@ internal static unsafe class NvPresentDetector
 
     /// <summary>Checks the original chain for NvPresent, independently of the selected presentation hook.</summary>
     /// <param name="swapChain">The borrowed live original game swap chain, before global unwrapping.</param>
-    /// <returns>The inspection result; wrapper presence does not query the driver's Smooth Motion setting.</returns>
+    /// <returns>Wrapper participation, not the driver's Smooth Motion setting.</returns>
     internal static DetectionResult Inspect(IDXGISwapChain* swapChain)
     {
         if (!NativeSwapChainRecognizer.IsInspectable(swapChain))
@@ -41,7 +41,7 @@ internal static unsafe class NvPresentDetector
 
         while (true)
         {
-            // Detection needs only ownership of the IUnknown implementations, not private GetDesc forwarding.
+            // IUnknown module ownership establishes participation without decoding private GetDesc forwarding.
             if (nvPresent.Recognizes(inspected.Get()))
                 return DetectionResult.Detected;
 
@@ -50,8 +50,7 @@ internal static unsafe class NvPresentDetector
 
             try
             {
-                // Only the local COM reference changes. Existing unwrapping owns queried references and bounds
-                // traversal, including cycles, while the cached chain and game's field retain their identities.
+                // Peel only this owned reference, with shared cycle detection and bounded traversal.
                 if (!reShade.Unwrap(&inspected, visited))
                     return DetectionResult.Unknown;
             }
@@ -119,8 +118,7 @@ internal static unsafe class NvPresentDetector
                 if (pointer < module.BaseAddress || pointer - module.BaseAddress >= module.ModuleMemorySize)
                     continue;
 
-                // A middleware proxy may itself be named dxgi.dll. Only the operating-system runtime location
-                // establishes a native terminal for this supported wrapper inspection.
+                // Proxy DLLs may share the runtime filename; require the operating-system runtime path.
                 var path = Path.GetFullPath(module.FileName);
                 return string.Equals(path, Path.Combine(Environment.SystemDirectory, "dxgi.dll"), StringComparison.OrdinalIgnoreCase) ||
                        string.Equals(path, Path.Combine(Environment.SystemDirectory, "d3d11.dll"), StringComparison.OrdinalIgnoreCase);

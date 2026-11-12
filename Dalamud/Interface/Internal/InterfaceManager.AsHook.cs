@@ -117,7 +117,7 @@ internal unsafe partial class InterfaceManager
             $"Calling resizebuffers swap@{(nint)swapChain:X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
 #endif
 
-        // Keep this acquisition independent of any nested middleware resource callbacks.
+        // Hold a separate resize scope across native reallocation and nested middleware callbacks.
         var activeBackend = this.backend;
         using var resize = activeBackend?.BeginResize();
         this.ResizeBuffers?.InvokeSafely();

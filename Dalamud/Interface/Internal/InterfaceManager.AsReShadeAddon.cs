@@ -15,8 +15,8 @@ namespace Dalamud.Interface.Internal;
 /// </summary>
 internal unsafe partial class InterfaceManager
 {
-    // Only short callback transactions take this lock. No thread-owned lock spans destroy/init callbacks.
-    // Filter secondary targets before taking it: Step can emit their callbacks while holding the snapshot writer.
+    // Serialize lifecycle bookkeeping and resource updates; no lock spans separate callbacks.
+    // Filter secondary targets first: Step emits their callbacks under snapshot write exclusion.
     private readonly Lock reShadeResizeLock = new();
     private readonly Dictionary<nint, ReShadeResizeState> reShadeResizes = new();
 
@@ -33,8 +33,7 @@ internal unsafe partial class InterfaceManager
             if (!this.reShadeResizes.TryGetValue(identity, out var state))
                 this.reShadeResizes.Add(identity, state = new());
 
-            // Retain the exact backend and acquisition. Nested callbacks and the DXGI detour own other scopes.
-            // A destroy without an init leaves the target suspended, without stranding a thread-owned writer.
+            // Pair each destroy with its own backend scope; an unmatched destroy keeps rendering suspended.
             state.AwaitingInit.Push((activeBackend, activeBackend.BeginResize()));
             activeBackend.OnPreResize();
         }
@@ -59,8 +58,7 @@ internal unsafe partial class InterfaceManager
                 if (!ReferenceEquals(pending.Backend, activeBackend))
                     return;
 
-                // This native init has arrived even if our descriptor query or resource update fails.
-                // Keep its suspension for recovery, separately from genuine outer callbacks still awaiting init.
+                // Record receipt before resource work, which may fail and require a later init to recover.
                 state.Recovery.Add(pending);
                 state.AwaitingInit.Pop();
             }
@@ -78,8 +76,7 @@ internal unsafe partial class InterfaceManager
             if (swapChainNative->GetDesc(&desc).FAILED)
                 return;
 
-            // A successful native lifecycle may follow an earlier init we rejected. Restoring this backend
-            // also recovers those completed callbacks, without releasing outer callbacks or detour scopes.
+            // Successful restoration releases this backend's recovery scopes; outer scopes remain pending.
             pending.Backend.OnPostResize((int)desc.BufferDesc.Width, (int)desc.BufferDesc.Height);
             for (var i = state.Recovery.Count - 1; i >= 0; i--)
             {
@@ -96,6 +93,7 @@ internal unsafe partial class InterfaceManager
         }
     }
 
+    /// <summary>Releases outstanding lifecycle scopes after ReShade callbacks have been detached.</summary>
     private void ClearReShadeResizeScopes()
     {
         using (this.reShadeResizeLock.EnterScope())
@@ -157,10 +155,13 @@ internal unsafe partial class InterfaceManager
         return this.dxgiSwapChainResizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
     }
 
+    /// <summary>Tracks resize callbacks for one ReShade swap-chain identity.</summary>
     private sealed class ReShadeResizeState
     {
+        /// <summary>Gets destroy scopes whose matching init callbacks have not arrived.</summary>
         public Stack<(IWin32Backend Backend, IDisposable Scope)> AwaitingInit { get; } = new();
 
+        /// <summary>Gets received init scopes retained until resource restoration succeeds.</summary>
         public List<(IWin32Backend Backend, IDisposable Scope)> Recovery { get; } = new();
     }
 }
