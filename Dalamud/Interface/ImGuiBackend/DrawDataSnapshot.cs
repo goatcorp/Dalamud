@@ -138,18 +138,22 @@ internal sealed unsafe class DrawDataSnapshot : IDisposable
 
     /// <summary>
     /// Ensures <paramref name="buffer"/> can hold at least <paramref name="neededCount"/> elements of
-    /// <paramref name="elementSize"/> bytes, reallocating (with geometric growth) as necessary.
+    /// <paramref name="elementSize"/> bytes, growing geometrically into zero-initialized storage.
     /// </summary>
+    /// <remarks>
+    /// Growth discards existing contents. Allocation failure leaves the buffer, capacity, and contents unchanged.
+    /// </remarks>
     private static void GrowBuffer(ref void* buffer, ref int capacity, int neededCount, int elementSize)
     {
         if (neededCount <= capacity)
             return;
 
-        if (buffer is not null)
-            NativeMemory.Free(buffer);
+        var newCapacity = Math.Max(neededCount, capacity == 0 ? 4 : capacity * 2);
+        var newBuffer = NativeMemory.AllocZeroed((nuint)newCapacity, (nuint)elementSize);
 
-        capacity = Math.Max(neededCount, capacity == 0 ? 4 : capacity * 2);
-        buffer = NativeMemory.AllocZeroed((nuint)capacity, (nuint)elementSize);
+        NativeMemory.Free(buffer);
+        buffer = newBuffer;
+        capacity = newCapacity;
     }
 
     private void FreeNativeResources()
