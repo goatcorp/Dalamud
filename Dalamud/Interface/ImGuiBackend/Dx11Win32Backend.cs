@@ -31,6 +31,13 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     private readonly Win32InputHandler imguiInput;
     private readonly bool enableMultithreadProtection;
 
+    // Owned native contexts and initialized companion bindings.
+    private ImGuiContextPtr imguiContext;
+    private ImPlotContextPtr implotContext;
+    private bool imguizmoContextSet;
+    private bool implotImGuiContextSet;
+    private bool disposed;
+
     // Snapshot synchronization: presentation threads may replay each game-thread Step multiple times.
     // Graphics operations take the native device lock first, matching callbacks that already hold it.
     // Render and viewport reads then take renderLock -> snapshot read; Step takes snapshot write for
@@ -77,6 +84,8 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     public Dx11Win32Backend(IDXGISwapChain* swapChain, bool enableMultithreadProtection)
     {
         this.enableMultithreadProtection = enableMultithreadProtection;
+        var previousImGuiContext = default(ImGuiContextPtr);
+        var previousImPlotContext = default(ImPlotContextPtr);
         try
         {
             this.swapChainPossiblyWrapped = new(swapChain);
@@ -124,10 +133,17 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             this.targetHeight = (int)desc.BufferDesc.Height;
             this.WindowHandle = desc.OutputWindow;
 
-            var ctx = ImGui.CreateContext();
-            ImGuizmo.SetImGuiContext(ctx);
-            ImPlot.SetImGuiContext(ctx);
-            ImPlot.CreateContext();
+            // Successful construction leaves these contexts current; rollback restores the previous ones.
+            previousImGuiContext = ImGui.GetCurrentContext();
+            this.imguiContext = ImGui.CreateContext();
+            ImGui.SetCurrentContext(this.imguiContext);
+            ImGuizmo.SetImGuiContext(this.imguiContext);
+            this.imguizmoContextSet = true;
+            ImPlot.SetImGuiContext(this.imguiContext);
+            this.implotImGuiContextSet = true;
+            previousImPlotContext = ImPlot.GetCurrentContext();
+            this.implotContext = ImPlot.CreateContext();
+            ImPlot.SetCurrentContext(this.implotContext);
 
             ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable | ImGuiConfigFlags.ViewportsEnable;
 
@@ -136,7 +152,27 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         }
         catch
         {
-            this.Dispose();
+            var restoreImGuiContext = this.imguiContext.Handle is not null;
+            var restoreImPlotContext = this.implotContext.Handle is not null;
+            try
+            {
+                this.Dispose();
+            }
+            catch (Exception exception)
+            {
+                // Preserve the initialization exception if rollback also fails.
+                Log.Error(exception, "Error cleaning up a partially initialized ImGui backend.");
+            }
+            finally
+            {
+                // Suppress finalizer retries even if synchronous rollback failed.
+                GC.SuppressFinalize(this);
+                if (restoreImPlotContext)
+                    ImPlot.SetCurrentContext(previousImPlotContext);
+                if (restoreImGuiContext)
+                    this.SetCurrentImGuiContext(previousImGuiContext);
+            }
+
             throw;
         }
     }
@@ -515,27 +551,80 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
     private void ReleaseUnmanagedResources()
     {
-        if (this.device.IsEmpty())
+        // Cleanup is idempotent even when construction fails before device acquisition.
+        if (this.disposed)
+            return;
+        this.disposed = true;
+
+        try
+        {
+            this.ReleaseImGuiResources();
+        }
+        finally
+        {
+            // Release snapshots and device references even if ImGui teardown fails.
+            // Snapshot fields may be unassigned if a field initializer threw.
+            this.snapshot?.Dispose();
+            this.viewportSnapshots?.Dispose();
+
+            // Disable protection only if this backend enabled it from a previously disabled state.
+            if (this.enableMultithreadProtection && this.restoreMultithreadProtection && !this.deviceMultithread.IsEmpty())
+                this.deviceMultithread.Get()->SetMultithreadProtected(BOOL.FALSE);
+            this.deviceMultithread.Dispose();
+
+            this.swapChain.Dispose();
+            this.deviceContext.Dispose();
+            this.device.Dispose();
+            this.swapChainPossiblyWrapped.Dispose();
+        }
+    }
+
+    private void ReleaseImGuiResources()
+    {
+        // Early construction failure can leave native bindings unloaded and another context current.
+        if (this.imguiContext.Handle is null)
             return;
 
-        this.imguiRenderer.Dispose();
-        this.imguiInput.Dispose();
+        var context = this.imguiContext;
+        var previousContext = ImGui.GetCurrentContext();
+        // Renderer and input teardown require the owned context to remain current and alive.
+        this.SetCurrentImGuiContext(context);
+        try
+        {
+            try
+            {
+                this.imguiRenderer?.Dispose();
+            }
+            finally
+            {
+                this.imguiInput?.Dispose();
+            }
+        }
+        finally
+        {
+            try
+            {
+                if (this.implotContext.Handle is not null)
+                    ImPlot.DestroyContext(this.implotContext);
+            }
+            finally
+            {
+                this.implotContext = default;
+                ImGui.DestroyContext(context);
+                this.imguiContext = default;
+                this.SetCurrentImGuiContext(previousContext != context ? previousContext : default);
+            }
+        }
+    }
 
-        this.snapshot.Dispose();
-        this.viewportSnapshots.Dispose();
-
-        ImPlot.DestroyContext();
-        ImGui.DestroyContext();
-
-        // Disable protection only if this backend enabled it from a previously disabled state.
-        if (this.enableMultithreadProtection && this.restoreMultithreadProtection && !this.deviceMultithread.IsEmpty())
-            this.deviceMultithread.Get()->SetMultithreadProtected(BOOL.FALSE);
-        this.deviceMultithread.Dispose();
-
-        this.swapChain.Dispose();
-        this.deviceContext.Dispose();
-        this.device.Dispose();
-        this.swapChainPossiblyWrapped.Dispose();
+    private void SetCurrentImGuiContext(ImGuiContextPtr context)
+    {
+        ImGui.SetCurrentContext(context);
+        // Companion DLLs have separate ImGui globals; touch only successfully initialized bindings.
+        if (this.imguizmoContextSet)
+            ImGuizmo.SetImGuiContext(context);
+        if (this.implotImGuiContextSet)
+            ImPlot.SetImGuiContext(context);
     }
 
     private readonly ref struct DeviceLock

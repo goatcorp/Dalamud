@@ -56,45 +56,57 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
     /// <param name="hWnd">The window handle.</param>
     public Win32InputHandler(HWND hWnd)
     {
-        var io = ImGui.GetIO();
-        if (ImGui.GetIO().Handle->BackendPlatformName is not null)
-            throw new InvalidOperationException("ImGui backend platform seems to be have been already attached.");
+        try
+        {
+            var io = ImGui.GetIO();
+            if (io.Handle->BackendPlatformName is not null)
+                throw new InvalidOperationException("ImGui backend platform seems to be have been already attached.");
 
-        this.hWnd = hWnd;
+            this.hWnd = hWnd;
 
-        // hook wndproc
-        // have to hold onto the delegate to keep it in memory for unmanaged code
-        this.wndProcDelegate = this.WndProcDetour;
+            // Keep the window procedure delegate alive while native viewport windows can call it.
+            this.wndProcDelegate = this.WndProcDetour;
 
-        io.BackendFlags |= ImGuiBackendFlags.HasMouseCursors |
-                           ImGuiBackendFlags.HasSetMousePos |
-                           ImGuiBackendFlags.RendererHasViewports |
-                           ImGuiBackendFlags.PlatformHasViewports |
-                           ImGuiBackendFlags.HasMouseHoveredViewport;
+            io.BackendFlags |= ImGuiBackendFlags.HasMouseCursors |
+                               ImGuiBackendFlags.HasSetMousePos |
+                               ImGuiBackendFlags.RendererHasViewports |
+                               ImGuiBackendFlags.PlatformHasViewports |
+                               ImGuiBackendFlags.HasMouseHoveredViewport;
 
-        this.platformNamePtr = Marshal.StringToHGlobalAnsi("imgui_impl_win32_c#");
-        io.Handle->BackendPlatformName = (byte*)this.platformNamePtr;
+            this.platformNamePtr = Marshal.StringToHGlobalAnsi("imgui_impl_win32_c#");
+            io.Handle->BackendPlatformName = (byte*)this.platformNamePtr;
 
-        var mainViewport = ImGui.GetMainViewport();
-        mainViewport.PlatformHandle = mainViewport.PlatformHandleRaw = hWnd;
-        if (io.ConfigFlags.HasFlag(ImGuiConfigFlags.ViewportsEnable))
-            this.viewportHandler = new(this);
+            var mainViewport = ImGui.GetMainViewport();
+            mainViewport.PlatformHandle = mainViewport.PlatformHandleRaw = hWnd;
+            if (io.ConfigFlags.HasFlag(ImGuiConfigFlags.ViewportsEnable))
+            {
+                // Retain the handler before registration can fail, so rollback can detach its callbacks.
+                this.viewportHandler = new(this);
+                this.viewportHandler.Initialize();
+            }
 
-        this.cursors = new HCURSOR[9];
-        this.cursors[(int)ImGuiMouseCursor.Arrow] = LoadCursorW(default, IDC.IDC_ARROW);
-        this.cursors[(int)ImGuiMouseCursor.TextInput] = LoadCursorW(default, IDC.IDC_IBEAM);
-        this.cursors[(int)ImGuiMouseCursor.ResizeAll] = LoadCursorW(default, IDC.IDC_SIZEALL);
-        this.cursors[(int)ImGuiMouseCursor.ResizeEw] = LoadCursorW(default, IDC.IDC_SIZEWE);
-        this.cursors[(int)ImGuiMouseCursor.ResizeNs] = LoadCursorW(default, IDC.IDC_SIZENS);
-        this.cursors[(int)ImGuiMouseCursor.ResizeNesw] = LoadCursorW(default, IDC.IDC_SIZENESW);
-        this.cursors[(int)ImGuiMouseCursor.ResizeNwse] = LoadCursorW(default, IDC.IDC_SIZENWSE);
-        this.cursors[(int)ImGuiMouseCursor.Hand] = LoadCursorW(default, IDC.IDC_HAND);
-        this.cursors[(int)ImGuiMouseCursor.NotAllowed] = LoadCursorW(default, IDC.IDC_NO);
+            this.cursors = new HCURSOR[9];
+            this.cursors[(int)ImGuiMouseCursor.Arrow] = LoadCursorW(default, IDC.IDC_ARROW);
+            this.cursors[(int)ImGuiMouseCursor.TextInput] = LoadCursorW(default, IDC.IDC_IBEAM);
+            this.cursors[(int)ImGuiMouseCursor.ResizeAll] = LoadCursorW(default, IDC.IDC_SIZEALL);
+            this.cursors[(int)ImGuiMouseCursor.ResizeEw] = LoadCursorW(default, IDC.IDC_SIZEWE);
+            this.cursors[(int)ImGuiMouseCursor.ResizeNs] = LoadCursorW(default, IDC.IDC_SIZENS);
+            this.cursors[(int)ImGuiMouseCursor.ResizeNesw] = LoadCursorW(default, IDC.IDC_SIZENESW);
+            this.cursors[(int)ImGuiMouseCursor.ResizeNwse] = LoadCursorW(default, IDC.IDC_SIZENWSE);
+            this.cursors[(int)ImGuiMouseCursor.Hand] = LoadCursorW(default, IDC.IDC_HAND);
+            this.cursors[(int)ImGuiMouseCursor.NotAllowed] = LoadCursorW(default, IDC.IDC_NO);
 
-        this.cvLogMouseEvents = Service<ConsoleManager>.Get().AddVariable(
-            "imgui.log_mouse_events",
-            "Log mouse events to console for debugging",
-            false);
+            this.cvLogMouseEvents = Service<ConsoleManager>.Get().AddVariable(
+                "imgui.log_mouse_events",
+                "Log mouse events to console for debugging",
+                false);
+        }
+        catch
+        {
+            // Detach native callbacks before the backend destroys its ImGui context.
+            this.Dispose();
+            throw;
+        }
     }
 
     /// <summary>
@@ -700,10 +712,12 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
 
         this.cursors.AsSpan().Clear();
 
-        if (ImGui.GetIO().Handle->BackendPlatformName == (void*)this.platformNamePtr)
-            ImGui.GetIO().Handle->BackendPlatformName = null;
         if (this.platformNamePtr != nint.Zero)
+        {
+            if (ImGui.GetIO().Handle->BackendPlatformName == (void*)this.platformNamePtr)
+                ImGui.GetIO().Handle->BackendPlatformName = null;
             Marshal.FreeHGlobal(this.platformNamePtr);
+        }
 
         if (this.iniPathPtr != nint.Zero)
         {
@@ -722,11 +736,15 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
         private Win32InputHandler input;
 
         private bool wantUpdateMonitors = true;
+        private bool windowClassRegistered;
 
         public ViewportHandler(Win32InputHandler input)
         {
             this.input = input;
+        }
 
+        public void Initialize()
+        {
             var pio = ImGui.GetPlatformIO();
             pio.PlatformCreateWindow = (delegate* unmanaged[Cdecl]<ImGuiViewportPtr, void>)&OnCreateWindow;
             pio.PlatformDestroyWindow = (delegate* unmanaged[Cdecl]<ImGuiViewportPtr, void>)&OnDestroyWindow;
@@ -741,9 +759,6 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             pio.PlatformSetWindowTitle = (delegate* unmanaged[Cdecl]<ImGuiViewportPtr, byte*, void>)&OnSetWindowTitle;
             pio.PlatformSetWindowAlpha = (delegate* unmanaged[Cdecl]<ImGuiViewportPtr, float, void>)&OnSetWindowAlpha;
             pio.PlatformUpdateWindow = (delegate* unmanaged[Cdecl]<ImGuiViewportPtr, void>)&OnUpdateWindow;
-            // pio.Platform_SetImeInputPos = this.RegisterFunctionPointer<SetImeInputPosDelegate>(this.OnSetImeInputPos);
-            // pio.Platform_GetWindowDpiScale = this.RegisterFunctionPointer<GetWindowDpiScaleDelegate>(this.OnGetWindowDpiScale);
-            // pio.Platform_ChangedViewport = this.RegisterFunctionPointer<ChangedViewportDelegate>(this.OnChangedViewport);
 
             fixed (char* windowClassNamePtr = WindowClassName)
             {
@@ -760,10 +775,10 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
 
                 if (RegisterClassExW(&wcex) == 0)
                     throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()) ?? new("RegisterClassEx Fail");
+                this.windowClassRegistered = true;
             }
 
-            // Register main window handle (which is owned by the main application, not by us)
-            // This is mostly for simplicity and consistency, so that our code (e.g. mouse handling etc.) can use same logic for main and secondary viewports.
+            // Track the application-owned main window with the same data used by secondary viewports.
             var mainViewport = ImGui.GetMainViewport();
 
             var data = (ImGuiViewportDataWin32*)Marshal.AllocHGlobal(Marshal.SizeOf<ImGuiViewportDataWin32>());
@@ -778,14 +793,22 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             if (this.input is null)
                 return;
 
+            // Destroy windows before detaching their callbacks or unregistering their window class.
+            ImGui.DestroyPlatformWindows();
             var pio = ImGui.GetPlatformIO();
             ImGui.GetPlatformIO().Handle->Monitors.Free();
 
-            fixed (char* windowClassNamePtr = WindowClassName)
+            // A failed registration may leave a class owned by another handler.
+            if (this.windowClassRegistered)
             {
-                UnregisterClassW(
-                    windowClassNamePtr,
-                    (HINSTANCE)Marshal.GetHINSTANCE(typeof(ViewportHandler).Module));
+                fixed (char* windowClassNamePtr = WindowClassName)
+                {
+                    UnregisterClassW(
+                        windowClassNamePtr,
+                        (HINSTANCE)Marshal.GetHINSTANCE(typeof(ViewportHandler).Module));
+                }
+
+                this.windowClassRegistered = false;
             }
 
             pio.PlatformCreateWindow = null;
@@ -801,9 +824,6 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             pio.PlatformSetWindowTitle = null;
             pio.PlatformSetWindowAlpha = null;
             pio.PlatformUpdateWindow = null;
-            // pio.Platform_SetImeInputPos = nint.Zero;
-            // pio.Platform_GetWindowDpiScale = nint.Zero;
-            // pio.Platform_ChangedViewport = nint.Zero;
 
             this.input = null!;
         }
