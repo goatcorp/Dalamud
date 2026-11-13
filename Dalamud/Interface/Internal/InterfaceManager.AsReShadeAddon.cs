@@ -22,6 +22,10 @@ internal unsafe partial class InterfaceManager
 
     private void ReShadeAddonInterfaceOnDestroySwapChain(ref ReShadeAddonInterface.ApiObject swapChain)
     {
+        using var callback = this.callbackLifetime.Enter();
+        if (!callback.CanUseBackend)
+            return;
+
         var swapChainNative = swapChain.GetNative<IDXGISwapChain>();
         var activeBackend = this.backend;
         if (activeBackend?.IsAttachedToPresentationTarget((nint)swapChainNative) is not true)
@@ -41,6 +45,10 @@ internal unsafe partial class InterfaceManager
 
     private void ReShadeAddonInterfaceOnInitSwapChain(ref ReShadeAddonInterface.ApiObject swapChain)
     {
+        using var callback = this.callbackLifetime.Enter();
+        if (!callback.CanUseBackend)
+            return;
+
         var swapChainNative = swapChain.GetNative<IDXGISwapChain>();
         var activeBackend = this.backend;
         if (activeBackend?.IsAttachedToPresentationTarget((nint)swapChainNative) is not true)
@@ -93,7 +101,7 @@ internal unsafe partial class InterfaceManager
         }
     }
 
-    /// <summary>Releases outstanding lifecycle scopes after ReShade callbacks have been detached.</summary>
+    /// <summary>Releases outstanding resize scopes after interface callbacks have drained.</summary>
     private void ClearReShadeResizeScopes()
     {
         using (this.reShadeResizeLock.EnterScope())
@@ -124,6 +132,10 @@ internal unsafe partial class InterfaceManager
         ReadOnlySpan<RECT> destRect,
         ReadOnlySpan<RECT> dirtyRects)
     {
+        using var callback = this.callbackLifetime.Enter();
+        if (!callback.CanUseBackend)
+            return;
+
         var swapChainNative = swapChain.GetNative<IDXGISwapChain>();
 
         if (this.RenderDalamudCheckAndInitialize(swapChainNative, 0) is { } activebackend)
@@ -132,6 +144,10 @@ internal unsafe partial class InterfaceManager
 
     private void ReShadeAddonInterfaceOnReShadeOverlay(ref ReShadeAddonInterface.ApiObject runtime)
     {
+        using var callback = this.callbackLifetime.Enter();
+        if (!callback.CanUseBackend)
+            return;
+
         var swapChainNative = runtime.GetNative<IDXGISwapChain>();
 
         if (this.RenderDalamudCheckAndInitialize(swapChainNative, 0) is { } activebackend)
@@ -146,13 +162,16 @@ internal unsafe partial class InterfaceManager
         DXGI_FORMAT newFormat,
         uint swapChainFlags)
     {
+        using var callback = this.callbackLifetime.Enter();
+        var original = callback.IsTracked ? this.dxgiSwapChainResizeBuffersHook!.Original : this.dxgiSwapChainResizeBuffersFallback!;
+
         // This is a DXGI detour, so identify the game target from the native swap-chain interface.
-        if (!SwapChainHelper.IsGameDeviceSwapChain(swapChain))
-            return this.dxgiSwapChainResizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
+        if (!callback.CanUseBackend || !SwapChainHelper.IsGameDeviceSwapChain(swapChain))
+            return original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
 
         using var resize = this.backend?.BeginResize();
         this.ResizeBuffers?.InvokeSafely();
-        return this.dxgiSwapChainResizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
+        return original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
     }
 
     /// <summary>Tracks resize callbacks for one ReShade swap-chain identity.</summary>

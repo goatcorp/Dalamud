@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -79,26 +78,25 @@ internal unsafe partial class InterfaceManager
         uint flags,
         DXGI_PRESENT_PARAMETERS* presentParams)
     {
-        Debug.Assert(
-            this.reShadeDxgiSwapChainPresentHook is not null,
-            "this.reShadeDxgiSwapChainPresentHook is not null");
+        using var callback = this.callbackLifetime.Enter();
+        var original = callback.IsTracked ? this.reShadeDxgiSwapChainPresentHook!.Original : this.reShadeDxgiSwapChainPresentFallback!;
 
-        if (this.RenderDalamudCheckAndInitialize(swapChain->AsIDxgiSwapChain(), flags) is { } activeScene)
+        if (callback.CanUseBackend && this.RenderDalamudCheckAndInitialize(swapChain->AsIDxgiSwapChain(), flags) is { } activeScene)
             this.RenderDalamudDraw(activeScene);
 
-        this.reShadeDxgiSwapChainPresentHook!.Original(swapChain, flags, presentParams);
-
-        // Upstream call to system IDXGISwapChain::Present will be called by ReShade.
+        // ReShade performs the system IDXGISwapChain::Present call.
+        original(swapChain, flags, presentParams);
     }
 
     private int DxgiSwapChainPresentDetour(IDXGISwapChain* swapChain, uint syncInterval, uint flags)
     {
-        Debug.Assert(this.dxgiSwapChainPresentHook is not null, "this.dxgiSwapChainPresentHook is not null");
+        using var callback = this.callbackLifetime.Enter();
+        var original = callback.IsTracked ? this.dxgiSwapChainPresentHook!.Original : this.dxgiSwapChainPresentFallback!;
 
-        if (this.RenderDalamudCheckAndInitialize(swapChain, flags) is { } activeScene)
+        if (callback.CanUseBackend && this.RenderDalamudCheckAndInitialize(swapChain, flags) is { } activeScene)
             this.RenderDalamudDraw(activeScene);
 
-        return this.dxgiSwapChainPresentHook!.Original(swapChain, syncInterval, flags);
+        return original(swapChain, syncInterval, flags);
     }
 
     private int AsHookDxgiSwapChainResizeBuffersDetour(
@@ -109,22 +107,24 @@ internal unsafe partial class InterfaceManager
         DXGI_FORMAT newFormat,
         uint swapChainFlags)
     {
-        if (!SwapChainHelper.IsGameDeviceSwapChain(swapChain))
-            return this.dxgiSwapChainResizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
+        using var callback = this.callbackLifetime.Enter();
+        var original = callback.IsTracked ? this.dxgiSwapChainResizeBuffersHook!.Original : this.dxgiSwapChainResizeBuffersFallback!;
+        if (!callback.CanUseBackend || !SwapChainHelper.IsGameDeviceSwapChain(swapChain))
+            return original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
 
 #if DEBUG
         Log.Verbose(
             $"Calling resizebuffers swap@{(nint)swapChain:X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
 #endif
 
-        // Hold a separate resize scope across native reallocation and nested middleware callbacks.
+        // Keep resize exclusion active through native reallocation and nested middleware callbacks.
         var activeBackend = this.backend;
         using var resize = activeBackend?.BeginResize();
         this.ResizeBuffers?.InvokeSafely();
 
         activeBackend?.OnPreResize();
 
-        var ret = this.dxgiSwapChainResizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
+        var ret = original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
         if (ret == DXGI.DXGI_ERROR_INVALID_CALL)
             Log.Error("invalid call to resizeBuffers");
 

@@ -194,7 +194,7 @@ internal sealed class Dalamud : IServiceType
     }
 
     /// <summary>
-    /// Queue an unload of Dalamud when it gets the chance.
+    /// Starts service unloading in the background and signals completion after all services have unloaded.
     /// </summary>
     public void Unload()
     {
@@ -210,16 +210,16 @@ internal sealed class Dalamud : IServiceType
             Windows.Win32.PInvoke.CreateMutex(attribs, false, "DALAMUD_CRASHES_NO_MORE");
         }
 
-        Task.Run(() =>
+        Task.Run(async () =>
         {
-            ServiceManager.UnloadAllServices();
+            await ServiceManager.UnloadAllServices().ConfigureAwait(false);
 
             this.unloadSignal.Set();
         });
     }
 
     /// <summary>
-    /// Wait for an unload request to start.
+    /// Waits for service unloading to complete.
     /// </summary>
     public void WaitForUnload()
     {

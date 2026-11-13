@@ -53,6 +53,9 @@ internal static class ServiceManager
 
     private static readonly CancellationTokenSource UnloadCancellationTokenSource = new();
 
+    // All unload callers share one disposal sequence, including initialization-failure cleanup.
+    private static readonly Lazy<Task> UnloadTask = new(() => Task.Run(UnloadAllServicesCore));
+
     private static LoadingDialog loadingDialog = new();
 
     /// <summary>
@@ -450,26 +453,23 @@ internal static class ServiceManager
                 tasks.RemoveAll(x => x.IsCompleted);
             }
 
-            UnloadAllServices();
+            await UnloadAllServices().ConfigureAwait(false);
 
             throw;
         }
     }
 
     /// <summary>
-    /// Unloads all services, in the reverse order of load.
+    /// Unloads global services before their dependencies, sharing one task across callers.
     /// </summary>
-    public static void UnloadAllServices()
+    /// <returns>A task that completes after all services have been unloaded.</returns>
+    public static Task UnloadAllServices() => UnloadTask.Value;
+
+    private static async Task UnloadAllServicesCore()
     {
         UnloadCancellationTokenSource.Cancel();
 
         var framework = Service<Framework>.GetNullable(ExceptionPropagationMode.None);
-        if (framework is { IsInFrameworkUpdateThread: false, IsFrameworkUnloading: false })
-        {
-            framework.RunOnFrameworkThread(UnloadAllServices).Wait();
-            return;
-        }
-
         var dependencyServicesMap = new Dictionary<Type, IReadOnlyCollection<Type>>();
         var allToUnload = new HashSet<Type>();
         var unloadOrder = new List<Type>();
@@ -481,8 +481,7 @@ internal static class ServiceManager
             if (!serviceType.IsAssignableTo(typeof(IServiceType)))
                 continue;
 
-            // Scoped services shall never be unloaded here.
-            // Their lifetime must be managed by the IServiceScope that owns them. If it leaks, it's their fault.
+            // Scoped services are disposed by their owning IServiceScope.
             if (serviceType.GetServiceKind() == ServiceKind.ScopedService)
                 continue;
 
@@ -517,11 +516,11 @@ internal static class ServiceManager
         Log.Information("==== UNLOADING ALL SERVICES ====");
 
         unloadOrder.Reverse();
-        foreach (var type in unloadOrder)
+        await UnloadServices(framework, unloadOrder.Select<Type, Func<Task>>(type => () =>
         {
             Log.Verbose("Unload {Type}", type.FullName!);
 
-            typeof(Service<>)
+            return (Task)typeof(Service<>)
                     .MakeGenericType(type)
                     .InvokeMember(
                         "Unset",
@@ -529,7 +528,7 @@ internal static class ServiceManager
                         null,
                         null,
                         null);
-        }
+        })).ConfigureAwait(false);
 
 #if DEBUG
         using (LoadedServicesLock.EnterScope())
@@ -539,6 +538,21 @@ internal static class ServiceManager
 #endif
 
         IsUnloaded = true;
+    }
+
+    /// <summary>Awaits each service unset without blocking the framework thread on asynchronous disposal.</summary>
+    /// <param name="framework">The optional framework on whose thread each unset starts while it is not unloading.</param>
+    /// <param name="unloadServices">The service unset operations, ordered before their dependencies.</param>
+    /// <returns>A task that completes after every unset operation has completed.</returns>
+    internal static async Task UnloadServices(Framework? framework, IEnumerable<Func<Task>> unloadServices)
+    {
+        foreach (var unset in unloadServices)
+        {
+            if (framework is { IsFrameworkUnloading: false })
+                await framework.RunOnFrameworkThread(unset).ConfigureAwait(false);
+            else
+                await unset().ConfigureAwait(false);
+        }
     }
 
     /// <summary>
@@ -594,7 +608,8 @@ internal static class ServiceManager
                 throw new InvalidOperationException("Service type is not specified.");
 
             var isServiceDisposable =
-                serviceType.IsAssignableTo(typeof(IInternalDisposableService));
+                serviceType.IsAssignableTo(typeof(IInternalDisposableService))
+                || serviceType.IsAssignableTo(typeof(IInternalAsyncDisposableService));
             var isAnyDisposable =
                 isServiceDisposable
                 || serviceType.IsAssignableTo(typeof(IDisposable))
@@ -602,7 +617,7 @@ internal static class ServiceManager
             if (isAnyDisposable && !isServiceDisposable)
             {
                 throw new InvalidOperationException(
-                    $"A service must be an {nameof(IInternalDisposableService)} without specifying " +
+                    $"A service must be an {nameof(IInternalDisposableService)} or {nameof(IInternalAsyncDisposableService)} without specifying " +
                     $"{nameof(IDisposable)} nor {nameof(IAsyncDisposable)} if it is purely meant to be a service, " +
                     $"or an {nameof(IPublicDisposableService)} if it also is allowed to be constructed not as a " +
                     $"service to be used elsewhere and has to offer {nameof(IDisposable)} or " +
