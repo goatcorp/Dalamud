@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
@@ -338,8 +339,16 @@ internal sealed partial class TextureManager
         /// <inheritdoc/>
         public bool TestIsReleasedOrShouldRelease()
         {
-            if (this.srvDebugPreviewExpiryTick <= Environment.TickCount64)
-                this.srvDebugPreview.Reset();
+            if (!this.srvDebugPreview.IsEmpty() && this.srvDebugPreviewExpiryTick <= Environment.TickCount64)
+            {
+                // Snapshots may still borrow the expired view; cleanup must not release a replacement preview.
+                var retiredSrv = this.srvDebugPreview;
+                if (Service<InterfaceManager>.GetNullable() is { } im)
+                    im.DeferUntilFrameRetired(() => retiredSrv.Dispose());
+                else
+                    retiredSrv.Dispose();
+                this.srvDebugPreview.Detach();
+            }
 
             return this.refCount == 0;
         }
