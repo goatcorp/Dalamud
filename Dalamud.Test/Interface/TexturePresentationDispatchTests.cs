@@ -7,7 +7,6 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Interface.ImGuiBackend;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Utility;
@@ -26,7 +25,7 @@ public class TexturePresentationDispatchTests
     [InlineData(true)]
     public void NonOwnerQueuesBothOverloadsUntilPresentationOwnerDrains(bool presentationActive)
     {
-        var fixture = new DispatchFixture();
+        using var fixture = new DispatchFixture();
         using var ownerReady = new ManualResetEventSlim();
         using var drainRequested = new ManualResetEventSlim();
         Exception? ownerFailure = null;
@@ -112,7 +111,7 @@ public class TexturePresentationDispatchTests
     [Fact]
     public void WorkerOwnerRunsInlineAcrossNestedPresentationAndQueuesAfterRelease()
     {
-        var fixture = new DispatchFixture();
+        using var fixture = new DispatchFixture();
         RunOnWorker(() =>
         {
             Assert.False(ThreadSafety.IsMainThread);
@@ -147,7 +146,7 @@ public class TexturePresentationDispatchTests
     [Fact]
     public void FrameworkOwnershipAloneDoesNotAuthorizeInlineTextureWork()
     {
-        var fixture = new DispatchFixture();
+        using var fixture = new DispatchFixture();
         RunOnWorker(() =>
         {
             Task actionTask;
@@ -173,7 +172,7 @@ public class TexturePresentationDispatchTests
     [InlineData(true)]
     public void BothOverloadsPropagateFailuresAndAllowFollowingWork(bool inline)
     {
-        var fixture = new DispatchFixture();
+        using var fixture = new DispatchFixture();
         RunOnWorker(() =>
         {
             var actionFailure = new DispatchException();
@@ -230,30 +229,22 @@ public class TexturePresentationDispatchTests
         Assert.Null(workerFailure);
     }
 
-    private sealed class DispatchFixture
+    private sealed class DispatchFixture : IDisposable
     {
         private const BindingFlags PrivateInstance = BindingFlags.NonPublic | BindingFlags.Instance;
 
-        private readonly InterfaceManager manager;
-        private readonly Action<IImGuiBackend> draw;
+        private readonly PresentationTestFixture presentation = new(initialized: true);
         private readonly Func<Action, Task> runAction;
         private readonly Func<Func<int>, Task<int>> runFunction;
 
         public DispatchFixture()
         {
-            // Initialize the dispatcher and queue without starting game services or D3D.
-            this.manager = (InterfaceManager)RuntimeHelpers.GetUninitializedObject(typeof(InterfaceManager));
-            GC.SuppressFinalize(this.manager);
-            typeof(InterfaceManager).GetField("renderDalamudLock", PrivateInstance)!.SetValue(this.manager, this.RenderLock);
-            typeof(InterfaceManager).GetField("runBeforeImGuiRender", PrivateInstance)!.SetValue(this.manager, this.BeforeRender);
-            this.draw = typeof(InterfaceManager).GetMethod("RenderDalamudDraw", PrivateInstance)!
-                .CreateDelegate<Action<IImGuiBackend>>(this.manager);
             this.DrainBeforeRender = typeof(InterfaceManager).GetMethod("PreImGuiRender", PrivateInstance)!
-                .CreateDelegate<Action>(this.manager);
+                .CreateDelegate<Action>(this.presentation.Manager);
 
             var textures = (TextureManager)RuntimeHelpers.GetUninitializedObject(typeof(TextureManager));
             GC.SuppressFinalize(textures);
-            typeof(TextureManager).GetField("interfaceManager", PrivateInstance)!.SetValue(textures, this.manager);
+            typeof(TextureManager).GetField("interfaceManager", PrivateInstance)!.SetValue(textures, this.presentation.Manager);
             var dispatchers = typeof(TextureManager).GetMethods(PrivateInstance).Where(method => method.Name == "RunDuringPresent").ToArray();
             this.runAction = dispatchers.Single(method => !method.IsGenericMethod)
                 .CreateDelegate<Func<Action, Task>>(textures);
@@ -261,11 +252,13 @@ public class TexturePresentationDispatchTests
                 .CreateDelegate<Func<Func<int>, Task<int>>>(textures);
         }
 
-        public Lock RenderLock { get; } = new();
+        public Lock RenderLock => this.presentation.RenderLock;
 
-        public ConcurrentQueue<Action> BeforeRender { get; } = new();
+        public ConcurrentQueue<Action> BeforeRender => this.presentation.BeforeRender;
 
         public Action DrainBeforeRender { get; }
+
+        public void Dispose() => this.presentation.Dispose();
 
         public Task Run(Action action) => this.runAction(action);
 
@@ -295,8 +288,7 @@ public class TexturePresentationDispatchTests
                     }
                 });
 
-                // Unset configuration fails after queue dispatch, exercising guard release on failure.
-                Assert.Throws<NullReferenceException>(() => this.draw(null!));
+                Assert.Throws<NullReferenceException>(() => this.presentation.Present());
                 Assert.True(callbackFinished);
                 callbackFailure?.Throw();
             }

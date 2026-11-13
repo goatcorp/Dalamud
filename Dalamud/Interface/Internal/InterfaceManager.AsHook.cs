@@ -81,8 +81,8 @@ internal unsafe partial class InterfaceManager
         using var callback = this.callbackLifetime.Enter();
         var original = callback.IsTracked ? this.reShadeDxgiSwapChainPresentHook!.Original : this.reShadeDxgiSwapChainPresentFallback!;
 
-        if (callback.CanUseBackend && this.RenderDalamudCheckAndInitialize(swapChain->AsIDxgiSwapChain(), flags) is { } activeScene)
-            this.RenderDalamudDraw(activeScene);
+        if (callback.CanUseBackend)
+            this.RenderDalamudDraw(swapChain->AsIDxgiSwapChain(), flags);
 
         // ReShade performs the system IDXGISwapChain::Present call.
         original(swapChain, flags, presentParams);
@@ -93,8 +93,8 @@ internal unsafe partial class InterfaceManager
         using var callback = this.callbackLifetime.Enter();
         var original = callback.IsTracked ? this.dxgiSwapChainPresentHook!.Original : this.dxgiSwapChainPresentFallback!;
 
-        if (callback.CanUseBackend && this.RenderDalamudCheckAndInitialize(swapChain, flags) is { } activeScene)
-            this.RenderDalamudDraw(activeScene);
+        if (callback.CanUseBackend)
+            this.RenderDalamudDraw(swapChain, flags);
 
         return original(swapChain, syncInterval, flags);
     }

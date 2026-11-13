@@ -1,10 +1,7 @@
 using System;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading;
 
-using Dalamud.Interface.ImGuiBackend;
-using Dalamud.Interface.Internal;
+using Dalamud.Test.Interface;
 using Dalamud.Utility;
 
 using Xunit;
@@ -176,14 +173,14 @@ public class NativePresentationScopeTests
     public void ContendedPresentationReturnsWithoutEnteringRenderTransaction()
     {
         var syncRoot = ThreadSafety.NativeFrameworkRenderSyncRoot;
-        var (manager, draw, _) = CreateRenderFixture();
+        using var fixture = new PresentationTestFixture(initialized: true);
+        var manager = fixture.Manager;
         Exception? workerFailure = null;
         var worker = new Thread(() =>
         {
             try
             {
-                // Uninitialized rendering state detects any work performed by a rejected callback.
-                draw(null!);
+                fixture.Present();
             }
             catch (Exception exception)
             {
@@ -218,14 +215,15 @@ public class NativePresentationScopeTests
     public void PresentationFailurePreservesCallingThreadsFrameworkOwnership(int recursionDepth)
     {
         var syncRoot = ThreadSafety.NativeFrameworkRenderSyncRoot;
-        var (manager, draw, renderLock) = CreateRenderFixture();
+        using var fixture = new PresentationTestFixture(initialized: true);
+        var manager = fixture.Manager;
+        var renderLock = fixture.RenderLock;
         for (var depth = 0; depth < recursionDepth; depth++)
             syncRoot.Enter();
 
         try
         {
-            // A missing queue fails after both guards are entered, before native ImGui access.
-            Assert.Throws<NullReferenceException>(() => draw(null!));
+            Assert.Throws<NullReferenceException>(() => fixture.Present());
             Assert.Equal(1, manager.CumulativePresentCalls);
             Assert.False(manager.IsCurrentThreadInPresent);
             Assert.False(renderLock.IsHeldByCurrentThread);
@@ -245,22 +243,6 @@ public class NativePresentationScopeTests
             ReleaseCurrentThreadOwnership();
         }
     }
-
-    private static (InterfaceManager Manager, Action<IImGuiBackend> Draw, Lock RenderLock) CreateRenderFixture()
-    {
-        // Initialize only the render guard; other state stays unset to detect access after admission.
-        var manager = (InterfaceManager)RuntimeHelpers.GetUninitializedObject(typeof(InterfaceManager));
-        GC.SuppressFinalize(manager);
-        var renderLock = new Lock();
-        const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
-        SetRenderField(manager, "renderDalamudLock", renderLock);
-        var draw = typeof(InterfaceManager).GetMethod("RenderDalamudDraw", flags)!
-            .CreateDelegate<Action<IImGuiBackend>>(manager);
-        return (manager, draw, renderLock);
-    }
-
-    private static void SetRenderField<T>(InterfaceManager manager, string name, T value) =>
-        typeof(InterfaceManager).GetField(name, BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(manager, value);
 
     private static bool CanWorkerAcquireLock()
     {

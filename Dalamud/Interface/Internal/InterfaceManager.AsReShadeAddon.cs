@@ -138,8 +138,7 @@ internal unsafe partial class InterfaceManager
 
         var swapChainNative = swapChain.GetNative<IDXGISwapChain>();
 
-        if (this.RenderDalamudCheckAndInitialize(swapChainNative, 0) is { } activebackend)
-            this.RenderDalamudDraw(activebackend);
+        this.RenderDalamudDraw(swapChainNative, 0);
     }
 
     private void ReShadeAddonInterfaceOnReShadeOverlay(ref ReShadeAddonInterface.ApiObject runtime)
@@ -150,8 +149,7 @@ internal unsafe partial class InterfaceManager
 
         var swapChainNative = runtime.GetNative<IDXGISwapChain>();
 
-        if (this.RenderDalamudCheckAndInitialize(swapChainNative, 0) is { } activebackend)
-            this.RenderDalamudDraw(activebackend);
+        this.RenderDalamudDraw(swapChainNative, 0);
     }
 
     private int AsReShadeAddonDxgiSwapChainResizeBuffersDetour(

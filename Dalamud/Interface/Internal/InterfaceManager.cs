@@ -107,6 +107,8 @@ internal partial class InterfaceManager : IInternalAsyncDisposableService
     private readonly GamepadAutoExit gamepadAutoExit = new();
 
     private IWin32Backend? backend;
+    // Recursive presentation locks allow reentry, so construction needs a separate guard.
+    private bool isInitializingBackend;
 
     // NvPresent participation controls automatic D3D11 protection; it does not report the driver setting.
     private bool isSmoothMotionDetected;
@@ -304,9 +306,9 @@ internal partial class InterfaceManager : IInternalAsyncDisposableService
     /// </summary>
     public Task FontBuildTask => WhenFontsReady().dalamudAtlas!.BuildTask;
 
-    /// <summary>Gets the number of presentation callbacks admitted to the overlay render transaction so far.</summary>
+    /// <summary>Gets the number of overlay render attempts.</summary>
     /// <remarks>
-    /// Contended callbacks that skip the overlay transaction are not counted.
+    /// Rejected or unready presentations are not counted; failures after readiness checks still count.
     /// The value increases even when Dalamud is hidden via &quot;/xlui hide&quot;.
     /// <see cref="DalamudInterface.FrameCount"/> does not.
     /// </remarks>
@@ -735,17 +737,15 @@ internal partial class InterfaceManager : IInternalAsyncDisposableService
             action.InvokeSafely();
     }
 
-    /// <summary>Checks if the provided swap chain is the target that Dalamud should draw its interface onto,
-    /// and initializes ImGui for drawing.</summary>
-    /// <param name="swapChain">The swap chain to test and initialize ImGui with if conditions are met.</param>
+    /// <summary>Gets or initializes the game swap-chain backend and checks font readiness.</summary>
+    /// <param name="swapChain">The presentation target.</param>
     /// <param name="flags">Flags passed to <see cref="IDXGISwapChain.Present"/>.</param>
-    /// <returns>An initialized instance of <see cref="IDXGISwapChain"/>, or <c>null</c> if <paramref name="swapChain"/>
-    /// is not the main swap chain.</returns>
+    /// <returns>The initialized backend, or <c>null</c> if the target or backend is not ready to draw.</returns>
+    /// <remarks>The caller must hold <see cref="ThreadSafety.NativeFrameworkRenderSyncRoot"/>
+    /// and <see cref="renderDalamudLock"/>.</remarks>
     private unsafe IImGuiBackend? RenderDalamudCheckAndInitialize(IDXGISwapChain* swapChain, uint flags)
     {
-        // Quoting ReShade dxgi_swapchain.cpp DXGISwapChain::on_present:
-        // > Some D3D11 games test presentation for timing and composition purposes
-        // > These calls are not rendering related, but rather a status request for the D3D runtime and as such should be ignored
+        // Status probes do not submit a frame.
         if ((flags & DXGI.DXGI_PRESENT_TEST) != 0)
             return null;
 
@@ -754,13 +754,27 @@ internal partial class InterfaceManager : IInternalAsyncDisposableService
 
         Debug.Assert(this.dalamudAtlas is not null, "dalamudAtlas should have been set already");
 
-        var activeBackend = this.backend ?? this.InitBackend(swapChain);
+        var activeBackend = this.backend;
+        if (activeBackend is null)
+        {
+            if (this.isInitializingBackend)
+                return null;
+
+            this.isInitializingBackend = true;
+            try
+            {
+                activeBackend = this.InitBackend(swapChain);
+            }
+            finally
+            {
+                this.isInitializingBackend = false;
+            }
+        }
 
         if (!this.dalamudAtlas!.HasBuiltAtlas)
         {
             if (this.dalamudAtlas.BuildTask.Exception != null)
             {
-                // TODO: Can we do something more user-friendly here? Unload instead?
                 Log.Error(this.dalamudAtlas.BuildTask.Exception, "Failed to initialize Dalamud base fonts");
                 Util.Fatal("Failed to initialize Dalamud base fonts.\nPlease report this error.", "Dalamud");
             }
@@ -771,12 +785,13 @@ internal partial class InterfaceManager : IInternalAsyncDisposableService
         return activeBackend;
     }
 
-    /// <summary>Runs a serialized overlay transaction when native framework exclusion is available.</summary>
-    /// <param name="activeBackend">The backend to render.</param>
-    private void RenderDalamudDraw(IImGuiBackend activeBackend)
+    /// <summary>Serializes backend initialization and overlay rendering when framework admission succeeds.</summary>
+    /// <param name="swapChain">The presentation target.</param>
+    /// <param name="flags">Flags passed to <see cref="IDXGISwapChain.Present"/>.</param>
+    private unsafe void RenderDalamudDraw(IDXGISwapChain* swapChain, uint flags)
     {
-        // A middleware callback may own the device lock needed by Step. Waiting for framework exclusion
-        // would deadlock; reject contention before counters or queued work change.
+        // Middleware may hold the device lock needed by Step; waiting here can deadlock.
+        // Reject contention before backend initialization, counters, or queued work.
         if (!ThreadSafety.NativeFrameworkRenderSyncRoot.TryEnter())
             return;
 
@@ -784,6 +799,9 @@ internal partial class InterfaceManager : IInternalAsyncDisposableService
         {
             using (this.renderDalamudLock.EnterScope())
             {
+                if (this.RenderDalamudCheckAndInitialize(swapChain, flags) is not { } activeBackend)
+                    return;
+
                 this.CumulativePresentCalls++;
 
                 this.PreImGuiRender();
@@ -826,7 +844,6 @@ internal partial class InterfaceManager : IInternalAsyncDisposableService
 
                 Environment.Exit(-1);
 
-                // Doesn't reach here, but to make the compiler not complain
                 throw new InvalidOperationException();
             }
 
@@ -873,7 +890,7 @@ internal partial class InterfaceManager : IInternalAsyncDisposableService
                 configuration.ChosenStyle = builtInStyles[0].Name;
             }
 
-            // Ensure built-in styles are pinned to the start of the list
+            // Keep built-in styles at the start of the saved list.
             for (var i = 0; i < builtInStyles.Length; i++)
             {
                 if (configuration.SavedStyles.Count <= i || configuration.SavedStyles[i].Name != builtInStyles[i].Name)
@@ -882,7 +899,7 @@ internal partial class InterfaceManager : IInternalAsyncDisposableService
                     configuration.SavedStyles[i] = builtInStyles[i];
             }
 
-            // Use standard if the chosen style isn't there anymore
+            // Fall back to the standard style if the saved selection no longer exists.
             var style = configuration.SavedStyles.FirstOrDefault(x => x.Name == configuration.ChosenStyle);
             if (style == null)
             {
@@ -904,7 +921,7 @@ internal partial class InterfaceManager : IInternalAsyncDisposableService
                 ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
             }
 
-            // NOTE (Chiv) Toggle gamepad navigation via setting
+            // Apply the configured gamepad capabilities.
             if (!configuration.IsGamepadNavigationEnabled)
             {
                 ImGui.GetIO().BackendFlags &= ~ImGuiBackendFlags.HasGamepad;
@@ -916,7 +933,7 @@ internal partial class InterfaceManager : IInternalAsyncDisposableService
                 ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableSetMousePos;
             }
 
-            // NOTE (Chiv) Explicitly deactivate on dalamud boot
+            // Start with gamepad navigation inactive.
             ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
 
             ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
@@ -924,12 +941,12 @@ internal partial class InterfaceManager : IInternalAsyncDisposableService
             Log.Information("[IM] Scene & ImGui setup OK!");
         }
 
-        this.backend = newBackend;
-        Service<InterfaceManagerWithScene>.Provide(new(this));
-
+        newBackend.PostCopy += this.PostImGuiCopy;
         this.wndProcHookManager.PreWndProc += this.WndProcHookManagerOnPreWndProc;
 
-        newBackend.PostCopy += this.PostImGuiCopy;
+        // Publish only after configuration and all frame/input callbacks have been installed.
+        this.backend = newBackend;
+        Service<InterfaceManagerWithScene>.Provide(new(this));
 
         return newBackend;
     }
