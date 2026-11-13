@@ -19,12 +19,12 @@ public static class ThreadSafety
     public static bool IsMainThread => threadStaticIsMainThread;
 
     /// <summary>
-    /// Gets the lock that excludes worker rendering from native framework updates outside presentation.
+    /// Gets the lock that serializes native framework updates and main-thread draw-list rendering with presentation work.
     /// </summary>
     /// <remarks>
     /// Kernel Present releases all game-thread recursion levels until native presentation returns.
     /// Presentation callbacks must acquire without waiting: they may hold the device lock needed by the owner.
-    /// The managed framework tick runs before this lock is acquired.
+    /// The managed framework tick runs before native-update acquisition; draw-list rendering takes its own scope.
     /// </remarks>
     internal static Lock NativeFrameworkRenderSyncRoot { get; } = new();
 

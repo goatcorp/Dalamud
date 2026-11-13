@@ -178,15 +178,17 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
     {
         ThreadSafety.AssertMainThread();
 
-        // Do nothing if the render target is empty.
+        // Managed framework callbacks run outside native-update exclusion. Serialize clearing, drawing,
+        // and state restoration with presentation work.
+        using var drawScope = ThreadSafety.NativeFrameworkRenderSyncRoot.EnterScope();
+
         if (this.rtv.IsEmpty())
             return;
 
-        // Clear the texture first, as the texture exists.
+        // Clear even when there is no valid draw data.
         var clearColor = this.ClearColor;
         this.deviceContext.Get()->ClearRenderTargetView(this.rtvPremultiplied.Get(), (float*)&clearColor);
 
-        // If there is nothing to draw, then stop.
         if (!drawData.Valid
             || drawData.CmdListsCount < 1
             || drawData.TotalIdxCount < 1
@@ -198,6 +200,7 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
             || drawData.FramebufferScale.Y == 0)
             return;
 
+        // Render with premultiplied alpha, then convert to the exposed straight-alpha texture.
         using (new DeviceContextStateBackup(this.device.Get()->GetFeatureLevel(), this.deviceContext))
         {
             Service<Renderer>.Get().RenderDrawData(this.rtvPremultiplied.Get(), drawData);
