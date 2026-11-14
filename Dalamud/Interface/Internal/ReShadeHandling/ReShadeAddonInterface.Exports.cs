@@ -17,14 +17,13 @@ using static TerraFX.Interop.Windows.Windows;
 
 namespace Dalamud.Interface.Internal.ReShadeHandling;
 
+/// <summary>Provides deferred discovery of ReShade addon exports and module metadata.</summary>
 [SuppressMessage(
     "StyleCop.CSharp.LayoutRules",
     "SA1519:Braces should not be omitted from multi-line child statement",
     Justification = "Multiple fixed blocks")]
 internal sealed unsafe partial class ReShadeAddonInterface
 {
-    private static ExportsStruct Exports => ExportDiscovery.Exports;
-
     /// <summary>Gets the ReShade module selected for addon registration.</summary>
     public static ProcessModule? ReShadeModule => ExportDiscovery.ReShadeModule;
 
@@ -34,6 +33,8 @@ internal sealed unsafe partial class ReShadeAddonInterface
     /// <summary>Gets a value indicating whether the selected module's signing certificate names ReShade as issuer.</summary>
     /// <remarks>The certificate's trust and signature validity are not verified.</remarks>
     public static bool ReShadeIsSignedByReShade => ExportDiscovery.ReShadeIsSignedByReShade;
+
+    private static ExportsStruct Exports => ExportDiscovery.Exports;
 
     /// <summary>Finds the address of <c>DXGISwapChain::on_present</c> in <see cref="ReShadeModule"/>.</summary>
     /// <returns>Address of the function, or <c>0</c> if not found.</returns>
@@ -142,6 +143,14 @@ internal sealed unsafe partial class ReShadeAddonInterface
         }
     }
 
+    private struct ExportsStruct
+    {
+        public delegate* unmanaged<HMODULE, uint, bool> ReShadeRegisterAddon;
+        public delegate* unmanaged<HMODULE, void> ReShadeUnregisterAddon;
+        public delegate* unmanaged<AddonEvent, void*, void> ReShadeRegisterEvent;
+        public delegate* unmanaged<AddonEvent, void*, void> ReShadeUnregisterEvent;
+    }
+
     /// <summary>Defers module scanning until native exports or module metadata are requested.</summary>
     private static class ExportDiscovery
     {
@@ -201,13 +210,5 @@ internal sealed unsafe partial class ReShadeAddonInterface
         public static ImmutableArray<ProcessModule> AllReShadeModules { get; }
 
         public static bool ReShadeIsSignedByReShade { get; }
-    }
-
-    private struct ExportsStruct
-    {
-        public delegate* unmanaged<HMODULE, uint, bool> ReShadeRegisterAddon;
-        public delegate* unmanaged<HMODULE, void> ReShadeUnregisterAddon;
-        public delegate* unmanaged<AddonEvent, void*, void> ReShadeRegisterEvent;
-        public delegate* unmanaged<AddonEvent, void*, void> ReShadeUnregisterEvent;
     }
 }

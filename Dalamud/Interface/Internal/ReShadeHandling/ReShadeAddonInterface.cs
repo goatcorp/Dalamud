@@ -175,6 +175,24 @@ internal sealed unsafe partial class ReShadeAddonInterface : IDisposable
         }
     }
 
+    /// <summary>Roots a managed delegate alongside its native callback address.</summary>
+    /// <typeparam name="T">The callback delegate type.</typeparam>
+    private readonly struct DelegateStorage<T> where T : Delegate
+    {
+        [UsedImplicitly]
+        public readonly T Delegate;
+
+        public readonly void* Address;
+
+        public DelegateStorage(T @delegate)
+        {
+            this.Delegate = @delegate;
+            this.Address = (void*)Marshal.GetFunctionPointerForDelegate(@delegate);
+        }
+
+        public static implicit operator void*(DelegateStorage<T> sto) => sto.Address;
+    }
+
     /// <summary>Retains native callbacks across managed receiver lifetimes.</summary>
     private sealed class NativeRegistration
     {
@@ -266,23 +284,5 @@ internal sealed unsafe partial class ReShadeAddonInterface : IDisposable
 
             return this.getModuleHandleExWOriginal!(dwFlags, lpModuleName, phModule);
         }
-    }
-
-    /// <summary>Roots a managed delegate alongside its native callback address.</summary>
-    /// <typeparam name="T">The callback delegate type.</typeparam>
-    private readonly struct DelegateStorage<T> where T : Delegate
-    {
-        [UsedImplicitly]
-        public readonly T Delegate;
-
-        public readonly void* Address;
-
-        public DelegateStorage(T @delegate)
-        {
-            this.Delegate = @delegate;
-            this.Address = (void*)Marshal.GetFunctionPointerForDelegate(@delegate);
-        }
-
-        public static implicit operator void*(DelegateStorage<T> sto) => sto.Address;
     }
 }

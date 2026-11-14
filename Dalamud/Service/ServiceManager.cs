@@ -465,96 +465,6 @@ internal static class ServiceManager
     /// <returns>A task that completes after all services have been unloaded.</returns>
     public static Task UnloadAllServices() => UnloadTask.Value;
 
-    private static async Task UnloadAllServicesCore()
-    {
-        UnloadCancellationTokenSource.Cancel();
-
-        var framework = Service<Framework>.GetNullable(ExceptionPropagationMode.None);
-        var dependencyServicesMap = new Dictionary<Type, IReadOnlyCollection<Type>>();
-        var allToUnload = new HashSet<Type>();
-        var unloadOrder = new List<Type>();
-
-        Log.Information("==== COLLECTING SERVICES TO UNLOAD ====");
-
-        foreach (var serviceType in GetConcreteServiceTypes())
-        {
-            if (!serviceType.IsAssignableTo(typeof(IServiceType)))
-                continue;
-
-            // Scoped services are disposed by their owning IServiceScope.
-            if (serviceType.GetServiceKind() == ServiceKind.ScopedService)
-                continue;
-
-            Log.Verbose("Calling GetDependencyServices for '{ServiceName}'", serviceType.FullName!);
-
-            var typeAsServiceT = ServiceHelpers.GetAsService(serviceType);
-            dependencyServicesMap[serviceType] = ServiceHelpers.GetDependencies(typeAsServiceT, true);
-
-            allToUnload.Add(serviceType);
-        }
-
-        void UnloadService(Type serviceType)
-        {
-            if (unloadOrder.Contains(serviceType))
-                return;
-
-            var deps = dependencyServicesMap[serviceType];
-            foreach (var dep in deps)
-            {
-                UnloadService(dep);
-            }
-
-            unloadOrder.Add(serviceType);
-            Log.Information("Queue for unload {Type}", serviceType.FullName!);
-        }
-
-        foreach (var serviceType in allToUnload)
-        {
-            UnloadService(serviceType);
-        }
-
-        Log.Information("==== UNLOADING ALL SERVICES ====");
-
-        unloadOrder.Reverse();
-        await UnloadServices(framework, unloadOrder.Select<Type, Func<Task>>(type => () =>
-        {
-            Log.Verbose("Unload {Type}", type.FullName!);
-
-            return (Task)typeof(Service<>)
-                    .MakeGenericType(type)
-                    .InvokeMember(
-                        "Unset",
-                        BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.NonPublic,
-                        null,
-                        null,
-                        null);
-        })).ConfigureAwait(false);
-
-#if DEBUG
-        using (LoadedServicesLock.EnterScope())
-        {
-            LoadedServices.Clear();
-        }
-#endif
-
-        IsUnloaded = true;
-    }
-
-    /// <summary>Awaits each service unset without blocking the framework thread on asynchronous disposal.</summary>
-    /// <param name="framework">The optional framework on whose thread each unset starts while it is not unloading.</param>
-    /// <param name="unloadServices">The service unset operations, ordered before their dependencies.</param>
-    /// <returns>A task that completes after every unset operation has completed.</returns>
-    internal static async Task UnloadServices(Framework? framework, IEnumerable<Func<Task>> unloadServices)
-    {
-        foreach (var unset in unloadServices)
-        {
-            if (framework is { IsFrameworkUnloading: false })
-                await framework.RunOnFrameworkThread(unset).ConfigureAwait(false);
-            else
-                await unset().ConfigureAwait(false);
-        }
-    }
-
     /// <summary>
     /// Get the service type of this type.
     /// </summary>
@@ -630,6 +540,96 @@ internal static class ServiceManager
             throw new InvalidOperationException($"{serviceType.Name}: {e.Message}");
         }
 #endif
+    }
+
+    /// <summary>Awaits each service unset without blocking the framework thread on asynchronous disposal.</summary>
+    /// <param name="framework">The optional framework on whose thread each unset starts while it is not unloading.</param>
+    /// <param name="unloadServices">The service unset operations, ordered before their dependencies.</param>
+    /// <returns>A task that completes after every unset operation has completed.</returns>
+    internal static async Task UnloadServices(Framework? framework, IEnumerable<Func<Task>> unloadServices)
+    {
+        foreach (var unset in unloadServices)
+        {
+            if (framework is { IsFrameworkUnloading: false })
+                await framework.RunOnFrameworkThread(unset).ConfigureAwait(false);
+            else
+                await unset().ConfigureAwait(false);
+        }
+    }
+
+    private static async Task UnloadAllServicesCore()
+    {
+        UnloadCancellationTokenSource.Cancel();
+
+        var framework = Service<Framework>.GetNullable(ExceptionPropagationMode.None);
+        var dependencyServicesMap = new Dictionary<Type, IReadOnlyCollection<Type>>();
+        var allToUnload = new HashSet<Type>();
+        var unloadOrder = new List<Type>();
+
+        Log.Information("==== COLLECTING SERVICES TO UNLOAD ====");
+
+        foreach (var serviceType in GetConcreteServiceTypes())
+        {
+            if (!serviceType.IsAssignableTo(typeof(IServiceType)))
+                continue;
+
+            // Scoped services are disposed by their owning IServiceScope.
+            if (serviceType.GetServiceKind() == ServiceKind.ScopedService)
+                continue;
+
+            Log.Verbose("Calling GetDependencyServices for '{ServiceName}'", serviceType.FullName!);
+
+            var typeAsServiceT = ServiceHelpers.GetAsService(serviceType);
+            dependencyServicesMap[serviceType] = ServiceHelpers.GetDependencies(typeAsServiceT, true);
+
+            allToUnload.Add(serviceType);
+        }
+
+        void UnloadService(Type serviceType)
+        {
+            if (unloadOrder.Contains(serviceType))
+                return;
+
+            var deps = dependencyServicesMap[serviceType];
+            foreach (var dep in deps)
+            {
+                UnloadService(dep);
+            }
+
+            unloadOrder.Add(serviceType);
+            Log.Information("Queue for unload {Type}", serviceType.FullName!);
+        }
+
+        foreach (var serviceType in allToUnload)
+        {
+            UnloadService(serviceType);
+        }
+
+        Log.Information("==== UNLOADING ALL SERVICES ====");
+
+        unloadOrder.Reverse();
+        await UnloadServices(framework, unloadOrder.Select<Type, Func<Task>>(type => () =>
+        {
+            Log.Verbose("Unload {Type}", type.FullName!);
+
+            return (Task)typeof(Service<>)
+                    .MakeGenericType(type)
+                    .InvokeMember(
+                        "Unset",
+                        BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.NonPublic,
+                        null,
+                        null,
+                        null);
+        })).ConfigureAwait(false);
+
+#if DEBUG
+        using (LoadedServicesLock.EnterScope())
+        {
+            LoadedServices.Clear();
+        }
+#endif
+
+        IsUnloaded = true;
     }
 
     /// <summary>

@@ -29,13 +29,6 @@ public static class ThreadSafety
     internal static Lock NativeFrameworkRenderSyncRoot { get; } = new();
 
     /// <summary>
-    /// Releases the calling thread's native-update lock ownership until disposal.
-    /// </summary>
-    /// <returns>A scope that restores every released recursion level when disposed on the calling thread.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static NativePresentationScope EnterNativePresentation() => new(NativeFrameworkRenderSyncRoot);
-
-    /// <summary>
     /// Throws an exception when the current thread is not the main thread.
     /// </summary>
     /// <param name="message">The message to be passed into the exception, if one is to be thrown.</param>
@@ -70,6 +63,13 @@ public static class ThreadSafety
         AssertMainThread();
 #endif
     }
+
+    /// <summary>
+    /// Releases the calling thread's native-update lock ownership until disposal.
+    /// </summary>
+    /// <returns>A scope that restores every released recursion level when disposed on the calling thread.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static NativePresentationScope EnterNativePresentation() => new(NativeFrameworkRenderSyncRoot);
 
     /// <summary>
     /// Throws an exception when the current thread is not the main thread and DevMode is enabled.

@@ -101,11 +101,11 @@ internal partial class InterfaceManager : IInternalAsyncDisposableService
 
     // Serialize hook setup, shared cleanup, and display-target release.
     private readonly Lock hookCleanupLock = new();
-    private Task? hookCleanupTask;
 
     private readonly AssertHandler assertHandler = new();
     private readonly GamepadAutoExit gamepadAutoExit = new();
 
+    private Task? hookCleanupTask;
     private IWin32Backend? backend;
     // Recursive presentation locks allow reentry, so construction needs a separate guard.
     private bool isInitializingBackend;
@@ -570,6 +570,14 @@ internal partial class InterfaceManager : IInternalAsyncDisposableService
         return im;
     }
 
+    private static void CallOriginalKernelDeviceSwapChainPresent(PresentDelegate original, nint thisPtr)
+    {
+        // Release native-update ownership while Present may wait for NvPresent worker renders.
+        // Restore every recursion level before the native update resumes.
+        using var presentation = ThreadSafety.EnterNativePresentation();
+        original(thisPtr);
+    }
+
     private void OnLogin()
     {
         var player = Service<Game.Player.PlayerState>.GetNullable();
@@ -992,14 +1000,6 @@ internal partial class InterfaceManager : IInternalAsyncDisposableService
         }
 
         CallOriginalKernelDeviceSwapChainPresent(original, thisPtr);
-    }
-
-    private static void CallOriginalKernelDeviceSwapChainPresent(PresentDelegate original, nint thisPtr)
-    {
-        // Release native-update ownership while Present may wait for NvPresent worker renders.
-        // Restore every recursion level before the native update resumes.
-        using var presentation = ThreadSafety.EnterNativePresentation();
-        original(thisPtr);
     }
 
     private void PreImGuiRender()

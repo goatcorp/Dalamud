@@ -31,13 +31,6 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     private readonly Win32InputHandler imguiInput;
     private readonly bool enableMultithreadProtection;
 
-    // Owned native contexts and initialized companion bindings.
-    private ImGuiContextPtr imguiContext;
-    private ImPlotContextPtr implotContext;
-    private bool imguizmoContextSet;
-    private bool implotImGuiContextSet;
-    private bool disposed;
-
     // Snapshot synchronization: presentation threads may replay each game-thread Step multiple times.
     // Graphics operations take the native device lock first, matching callbacks that already hold it.
     // Render and viewport reads then take renderLock -> snapshot read; Step takes snapshot write for
@@ -51,6 +44,13 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
     // Capture secondary viewports so presentation threads do not enumerate ImGui's live platform viewport list.
     private readonly ViewportSnapshot viewportSnapshots = new();
+
+    // Owned native contexts and initialized companion bindings.
+    private ImGuiContextPtr imguiContext;
+    private ImPlotContextPtr implotContext;
+    private bool imguizmoContextSet;
+    private bool implotImGuiContextSet;
+    private bool disposed;
 
     // Protected by drawDataLock; replay is allowed only after a complete capture.
     private bool hasSnapshot;
