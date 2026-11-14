@@ -1,6 +1,7 @@
+using System.Collections.Generic;
 using System.Threading;
 
-using Dalamud.Interface.Internal.ReShadeHandling;
+using Dalamud.Interface.Internal.Unwrapper;
 
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 
@@ -12,7 +13,8 @@ namespace Dalamud.Interface.Internal;
 /// <summary>Helper for dealing with swap chains.</summary>
 internal static unsafe class SwapChainHelper
 {
-    private static IDXGISwapChain* foundGameDeviceSwapChain;
+    private static IDXGISwapChain* foundGameDisplaySwapChain;
+    private static ComPtr<IDXGISwapChain> ownedGameDisplaySwapChain;
 
     /// <summary>Describes how to hook <see cref="IDXGISwapChain"/> methods.</summary>
     public enum HookMode
@@ -24,14 +26,20 @@ internal static unsafe class SwapChainHelper
         VTable,
     }
 
-    /// <summary>Gets the game's active instance of IDXGISwapChain that is initialized.</summary>
-    /// <value>Address of the game's instance of IDXGISwapChain, or <c>null</c> if not available (yet.)</value>
-    public static IDXGISwapChain* GameDeviceSwapChain
+    /// <summary>Gets the effective <see cref="IDXGISwapChain"/> that presents to the game window.</summary>
+    /// <value>The display swap chain, or <c>null</c> until the game initializes its back buffer.</value>
+    /// <remarks>
+    /// After unwrapping graphics middleware, the cached display pointer may differ from
+    /// <see cref="SwapChain.DXGISwapChain"/>.
+    /// This pointer is borrowed; callers must not release it. The cache retains an unwrapped interface until
+    /// presentation hooks and rendering resources are released. Unwrapping changes only the cache, not the game's field.
+    /// </remarks>
+    public static IDXGISwapChain* GameDisplaySwapChain
     {
         get
         {
-            if (foundGameDeviceSwapChain is not null)
-                return foundGameDeviceSwapChain;
+            if (foundGameDisplaySwapChain is not null)
+                return foundGameDisplaySwapChain;
 
             var kernelDev = Device.Instance();
             if (kernelDev == null)
@@ -41,21 +49,20 @@ internal static unsafe class SwapChainHelper
             if (swapChain == null)
                 return null;
 
-            // BackBuffer should be something from IDXGISwapChain->GetBuffer, which means that IDXGISwapChain itself
-            // must have been fully initialized.
+            // An initialized back buffer indicates that the swap chain is ready for use.
             if (swapChain->BackBuffer == null)
                 return null;
 
-            return foundGameDeviceSwapChain = (IDXGISwapChain*)swapChain->DXGISwapChain;
+            return foundGameDisplaySwapChain = (IDXGISwapChain*)swapChain->DXGISwapChain;
         }
     }
 
-    /// <summary>Gets the vtable of <see cref="GameDeviceSwapChain"/>.</summary>
+    /// <summary>Gets the vtable of <see cref="GameDisplaySwapChain"/>.</summary>
     public static IDXGISwapChain.Vtbl<IDXGISwapChain>* GameDeviceSwapChainVtbl
     {
         get
         {
-            var s = GameDeviceSwapChain;
+            var s = GameDisplaySwapChain;
             return (IDXGISwapChain.Vtbl<IDXGISwapChain>*)(s is null ? null : s->lpVtbl);
         }
     }
@@ -87,7 +94,7 @@ internal static unsafe class SwapChainHelper
             return false;
 
         DXGI_SWAP_CHAIN_DESC desc2;
-        if (GameDeviceSwapChain->GetDesc(&desc2).FAILED)
+        if (GameDisplaySwapChain->GetDesc(&desc2).FAILED)
             return false;
 
         return desc1.OutputWindow == desc2.OutputWindow;
@@ -96,21 +103,45 @@ internal static unsafe class SwapChainHelper
     /// <summary>Wait for the game to have finished initializing the IDXGISwapChain.</summary>
     public static void BusyWaitForGameDeviceSwapChain()
     {
-        while (GameDeviceSwapChain is null)
+        while (GameDisplaySwapChain is null)
             Thread.Yield();
     }
 
     /// <summary>
-    /// Make <see cref="GameDeviceSwapChain"/> store address of unwrapped swap chain, if it was wrapped with ReShade.
+    /// Replaces <see cref="GameDisplaySwapChain"/> with the underlying swap chain after removing ReShade wrappers.
     /// </summary>
-    /// <returns><c>true</c> if it was wrapped with ReShade.</returns>
-    public static bool UnwrapReShade()
+    /// <param name="visited">Wrappers already removed in this wrapper-discovery transaction.</param>
+    /// <returns><c>true</c> if at least one ReShade wrapper was removed.</returns>
+    public static bool UnwrapReShade(HashSet<nint>? visited = null) => Unwrap(new ReShadeUnwrapper(), visited);
+
+    /// <summary>
+    /// Replaces <see cref="GameDisplaySwapChain"/> with the underlying swap chain after removing NvPresent wrappers.
+    /// </summary>
+    /// <param name="visited">Wrappers already removed in this wrapper-discovery transaction.</param>
+    /// <returns><c>true</c> if an NvPresent wrapper was removed.</returns>
+    public static bool UnwrapNvPresent(HashSet<nint>? visited = null) => Unwrap(new NvPresentUnwrapper(), visited);
+
+    /// <summary>Clears the cache and releases its reference after presentation hooks and rendering resources are released.</summary>
+    public static void ResetGameDisplaySwapChain()
     {
-        using var swapChain = new ComPtr<IDXGISwapChain>(GameDeviceSwapChain);
-        if (!ReShadeUnwrapper.Unwrap(&swapChain))
+        foundGameDisplaySwapChain = null;
+        ownedGameDisplaySwapChain.Dispose();
+        ownedGameDisplaySwapChain = default;
+    }
+
+    /// <summary>Unwraps the cached chain while retaining ownership of any discovered interface.</summary>
+    /// <param name="unwrapper">The wrapper-specific discovery strategy.</param>
+    /// <param name="visited">Wrappers already removed in this wrapper-discovery transaction.</param>
+    /// <returns>Whether the cached interface changed.</returns>
+    private static bool Unwrap(ComHookUnwrapper unwrapper, HashSet<nint>? visited = null)
+    {
+        using var swapChain = new ComPtr<IDXGISwapChain>(GameDisplaySwapChain);
+        if (!unwrapper.Unwrap(&swapChain, visited))
             return false;
 
-        foundGameDeviceSwapChain = swapChain.Get();
+        // QueryInterface may return a tear-off interface whose lifetime requires retaining this reference.
+        foundGameDisplaySwapChain = swapChain.Get();
+        swapChain.Swap(ref ownedGameDisplaySwapChain);
         return true;
     }
 }

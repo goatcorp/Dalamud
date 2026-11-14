@@ -33,9 +33,6 @@ internal unsafe class HookWidget : IDataWindowWidget
     private StressTestHookTarget hookStressTestHookTarget = StressTestHookTarget.Random;
     private bool hookStressTestRunning;
 
-    private MessageBoxWDelegate? messageBoxWOriginal;
-    private AddonFinalizeDelegate? addonFinalizeOriginal;
-
     private nint address;
 
     private delegate int MessageBoxWDelegate(
@@ -79,7 +76,10 @@ internal unsafe class HookWidget : IDataWindowWidget
             ImGui.Separator();
 
             if (ImGui.Button("Create"u8))
-                this.messageBoxMinHook = Hook<MessageBoxWDelegate>.FromSymbol("User32", "MessageBoxW", this.MessageBoxWDetour);
+            {
+                this.messageBoxMinHook?.Dispose();
+                this.messageBoxMinHook = this.HookMessageBoxW(enable: false);
+            }
 
             if (ImGui.Button("Enable"u8))
                 this.messageBoxMinHook?.Enable();
@@ -185,11 +185,11 @@ internal unsafe class HookWidget : IDataWindowWidget
         };
     }
 
-    private int MessageBoxWDetour(IntPtr hwnd, string text, string caption, MESSAGEBOX_STYLE type)
+    private static int MessageBoxWDetour(MessageBoxWDelegate original, IntPtr hwnd, string text, string caption, MESSAGEBOX_STYLE type)
     {
         Log.Information("[DATAHOOK] {Hwnd} {Text} {Caption} {Type}", hwnd, text, caption, type);
 
-        var result = this.messageBoxWOriginal!(hwnd, "Cause Access Violation?", caption, MESSAGEBOX_STYLE.MB_YESNO);
+        var result = original(hwnd, "Cause Access Violation?", caption, MESSAGEBOX_STYLE.MB_YESNO);
 
         if (result == (int)MESSAGEBOX_RESULT.IDYES)
         {
@@ -199,29 +199,35 @@ internal unsafe class HookWidget : IDataWindowWidget
         return result;
     }
 
-    private void OnAddonFinalize(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase)
+    private static void OnAddonFinalize(AddonFinalizeDelegate original, AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase)
     {
         Log.Information("OnAddonFinalize");
-        this.addonFinalizeOriginal!(unitManager, atkUnitBase);
+        original(unitManager, atkUnitBase);
     }
 
-    private IDalamudHook HookMessageBoxW()
+    private Hook<MessageBoxWDelegate> HookMessageBoxW(bool enable = true)
     {
+        // Capture each hook's original delegate to preserve its place in the hook chain.
+        MessageBoxWDelegate original = null!;
         var hook = Hook<MessageBoxWDelegate>.FromSymbol(
             "User32",
             "MessageBoxW",
-            this.MessageBoxWDetour);
+            (hwnd, text, caption, type) => MessageBoxWDetour(original, hwnd, text, caption, type));
 
-        this.messageBoxWOriginal = hook.Original;
-        hook.Enable();
+        original = hook.Original;
+        if (enable)
+            hook.Enable();
         return hook;
     }
 
     private IDalamudHook HookAddonFinalize()
     {
-        var hook = Hook<AddonFinalizeDelegate>.FromAddress(this.address, this.OnAddonFinalize);
+        AddonFinalizeDelegate original = null!;
+        var hook = Hook<AddonFinalizeDelegate>.FromAddress(
+            this.address,
+            (unitManager, atkUnitBase) => OnAddonFinalize(original, unitManager, atkUnitBase));
 
-        this.addonFinalizeOriginal = hook.Original;
+        original = hook.Original;
         hook.Enable();
         return hook;
     }

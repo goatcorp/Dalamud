@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace Dalamud;
 
 /// <summary>
@@ -13,6 +15,18 @@ internal interface IInternalDisposableService : IServiceType
 {
     /// <summary>Disposes the service.</summary>
     void DisposeService();
+}
+
+/// <summary>Asynchronous disposal managed by the owning service container.</summary>
+/// <remarks>
+/// Global service unloading awaits completion before unloading dependencies.
+/// Implementations must restore any required thread affinity after awaiting.
+/// </remarks>
+internal interface IInternalAsyncDisposableService : IServiceType
+{
+    /// <summary>Disposes the service asynchronously.</summary>
+    /// <returns>A task that completes after the service's resources have been released.</returns>
+    Task DisposeServiceAsync();
 }
 
 /// <summary>An <see cref="IInternalDisposableService"/> which happens to be public and needs to expose

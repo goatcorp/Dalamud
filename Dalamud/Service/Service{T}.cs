@@ -295,7 +295,7 @@ internal static class Service<T> where T : IServiceType
     }
 
     [UsedImplicitly]
-    private static void Unset()
+    private static async Task Unset()
     {
         if (!instanceTcs.Task.IsCompletedSuccessfully)
             return;
@@ -314,6 +314,20 @@ internal static class Service<T> where T : IServiceType
 
         switch (instanceTcs.Task.Result)
         {
+            case IInternalAsyncDisposableService d:
+                ServiceManager.Log.Debug("Service<{0}>: Disposing asynchronously", typeof(T).Name);
+                try
+                {
+                    await d.DisposeServiceAsync().ConfigureAwait(false);
+                    ServiceManager.Log.Debug("Service<{0}>: Disposed", typeof(T).Name);
+                }
+                catch (Exception e)
+                {
+                    ServiceManager.Log.Warning(e, "Service<{0}>: Dispose failure", typeof(T).Name);
+                }
+
+                break;
+
             case IInternalDisposableService d:
                 ServiceManager.Log.Debug("Service<{0}>: Disposing", typeof(T).Name);
                 try
@@ -334,6 +348,7 @@ internal static class Service<T> where T : IServiceType
                 break;
         }
 
+        // Keep the instance available through Service<T> until its disposal completes.
         instanceTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
         instanceTcs.SetException(new UnloadedException());
     }

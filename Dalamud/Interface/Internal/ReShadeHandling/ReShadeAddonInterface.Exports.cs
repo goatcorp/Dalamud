@@ -7,6 +7,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
+using Dalamud.Support;
+
 using Serilog;
 
 using TerraFX.Interop.Windows;
@@ -15,72 +17,24 @@ using static TerraFX.Interop.Windows.Windows;
 
 namespace Dalamud.Interface.Internal.ReShadeHandling;
 
-/// <summary>ReShade interface.</summary>
+/// <summary>Provides deferred discovery of ReShade addon exports and module metadata.</summary>
 [SuppressMessage(
     "StyleCop.CSharp.LayoutRules",
     "SA1519:Braces should not be omitted from multi-line child statement",
     Justification = "Multiple fixed blocks")]
 internal sealed unsafe partial class ReShadeAddonInterface
 {
-    private static readonly ExportsStruct Exports;
+    /// <summary>Gets the ReShade module selected for addon registration.</summary>
+    public static ProcessModule? ReShadeModule => ExportDiscovery.ReShadeModule;
 
-    static ReShadeAddonInterface()
-    {
-        var modules = new List<ProcessModule>();
-        foreach (var m in Process.GetCurrentProcess().Modules.Cast<ProcessModule>())
-        {
-            ExportsStruct e;
-            if (!GetProcAddressInto(m, nameof(e.ReShadeRegisterAddon), &e.ReShadeRegisterAddon) ||
-                !GetProcAddressInto(m, nameof(e.ReShadeUnregisterAddon), &e.ReShadeUnregisterAddon) ||
-                !GetProcAddressInto(m, nameof(e.ReShadeRegisterEvent), &e.ReShadeRegisterEvent) ||
-                !GetProcAddressInto(m, nameof(e.ReShadeUnregisterEvent), &e.ReShadeUnregisterEvent))
-                continue;
+    /// <summary>Gets all modules exporting the required ReShade addon functions.</summary>
+    public static ImmutableArray<ProcessModule> AllReShadeModules => ExportDiscovery.AllReShadeModules;
 
-            modules.Add(m);
-            if (modules.Count == 1)
-            {
-                try
-                {
-                    var signerName = GetSignatureSignerNameWithoutVerification(m.FileName);
-                    ReShadeIsSignedByReShade = signerName == "ReShade";
-                    Log.Information(
-                        "ReShade DLL is signed by {signerName}. {vn}={v}",
-                        signerName,
-                        nameof(ReShadeIsSignedByReShade),
-                        ReShadeIsSignedByReShade);
-                }
-                catch (Exception ex)
-                {
-                    Log.Information(ex, "ReShade DLL did not had a valid signature.");
-                }
+    /// <summary>Gets a value indicating whether the selected module's signing certificate names ReShade as issuer.</summary>
+    /// <remarks>The certificate's trust and signature validity are not verified.</remarks>
+    public static bool ReShadeIsSignedByReShade => ExportDiscovery.ReShadeIsSignedByReShade;
 
-                ReShadeModule = m;
-                Exports = e;
-            }
-        }
-
-        AllReShadeModules = [.. modules];
-
-        return;
-
-        static bool GetProcAddressInto(ProcessModule m, ReadOnlySpan<char> name, void* res)
-        {
-            Span<byte> name8 = stackalloc byte[Encoding.UTF8.GetByteCount(name) + 1];
-            name8[Encoding.UTF8.GetBytes(name, name8)] = 0;
-            *(nint*)res = (nint)GetProcAddress((HMODULE)m.BaseAddress, (sbyte*)Unsafe.AsPointer(ref name8[0]));
-            return *(nint*)res != 0;
-        }
-    }
-
-    /// <summary>Gets the active ReShade module.</summary>
-    public static ProcessModule? ReShadeModule { get; private set; }
-
-    /// <summary>Gets all the detected ReShade modules.</summary>
-    public static ImmutableArray<ProcessModule> AllReShadeModules { get; private set; }
-
-    /// <summary>Gets a value indicating whether the loaded ReShade has signatures.</summary>
-    /// <remarks>ReShade without addon support is signed, but may not pass signature verification.</remarks>
-    public static bool ReShadeIsSignedByReShade { get; private set; }
+    private static ExportsStruct Exports => ExportDiscovery.Exports;
 
     /// <summary>Finds the address of <c>DXGISwapChain::on_present</c> in <see cref="ReShadeModule"/>.</summary>
     /// <returns>Address of the function, or <c>0</c> if not found.</returns>
@@ -99,10 +53,9 @@ internal sealed unsafe partial class ReShadeAddonInterface
         return rsm.BaseAddress + i + 1;
     }
 
-    /// <summary>Gets the name of the signer of a file that has a certificate embedded within, without verifying if the
-    /// file has a valid signature.</summary>
+    /// <summary>Gets an embedded signing certificate's issuer name without verifying the signature.</summary>
     /// <param name="path">Path to the file.</param>
-    /// <returns>Name of the signer.</returns>
+    /// <returns>The signing certificate's issuer display name.</returns>
     // https://learn.microsoft.com/en-us/previous-versions/troubleshoot/windows/win32/get-information-authenticode-signed-executables
     private static string GetSignatureSignerNameWithoutVerification(ReadOnlySpan<char> path)
     {
@@ -196,5 +149,66 @@ internal sealed unsafe partial class ReShadeAddonInterface
         public delegate* unmanaged<HMODULE, void> ReShadeUnregisterAddon;
         public delegate* unmanaged<AddonEvent, void*, void> ReShadeRegisterEvent;
         public delegate* unmanaged<AddonEvent, void*, void> ReShadeUnregisterEvent;
+    }
+
+    /// <summary>Defers module scanning until native exports or module metadata are requested.</summary>
+    private static class ExportDiscovery
+    {
+        public static readonly ExportsStruct Exports;
+
+        static ExportDiscovery()
+        {
+            var modules = new List<ProcessModule>();
+            foreach (var m in CurrentProcessModules.ModuleCollection.Cast<ProcessModule>())
+            {
+                ExportsStruct e;
+                if (!GetProcAddressInto(m, nameof(e.ReShadeRegisterAddon), &e.ReShadeRegisterAddon) ||
+                    !GetProcAddressInto(m, nameof(e.ReShadeUnregisterAddon), &e.ReShadeUnregisterAddon) ||
+                    !GetProcAddressInto(m, nameof(e.ReShadeRegisterEvent), &e.ReShadeRegisterEvent) ||
+                    !GetProcAddressInto(m, nameof(e.ReShadeUnregisterEvent), &e.ReShadeUnregisterEvent))
+                    continue;
+
+                // Retain every compatible module; use the first for addon registration and signature metadata.
+                modules.Add(m);
+                if (modules.Count == 1)
+                {
+                    try
+                    {
+                        var signerName = GetSignatureSignerNameWithoutVerification(m.FileName);
+                        ReShadeIsSignedByReShade = signerName == "ReShade";
+                        Log.Information(
+                            "ReShade DLL is signed by {signerName}. {vn}={v}",
+                            signerName,
+                            nameof(ReShadeIsSignedByReShade),
+                            ReShadeIsSignedByReShade);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Information(ex, "ReShade DLL did not had a valid signature.");
+                    }
+
+                    ReShadeModule = m;
+                    Exports = e;
+                }
+            }
+
+            AllReShadeModules = [.. modules];
+
+            return;
+
+            static bool GetProcAddressInto(ProcessModule m, ReadOnlySpan<char> name, void* res)
+            {
+                Span<byte> name8 = stackalloc byte[Encoding.UTF8.GetByteCount(name) + 1];
+                name8[Encoding.UTF8.GetBytes(name, name8)] = 0;
+                *(nint*)res = (nint)GetProcAddress((HMODULE)m.BaseAddress, (sbyte*)Unsafe.AsPointer(ref name8[0]));
+                return *(nint*)res != 0;
+            }
+        }
+
+        public static ProcessModule? ReShadeModule { get; }
+
+        public static ImmutableArray<ProcessModule> AllReShadeModules { get; }
+
+        public static bool ReShadeIsSignedByReShade { get; }
     }
 }

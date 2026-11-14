@@ -137,57 +137,63 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     }
 
     /// <summary>
-    /// Invoke listeners for the specified event type.
+    /// Invokes event listeners and logs callback failures.
     /// </summary>
-    /// <param name="eventType">Event Type.</param>
-    /// <param name="args">AddonArgs.</param>
-    /// <param name="blame">What to blame on errors.</param>
+    /// <param name="eventType">The event to dispatch.</param>
+    /// <param name="args">The event arguments.</param>
+    /// <param name="blame">The calling method used for error context.</param>
     internal void InvokeListenersSafely(AddonEvent eventType, AddonArgs args, [CallerMemberName] string blame = "")
     {
+        // Keep listener changes deferred until the outermost dispatch completes.
+        var wasInvokingListeners = this.isInvokingListeners;
         this.isInvokingListeners = true;
 
-        // Early return if we don't have any listeners of this type
-        if (!this.EventListeners.TryGetValue(eventType, out var addonListeners)) return;
-
-        // Handle listeners for this event type that don't care which addon is triggering it
-        if (addonListeners.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(default, out var globalListeners))
+        try
         {
-            foreach (var listener in globalListeners)
-            {
-                if (listener.IsRequestedToClear) continue;
+            if (!this.EventListeners.TryGetValue(eventType, out var addonListeners)) return;
 
-                try
+            // Dispatch listeners registered for all addons.
+            if (addonListeners.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(default, out var globalListeners))
+            {
+                foreach (var listener in globalListeners)
                 {
-                    listener.FunctionDelegate.Invoke(eventType, args);
+                    if (listener.IsRequestedToClear) continue;
+
+                    try
+                    {
+                        listener.FunctionDelegate.Invoke(eventType, args);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, $"Exception in {blame} during {eventType} invoke, for global addon event listener.");
+                    }
                 }
-                catch (Exception e)
+            }
+
+            // Dispatch listeners registered for this addon.
+            Span<char> nameBuffer = stackalloc char[32];
+            var nameLength = Encoding.UTF8.GetChars(args.AddonNameSpan, nameBuffer);
+            if (addonListeners.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(nameBuffer[..nameLength], out var addonListener))
+            {
+                foreach (var listener in addonListener)
                 {
-                    Log.Error(e, $"Exception in {blame} during {eventType} invoke, for global addon event listener.");
+                    if (listener.IsRequestedToClear) continue;
+
+                    try
+                    {
+                        listener.FunctionDelegate.Invoke(eventType, args);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, $"Exception in {blame} during {eventType} invoke, for specific addon {args.AddonName}.");
+                    }
                 }
             }
         }
-
-        // Handle listeners that are listening for this addon and event type specifically
-        Span<char> nameBuffer = stackalloc char[32];
-        var nameLength = Encoding.UTF8.GetChars(args.AddonNameSpan, nameBuffer);
-        if (addonListeners.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(nameBuffer[..nameLength], out var addonListener))
+        finally
         {
-            foreach (var listener in addonListener)
-            {
-                if (listener.IsRequestedToClear) continue;
-
-                try
-                {
-                    listener.FunctionDelegate.Invoke(eventType, args);
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, $"Exception in {blame} during {eventType} invoke, for specific addon {args.AddonName}.");
-                }
-            }
+            this.isInvokingListeners = wasInvokingListeners;
         }
-
-        this.isInvokingListeners = false;
     }
 
     private void RegisterListenerMethod(AddonLifecycleEventListener listener)

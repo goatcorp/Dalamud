@@ -395,24 +395,23 @@ internal sealed partial class TextureManager
 
     private void ReleaseUnmanagedResources() => this.device.Reset();
 
-    /// <summary>Runs the given action in IDXGISwapChain.Present immediately or waiting as needed.</summary>
+    /// <summary>Runs the action inline for the presentation owner, otherwise queues it before rendering.</summary>
     /// <param name="action">The action to run.</param>
-    // Not sure why this and the below can't be unconditional RunOnFrameworkThread
     private async Task RunDuringPresent(Action action)
     {
-        if (this.interfaceManager.IsMainThreadInPresent && ThreadSafety.IsMainThread)
+        if (this.interfaceManager.IsCurrentThreadInPresent)
             action();
         else
             await this.interfaceManager.RunBeforeImGuiRender(action);
     }
 
-    /// <summary>Runs the given function in IDXGISwapChain.Present immediately or waiting as needed.</summary>
+    /// <summary>Runs the function inline for the presentation owner, otherwise queues it before rendering.</summary>
     /// <typeparam name="T">The type of the return value.</typeparam>
     /// <param name="func">The function to run.</param>
     /// <returns>The return value from the function.</returns>
     private async Task<T> RunDuringPresent<T>(Func<T> func)
     {
-        if (this.interfaceManager.IsMainThreadInPresent && ThreadSafety.IsMainThread)
+        if (this.interfaceManager.IsCurrentThreadInPresent)
             return func();
         return await this.interfaceManager.RunBeforeImGuiRender(func);
     }

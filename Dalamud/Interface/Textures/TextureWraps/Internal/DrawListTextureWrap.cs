@@ -178,15 +178,17 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
     {
         ThreadSafety.AssertMainThread();
 
-        // Do nothing if the render target is empty.
+        // Managed framework callbacks run outside native-update exclusion. Serialize clearing, drawing,
+        // and state restoration with presentation work.
+        using var drawScope = ThreadSafety.NativeFrameworkRenderSyncRoot.EnterScope();
+
         if (this.rtv.IsEmpty())
             return;
 
-        // Clear the texture first, as the texture exists.
+        // Clear even when there is no valid draw data.
         var clearColor = this.ClearColor;
         this.deviceContext.Get()->ClearRenderTargetView(this.rtvPremultiplied.Get(), (float*)&clearColor);
 
-        // If there is nothing to draw, then stop.
         if (!drawData.Valid
             || drawData.CmdListsCount < 1
             || drawData.TotalIdxCount < 1
@@ -198,6 +200,7 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
             || drawData.FramebufferScale.Y == 0)
             return;
 
+        // Render with premultiplied alpha, then convert to the exposed straight-alpha texture.
         using (new DeviceContextStateBackup(this.device.Get()->GetFeatureLevel(), this.deviceContext))
         {
             Service<Renderer>.Get().RenderDrawData(this.rtvPremultiplied.Get(), drawData);
@@ -205,12 +208,12 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
         }
     }
 
-    /// <summary>Resizes the texture.</summary>
+    /// <summary>Resizes the render targets, or selects the empty texture if either dimension is zero.</summary>
     /// <param name="newWidth">New texture width.</param>
     /// <param name="newHeight">New texture height.</param>
     /// <param name="newFormat">New format.</param>
-    /// <returns><see cref="S.S_OK"/> if the texture has been resized, <see cref="S.S_FALSE"/> if the texture has not
-    /// been resized, or a value with <see cref="HRESULT.FAILED"/> that evaluates to <see langword="true"/>.</returns>
+    /// <returns><see cref="S.S_OK"/> if new render targets were installed; <see cref="S.S_FALSE"/> if the empty texture
+    /// was selected or the dimensions were unchanged; otherwise, a failing <see cref="HRESULT"/>.</returns>
     private HRESULT Resize(int newWidth, int newHeight, DXGI_FORMAT newFormat)
     {
         if (newWidth < 0 || newHeight < 0)
@@ -218,22 +221,19 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
 
         if (newWidth == 0 || newHeight == 0)
         {
-            this.tex.Reset();
-            this.srv.Reset();
-            this.rtv.Reset();
-            this.texPremultiplied.Reset();
-            this.srvPremultiplied.Reset();
-            this.rtvPremultiplied.Reset();
+            using var emptySrv = new ComPtr<ID3D11ShaderResourceView>(
+                (ID3D11ShaderResourceView*)this.emptyTexture.Handle.Handle);
+            this.RetireResources();
+            emptySrv.Swap(ref this.srv);
             this.width = newWidth;
-            this.Height = newHeight;
-            this.srv = new((ID3D11ShaderResourceView*)this.emptyTexture.Handle.Handle);
+            this.height = newHeight;
             return S.S_FALSE;
         }
 
         if (this.width == newWidth && this.height == newHeight)
             return S.S_FALSE;
 
-        // These new resources will take replace the existing resources, only once all allocations are completed.
+        // Allocate both alpha variants before replacing any current resources.
         using var tmptex = default(ComPtr<ID3D11Texture2D>);
         using var tmpsrv = default(ComPtr<ID3D11ShaderResourceView>);
         using var tmprtv = default(ComPtr<ID3D11RenderTargetView>);
@@ -285,6 +285,7 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
         if (hr.FAILED)
             return hr;
 
+        this.RetireResources();
         tmptex.Swap(ref this.tex);
         tmpsrv.Swap(ref this.srv);
         tmprtv.Swap(ref this.rtv);
@@ -298,5 +299,39 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
         this.textureManager.BlameSetName(this, this.debugName);
         this.textureManager.Blame(this, this.plugin);
         return S.S_OK;
+    }
+
+    /// <summary>Retires both alpha variants and clears their owning fields.</summary>
+    /// <remarks>Live draw commands and replayable snapshots may still borrow the retired resources.</remarks>
+    private void RetireResources()
+    {
+        var retiredTex = this.tex;
+        var retiredSrv = this.srv;
+        var retiredRtv = this.rtv;
+        var retiredTexPremultiplied = this.texPremultiplied;
+        var retiredSrvPremultiplied = this.srvPremultiplied;
+        var retiredRtvPremultiplied = this.rtvPremultiplied;
+        Action release = () =>
+        {
+            retiredSrv.Dispose();
+            retiredRtv.Dispose();
+            retiredTex.Dispose();
+            retiredSrvPremultiplied.Dispose();
+            retiredRtvPremultiplied.Dispose();
+            retiredTexPremultiplied.Dispose();
+        };
+
+        if (Service<InterfaceManager>.GetNullable() is { } im)
+            im.DeferUntilFrameRetired(release);
+        else
+            release();
+
+        // Transfer the copied COM references without releasing them from these fields.
+        this.tex.Detach();
+        this.srv.Detach();
+        this.rtv.Detach();
+        this.texPremultiplied.Detach();
+        this.srvPremultiplied.Detach();
+        this.rtvPremultiplied.Detach();
     }
 }

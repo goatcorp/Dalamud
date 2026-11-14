@@ -23,6 +23,7 @@ internal class ReloadedHook<T> : Hook<T> where T : Delegate
     {
         using var scope = HookManager.HookEnableSyncRoot.EnterScope();
 
+        HookManager.ThrowIfDuplicateDetour(address, detour);
         var unhooker = HookManager.RegisterUnhooker(address);
         this.hookImpl = ReloadedHooks.Instance.CreateHook<T>(detour, address.ToInt64());
         this.hookImpl.Activate();

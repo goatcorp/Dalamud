@@ -6,7 +6,7 @@ set "FIND_CMAKE_VS="
 set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
 if not exist "%VSWHERE%" goto missing
 
-for /f "usebackq delims=" %%i in (`"%VSWHERE%" -latest -prerelease -requires Microsoft.VisualStudio.Component.VC.CMake.Project -property installationPath`) do (
+for /f "usebackq delims=" %%i in (`"%VSWHERE%" -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.CMake.Project -property installationPath`) do (
     set "FIND_CMAKE_VS=%%i"
 )
 if "%FIND_CMAKE_VS%"=="" goto missing
