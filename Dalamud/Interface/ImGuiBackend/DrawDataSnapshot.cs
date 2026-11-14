@@ -64,11 +64,23 @@ internal sealed unsafe class DrawDataSnapshot : IDisposable
     /// </summary>
     /// <remarks>
     /// External pointers embedded in draw commands, such as texture handles and callback data, remain borrowed.
+    /// Draw-list header allocation failure preserves the current snapshot.
     /// </remarks>
     /// <param name="src">
     /// The live draw-data pointer obtained immediately after ImGui.Render().
     /// </param>
-    public void CopyFrom(ImDrawData* src)
+    public void CopyFrom(ImDrawData* src) =>
+        this.CopyFrom(src, static (count, size) => (nint)NativeMemory.AllocZeroed(count, size));
+
+    /// <summary>
+    /// Copies draw data using a custom allocator for the draw-list header arrays.
+    /// </summary>
+    /// <param name="src">The live draw-data pointer obtained immediately after ImGui.Render().</param>
+    /// <param name="allocateHeaders">
+    /// Allocates the requested element count and size in zeroed storage compatible with
+    /// <see cref="NativeMemory.Free"/>, or throws on failure.
+    /// </param>
+    internal void CopyFrom(ImDrawData* src, Func<nuint, nuint, nint> allocateHeaders)
     {
         var count = src->CmdListsCount;
 
@@ -77,26 +89,23 @@ internal sealed unsafe class DrawDataSnapshot : IDisposable
         {
             Array.Resize(ref this.listBuffers, count);
 
-            if (this.drawListArray is not null)
+            // Replace both header arrays only after both allocations succeed.
+            var newDrawListArray = (ImDrawList*)allocateHeaders((nuint)count, (nuint)sizeof(ImDrawList));
+            ImDrawList** newCmdListPtrArray;
+            try
             {
-                NativeMemory.Free(this.drawListArray);
-                this.drawListArray = null;
+                newCmdListPtrArray = (ImDrawList**)allocateHeaders((nuint)count, (nuint)sizeof(nint));
+            }
+            catch
+            {
+                NativeMemory.Free(newDrawListArray);
+                throw;
             }
 
-            if (this.cmdListPtrArray is not null)
-            {
-                NativeMemory.Free(this.cmdListPtrArray);
-                this.cmdListPtrArray = null;
-            }
-
-            if (count > 0)
-            {
-                this.drawListArray =
-                    (ImDrawList*)NativeMemory.AllocZeroed((nuint)count, (nuint)sizeof(ImDrawList));
-                this.cmdListPtrArray =
-                    (ImDrawList**)NativeMemory.AllocZeroed((nuint)count, (nuint)sizeof(nint));
-            }
-
+            NativeMemory.Free(this.drawListArray);
+            NativeMemory.Free(this.cmdListPtrArray);
+            this.drawListArray = newDrawListArray;
+            this.cmdListPtrArray = newCmdListPtrArray;
             this.listCapacity = count;
         }
 
