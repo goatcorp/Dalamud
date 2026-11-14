@@ -445,19 +445,15 @@ public class DrawSnapshotResizeTests
             this.SetField("renderLock", this.renderLock);
             this.SetField("drawDataLock", this.drawDataLock);
             this.SetField("snapshot", this.snapshot);
-            this.SetField("viewportSnapshots", this.Viewports);
         }
 
         public Dx11Win32Backend Backend { get; }
-
-        public ViewportSnapshot Viewports { get; } = new();
 
         public ReaderWriterLockSlim DrawDataLock => this.drawDataLock;
 
         public void Dispose()
         {
             this.snapshot.Dispose();
-            this.Viewports.Dispose();
             this.drawDataLock.Dispose();
         }
 

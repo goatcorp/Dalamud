@@ -168,10 +168,11 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         this.mainViewport.Draw(drawData, this.mainViewport.SwapChain == null);
 
     /// <inheritdoc/>
-    public void RenderViewportSnapshot(nint rendererUserData, ImDrawDataPtr drawData)
+    public void RenderViewport(nint rendererUserData, ImDrawDataPtr drawData)
     {
-        // The caller must keep the captured handle alive throughout drawing and presentation.
-        // These checks handle missing data; they cannot validate the lifetime of an arbitrary handle.
+        ThreadSafety.AssertMainThread();
+
+        // Missing-data checks do not validate the lifetime of the borrowed renderer handle.
         if (rendererUserData == nint.Zero)
             return;
 
@@ -283,6 +284,9 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         if (drawData.DisplaySize.X <= 0 || drawData.DisplaySize.Y <= 0)
             return;
 
+        // Save before target binding so empty draw lists and setup failures also restore the caller's state.
+        using var oldState = new D3D11DeviceContextStateBackup(this.featureLevel, this.context.Get());
+
         // Set up render target
         this.context.Get()->OMSetRenderTargets(1, &renderTargetView, null);
         if (clearRenderTarget)
@@ -326,8 +330,6 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             this.device.Get()->CreateBuffer(&desc, null, &buffer).ThrowOnError();
             this.indexBuffer.Attach(buffer);
         }
-
-        using var oldState = new D3D11DeviceContextStateBackup(this.featureLevel, this.context.Get());
 
         // Setup desired DX state
         this.SetupRenderState(drawData);

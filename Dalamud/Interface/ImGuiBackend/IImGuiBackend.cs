@@ -16,8 +16,8 @@ internal interface IImGuiBackend : IDisposable
     /// <summary>Invoked during <see cref="Step"/> before input processing and UI construction.</summary>
     event ImGuiNewRenderFrameDelegate? NewRenderFrame;
 
-    /// <summary>Invoked after snapshot copying, under write exclusion, to retire previous-frame resources.</summary>
-    /// <remarks>Handlers hold the non-recursive write lock and must not re-enter capture, rendering, or resize.</remarks>
+    /// <summary>Invoked after main capture and secondary presentation to retire previous-frame resources.</summary>
+    /// <remarks>Handlers hold the non-recursive snapshot write lock and must not re-enter capture, rendering, or resize.</remarks>
     event Action? PostCopy;
 
     /// <summary>Gets or sets a value indicating whether the cursor should be overridden with the ImGui cursor.
@@ -40,14 +40,15 @@ internal interface IImGuiBackend : IDisposable
     /// <remarks>This advisory flag does not establish lock ownership.</remarks>
     bool IsResizeInProgress { get; }
 
-    /// <summary>Builds the ImGui frame and captures main and secondary viewport draw data for subsequent rendering.</summary>
+    /// <summary>Builds the ImGui frame, captures the main snapshot, and draws and presents secondary windows.</summary>
     /// <remarks>
-    /// Call on the game thread. A resize can cause the step to be skipped or its capture to be discarded.
-    /// Rendered ImGui frames complete platform updates under write exclusion even when capture is discarded.
+    /// Call on the game thread before the native presentation handoff; DXGI may synchronously message secondary windows.
+    /// A resize can skip the step or discard its capture. Rendered frames still complete platform updates under
+    /// write exclusion when capture is discarded.
     /// </remarks>
     void Step();
 
-    /// <summary>Renders the latest main snapshot and attempts secondary presentation at most once per captured step.</summary>
+    /// <summary>Renders the latest main snapshot.</summary>
     /// <remarks>
     /// May run repeatedly on presentation threads without invoking <see cref="BuildUi"/>. Skips rendering during resize
     /// and until a complete capture built after that resize is available.

@@ -218,6 +218,7 @@ internal unsafe struct D3D11DeviceContextStateBackup : IDisposable
             {
                 ctx->OMSetBlendState(pThis->blendState, pThis->blendFactor, pThis->sampleMask);
                 ctx->OMSetDepthStencilState(pThis->depthStencilState, pThis->stencilRef);
+                // Render targets and UAVs share output slots; trim null bounds without overlapping their ranges.
                 var rtvc = (uint)RtvCount;
                 while (rtvc > 0 && pThis->rtvs[rtvc - 1] == 0)
                     rtvc--;
@@ -228,16 +229,17 @@ internal unsafe struct D3D11DeviceContextStateBackup : IDisposable
 
                 var uavc = (uint)this.uavCount;
                 while (uavc > uavlb && pThis->uavs[uavc - 1] == 0)
-                    uavlb--;
+                    uavc--;
                 uavc -= uavlb;
 
+                // The UAV pointer starts at the first restored slot, matching UAVStartSlot.
                 ctx->OMSetRenderTargetsAndUnorderedAccessViews(
                     rtvc,
                     (ID3D11RenderTargetView**)pThis->rtvs,
                     pThis->dsv,
                     uavc == 0 ? 0 : uavlb,
                     uavc,
-                    uavc == 0 ? null : (ID3D11UnorderedAccessView**)pThis->uavs,
+                    uavc == 0 ? null : (ID3D11UnorderedAccessView**)pThis->uavs + uavlb,
                     null);
 
                 this.context.Reset();

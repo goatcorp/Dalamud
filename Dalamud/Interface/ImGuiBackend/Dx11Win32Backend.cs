@@ -31,19 +31,17 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     private readonly Win32InputHandler imguiInput;
     private readonly bool enableMultithreadProtection;
 
-    // Snapshot synchronization: presentation threads may replay each game-thread Step multiple times.
+    // Snapshot synchronization: presentation threads may replay the main snapshot multiple times per Step.
     // Graphics operations take the native device lock first, matching callbacks that already hold it.
     // Render and viewport reads then take renderLock -> snapshot read; Step takes snapshot write for
-    // platform updates, capture, and retirement. Serializing readers first avoids blocking pending writers.
+    // platform updates, main capture, secondary presentation, and retirement. Serializing readers first
+    // avoids blocking pending writers.
     // Resize scopes suspend replay/capture without retaining a lock across reallocation. Begin/end take
     // snapshot write alone; resource changes take device -> snapshot write. All readers recheck suspension.
     // The snapshot lock is non-recursive: do not begin/end resize scopes or re-enter graphics while holding it.
     private readonly Lock renderLock = new();
     private readonly ReaderWriterLockSlim drawDataLock = new(LockRecursionPolicy.NoRecursion);
     private readonly DrawDataSnapshot snapshot = new();
-
-    // Capture secondary viewports so presentation threads do not enumerate ImGui's live platform viewport list.
-    private readonly ViewportSnapshot viewportSnapshots = new();
 
     // Owned native contexts and initialized companion bindings.
     private ImGuiContextPtr imguiContext;
@@ -69,9 +67,6 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     private ComPtr<ID3D11DeviceContext> deviceContext;
     private ComPtr<ID3D11Multithread> deviceMultithread;
     private bool restoreMultithreadProtection;
-
-    // Attempt secondary presentation at most once per captured Step, even when the main snapshot renders repeatedly.
-    private int platformWindowsRenderedForStep = 1;
 
     private int targetWidth;
     private int targetHeight;
@@ -256,6 +251,8 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// <inheritdoc/>
     public void Step()
     {
+        ThreadSafety.AssertMainThread();
+
         // Sample before callbacks to detect resize even if it finishes during UI construction.
         var generation = Volatile.Read(ref this.resizeGeneration);
 
@@ -276,13 +273,13 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
         ImGui.Render();
 
-        // Complete platform updates and capture atomically. Native factory hooks may acquire the device lock,
-        // so enter it before the writer lock to match device-owning resource callbacks.
+        // Complete platform updates, main capture, and secondary presentation under write exclusion.
+        // Native factory hooks may acquire the device lock, so enter it first to preserve lock ordering.
         using var deviceLock = new DeviceLock(this);
         this.drawDataLock.EnterWriteLock();
         try
         {
-            // Platform-window mutation or a partial copy can invalidate the previous captures even if Step fails.
+            // Platform-window mutation or a partial copy can invalidate the previous snapshot even if Step fails.
             this.hasSnapshot = false;
 
             // ImGui requires platform completion before the next NewFrame, even if resize discards this capture.
@@ -294,28 +291,27 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
             this.snapshot.CopyFrom(ImGui.GetDrawData().Handle);
 
-            // Entry 0 mirrors the main snapshot; later entries are secondary platform windows.
-            this.viewportSnapshots.BeginCapture();
-            this.viewportSnapshots.Capture(ImGui.GetDrawData().Handle, nint.Zero, isMainViewport: true);
-
+            // Present may synchronously message the secondary HWND, so draw and present on its owning thread
+            // before the kernel Present handoff. Write exclusion keeps live viewport data and resources stable.
             var viewports = ImGui.GetPlatformIO().Viewports;
             for (var i = 1; i < viewports.Size; i++)
             {
                 var viewport = viewports[i];
 
-                // A missing renderer handle means the platform window is not ready to present.
+                if ((viewport.Flags & ImGuiViewportFlags.Minimized) != 0)
+                    continue;
+
                 var rendererUserData = (nint)viewport.RendererUserData;
                 if (rendererUserData == nint.Zero)
                     continue;
 
-                this.viewportSnapshots.Capture(viewport.DrawData.Handle, rendererUserData, isMainViewport: false);
+                this.imguiRenderer.RenderViewport(rendererUserData, viewport.DrawData);
             }
 
-            // Retire resources only after readers of the previous snapshot have drained.
+            // Retire previous-frame resources after replay readers drain and live secondary drawing completes.
             this.PostCopy?.Invoke();
 
-            // Publish only after copying and retirement succeed; allow one secondary presentation attempt.
-            Volatile.Write(ref this.platformWindowsRenderedForStep, 0);
+            // Publish only after main capture, secondary presentation, and retirement succeed.
             this.hasSnapshot = true;
         }
         finally
@@ -338,7 +334,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             if (this.IsResizeInProgress)
                 return;
 
-            // Hold the snapshot stable for the complete main and secondary render pass.
+            // Hold the main snapshot stable for the complete render pass.
             this.drawDataLock.EnterReadLock();
             try
             {
@@ -348,18 +344,6 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
                 // The main snapshot may be composited once for every generated frame.
                 this.imguiRenderer.RenderDrawData(new ImDrawDataPtr(this.snapshot.Handle));
-
-                // Attempt secondary presentation at most once per capture, independent of the main presentation rate.
-                if (Interlocked.CompareExchange(ref this.platformWindowsRenderedForStep, 1, 0) == 0)
-                {
-                    for (var i = 1; i < this.viewportSnapshots.Count; i++)
-                    {
-                        var entry = this.viewportSnapshots[i];
-                        this.imguiRenderer.RenderViewportSnapshot(
-                            entry.RendererUserData,
-                            new ImDrawDataPtr(entry.DrawData.Handle));
-                    }
-                }
             }
             finally
             {
@@ -442,7 +426,6 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
                 // Deferred resources survive resize because an already-started Step can still use them.
                 this.hasSnapshot = false;
                 Interlocked.Increment(ref this.resizeGeneration);
-                this.viewportSnapshots.BeginCapture();
             }
             finally
             {
@@ -562,10 +545,9 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         }
         finally
         {
-            // Release snapshots and device references even if ImGui teardown fails.
-            // Snapshot fields may be unassigned if a field initializer threw.
+            // Release the snapshot and device references even if ImGui teardown fails.
+            // The snapshot may be unassigned if a field initializer threw.
             this.snapshot?.Dispose();
-            this.viewportSnapshots?.Dispose();
 
             // Disable protection only if this backend enabled it from a previously disabled state.
             if (this.enableMultithreadProtection && this.restoreMultithreadProtection && !this.deviceMultithread.IsEmpty())
