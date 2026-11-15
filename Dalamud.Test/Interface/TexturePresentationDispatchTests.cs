@@ -2,14 +2,20 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Utility;
+
+using Lumina.Data.Files;
+using Lumina.Data.Parsing.Tex.Buffers;
 
 using Xunit;
 
@@ -19,6 +25,101 @@ namespace Dalamud.Test.Interface;
 public class TexturePresentationDispatchTests
 {
     private static readonly TimeSpan WorkerTimeout = TimeSpan.FromSeconds(5);
+
+    [Fact]
+    public void SynchronousTexCreationDuringDrawDoesNotWaitForPresentationBoundLoaderWork()
+    {
+        using var fixture = new DispatchFixture();
+        using var device = new ResourceCreationFixture(fixture.Textures);
+        using var conversionCancellation = new CancellationTokenSource();
+        using var loader = new DynamicPriorityQueueLoader(1);
+        typeof(TextureManager).GetField("dynamicPriorityTextureLoader", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .SetValue(fixture.Textures, loader);
+        var conversionCalls = 0;
+        // Occupy the only loader worker with work that cannot finish until presentation drains the queue.
+        var conversion = loader.LoadAsync(
+            null,
+            async _ =>
+            {
+                await fixture.Run(() => { Interlocked.Increment(ref conversionCalls); }).WaitAsync(conversionCancellation.Token);
+                return 42;
+            },
+            default);
+        var file = new TexFile
+        {
+            Header = new()
+            {
+                Type = TexFile.Attribute.TextureType2D,
+                Format = TexFile.TextureFormat.B8G8R8A8,
+                Width = 1,
+                Height = 1,
+                Depth = 1,
+                MipLevelsCount = 1,
+            },
+            TextureBuffer = new B8G8R8A8TextureBuffer(TexFile.Attribute.TextureType2D, 1, 1, 1, [4], [0, 0, 255, 255]),
+        };
+        ExceptionDispatchInfo? drawFailure = null;
+        var draw = new Thread(() =>
+        {
+            try
+            {
+                ThreadSafety.MarkMainThread();
+                // Model Draw during Step, while the game thread owns framework admission.
+                using (ThreadSafety.NativeFrameworkRenderSyncRoot.EnterScope())
+                {
+                    var texture = fixture.Textures.CreateFromTexFile(file);
+                    try
+                    {
+                        Assert.Equal(1, texture.Width);
+                        Assert.Equal(1, texture.Height);
+                        Assert.False(texture.Handle.IsNull);
+                    }
+                    finally
+                    {
+                        ((IDeferredDisposable)texture).RealDispose();
+                        GC.SuppressFinalize(texture);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                drawFailure = ExceptionDispatchInfo.Capture(exception);
+            }
+        }) { IsBackground = true };
+        var drawStarted = false;
+        try
+        {
+            Assert.True(SpinWait.SpinUntil(() => fixture.BeforeRender.Count == 1, WorkerTimeout));
+            draw.Start();
+            drawStarted = true;
+            Assert.True(draw.Join(WorkerTimeout), "Synchronous TEX creation waited for a loader worker awaiting presentation.");
+            drawFailure?.Throw();
+            Assert.False(conversion.IsCompleted);
+            Assert.Equal(0, conversionCalls);
+            Assert.Single(fixture.BeforeRender);
+        }
+        finally
+        {
+            // Drain directly so a blocked Draw caller can finish while holding framework admission.
+            using (fixture.RenderLock.EnterScope())
+                fixture.DrainBeforeRender();
+            conversionCancellation.CancelAfter(WorkerTimeout);
+            if (drawStarted)
+                Assert.True(draw.Join(WorkerTimeout), "The Draw caller did not finish after recovery.");
+            try
+            {
+                conversion.WaitAsync(WorkerTimeout).GetAwaiter().GetResult();
+            }
+            catch (OperationCanceledException)
+            {
+                // Cancellation releases the loader worker if setup fails before its callback is queued.
+            }
+        }
+
+        Assert.Equal(42, conversion.GetAwaiter().GetResult());
+        Assert.Equal(1, conversionCalls);
+        Assert.Empty(fixture.BeforeRender);
+    }
 
     [Theory]
     [InlineData(false)]
@@ -242,7 +343,7 @@ public class TexturePresentationDispatchTests
             this.DrainBeforeRender = typeof(InterfaceManager).GetMethod("PreImGuiRender", PrivateInstance)!
                 .CreateDelegate<Action>(this.presentation.Manager);
 
-            var textures = (TextureManager)RuntimeHelpers.GetUninitializedObject(typeof(TextureManager));
+            var textures = this.Textures = (TextureManager)RuntimeHelpers.GetUninitializedObject(typeof(TextureManager));
             GC.SuppressFinalize(textures);
             typeof(TextureManager).GetField("interfaceManager", PrivateInstance)!.SetValue(textures, this.presentation.Manager);
             var dispatchers = typeof(TextureManager).GetMethods(PrivateInstance).Where(method => method.Name == "RunDuringPresent").ToArray();
@@ -253,6 +354,8 @@ public class TexturePresentationDispatchTests
         }
 
         public Lock RenderLock => this.presentation.RenderLock;
+
+        public TextureManager Textures { get; }
 
         public ConcurrentQueue<Action> BeforeRender => this.presentation.BeforeRender;
 
@@ -297,6 +400,42 @@ public class TexturePresentationDispatchTests
                 ThreadSafety.NativeFrameworkRenderSyncRoot.Exit();
             }
         }
+    }
+
+    /// <summary>Supplies a WARP device for TEX creation without initializing game services.</summary>
+    private sealed class ResourceCreationFixture : IDisposable
+    {
+        private readonly CancellationTokenSource disposeCts = new();
+        private readonly nint device;
+
+        public ResourceCreationFixture(TextureManager textures)
+        {
+            const BindingFlags privateInstance = BindingFlags.NonPublic | BindingFlags.Instance;
+            Marshal.ThrowExceptionForHR(D3D11CreateDevice(0, 5, 0, 0, 0, 0, 7, out this.device, out _, out var context));
+            Marshal.Release(context);
+            typeof(TextureManager).GetField("disposeCts", privateInstance)!.SetValue(textures, this.disposeCts);
+            typeof(TextureManager).GetField("dalamudConfiguration", privateInstance)!
+                .SetValue(textures, new DalamudConfiguration { UseTexturePluginTracking = false });
+
+            // Write the native pointer inside ComPtr without changing COM reference ownership.
+            var writer = new DynamicMethod("SetTexCreationDevice", typeof(void), [typeof(TextureManager), typeof(nint)], typeof(ResourceCreationFixture), true);
+            var il = writer.GetILGenerator();
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldflda, typeof(TextureManager).GetField("device", privateInstance)!);
+            il.Emit(OpCodes.Ldarg_1);
+            il.Emit(OpCodes.Stind_I);
+            il.Emit(OpCodes.Ret);
+            writer.CreateDelegate<Action<TextureManager, nint>>()(textures, this.device);
+        }
+
+        public void Dispose()
+        {
+            Marshal.Release(this.device);
+            this.disposeCts.Dispose();
+        }
+
+        [DllImport("d3d11.dll")]
+        private static extern int D3D11CreateDevice(nint adapter, int driverType, nint software, uint flags, nint featureLevels, uint featureLevelCount, uint version, out nint device, out uint featureLevel, out nint context);
     }
 
     private sealed class DispatchException : Exception
