@@ -87,12 +87,6 @@ public readonly struct RentedSeStringBuilder() : IResettable, IDisposable
     /// <inheritdoc cref="SeStringBuilder.Append(string?,int,int)"/>
     public SeStringBuilder Append(string? value, int startIndex, int count) => this.Builder.Append(value, startIndex, count);
 
-    /// <inheritdoc cref="SeStringBuilder.Append(SeStringBuilder.SeStringInterpolatedStringHandler)"/>
-    public SeStringBuilder Append([InterpolatedStringHandlerArgument("")] SeStringBuilder.SeStringInterpolatedStringHandler handler) => this.Builder.Append(handler);
-
-    /// <inheritdoc cref="SeStringBuilder.Append(IFormatProvider?,SeStringBuilder.SeStringInterpolatedStringHandler)"/>
-    public SeStringBuilder Append(IFormatProvider? provider, [InterpolatedStringHandlerArgument(["", "provider"])] SeStringBuilder.SeStringInterpolatedStringHandler handler) => this.Builder.Append(provider, handler);
-
     /// <inheritdoc cref="SeStringBuilder.Append(ReadOnlySpan{byte})"/>
     public SeStringBuilder Append(ReadOnlySpan<byte> value) => this.Builder.Append(value);
 
@@ -171,12 +165,6 @@ public readonly struct RentedSeStringBuilder() : IResettable, IDisposable
 
     /// <inheritdoc cref="SeStringBuilder.AppendLine(string?,int,int)"/>
     public SeStringBuilder AppendLine(string? value, int startIndex, int count) => this.Builder.AppendLine(value, startIndex, count);
-
-    /// <inheritdoc cref="SeStringBuilder.AppendLine(SeStringBuilder.SeStringInterpolatedStringHandler)"/>
-    public SeStringBuilder AppendLine([InterpolatedStringHandlerArgument("")] SeStringBuilder.SeStringInterpolatedStringHandler handler) => this.Builder.AppendLine(handler);
-
-    /// <inheritdoc cref="SeStringBuilder.AppendLine(IFormatProvider?,SeStringBuilder.SeStringInterpolatedStringHandler)"/>
-    public SeStringBuilder AppendLine(IFormatProvider? provider, [InterpolatedStringHandlerArgument(["", "provider"])] SeStringBuilder.SeStringInterpolatedStringHandler handler) => this.Builder.AppendLine(provider, handler);
 
     /// <inheritdoc cref="SeStringBuilder.AppendLine(ReadOnlySpan{byte})"/>
     public SeStringBuilder AppendLine(ReadOnlySpan<byte> value) => this.Builder.AppendLine(value);
