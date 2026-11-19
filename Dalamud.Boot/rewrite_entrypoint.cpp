@@ -2,16 +2,19 @@
 #include <fstream>
 #include <span>
 
-#include <Windows.h>
+#include <windows.h>
 #include <comdef.h>
-#include <CommCtrl.h>
-#include <PathCch.h>
+#include <commctrl.h>
+#include <pathcch.h>
 #include <shellapi.h>
 
 #include "globals.h"
 #include "logging.h"
 #include "utils.h"
 #include "resource.h"
+
+#include <wrl.h>
+using Microsoft::WRL::ComPtr;
 
 HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue);
 
@@ -155,7 +158,7 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
 
     std::vector<IMAGE_SECTION_HEADER> exe_section_headers(exe_nt_header64.FileHeader.NumberOfSections);
     exe.seekg(exe_dos_header.e_lfanew + offsetof(IMAGE_NT_HEADERS32, OptionalHeader) + exe_nt_header64.FileHeader.SizeOfOptionalHeader, std::ios::beg);
-    exe.read(reinterpret_cast<char*>(&exe_section_headers[0]), sizeof IMAGE_SECTION_HEADER * exe_section_headers.size());
+    exe.read(reinterpret_cast<char*>(&exe_section_headers[0]), sizeof(IMAGE_SECTION_HEADER) * exe_section_headers.size());
     if (!exe)
         throw std::runtime_error("Game executable is corrupt (Truncated section header).");
 
@@ -197,27 +200,27 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
             if (compare_nt_header32.FileHeader.NumberOfSections != exe_nt_header32.FileHeader.NumberOfSections)
                 continue;
 
-            if (compare_nt_header32.FileHeader.SizeOfOptionalHeader == sizeof IMAGE_OPTIONAL_HEADER32) {
+            if (compare_nt_header32.FileHeader.SizeOfOptionalHeader == sizeof(IMAGE_OPTIONAL_HEADER32)) {
                 read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + offsetof(IMAGE_NT_HEADERS32, OptionalHeader), compare_nt_header32.OptionalHeader);
                 if (compare_nt_header32.OptionalHeader.SizeOfImage != exe_nt_header32.OptionalHeader.SizeOfImage)
                     continue;
 
                 std::vector<IMAGE_SECTION_HEADER> compare_section_headers(exe_nt_header32.FileHeader.NumberOfSections);
-                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof compare_nt_header32, &compare_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size());
-                if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size()) != 0)
+                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof compare_nt_header32, &compare_section_headers[0], sizeof(IMAGE_SECTION_HEADER) * compare_section_headers.size());
+                if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof(IMAGE_SECTION_HEADER) * compare_section_headers.size()) != 0)
                     continue;
 
                 if (compare_nt_header32.OptionalHeader.CheckSum != exe_nt_header32.OptionalHeader.CheckSum)
                     logging::W("IMAGE_OPTIONAL_HEADER32 checksums mismatched, is another tool injecting? got 0x{:X}, wanted 0x{:X}", compare_nt_header32.OptionalHeader.CheckSum, exe_nt_header32.OptionalHeader.CheckSum);
 
-            } else if (compare_nt_header32.FileHeader.SizeOfOptionalHeader == sizeof IMAGE_OPTIONAL_HEADER64) {
+            } else if (compare_nt_header32.FileHeader.SizeOfOptionalHeader == sizeof(IMAGE_OPTIONAL_HEADER64)) {
                 read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + offsetof(IMAGE_NT_HEADERS64, OptionalHeader), compare_nt_header64.OptionalHeader);
                 if (compare_nt_header64.OptionalHeader.SizeOfImage != exe_nt_header64.OptionalHeader.SizeOfImage)
                     continue;
 
                 std::vector<IMAGE_SECTION_HEADER> compare_section_headers(exe_nt_header64.FileHeader.NumberOfSections);
-                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof compare_nt_header64, &compare_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size());
-                if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size()) != 0)
+                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof compare_nt_header64, &compare_section_headers[0], sizeof(IMAGE_SECTION_HEADER) * compare_section_headers.size());
+                if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof(IMAGE_SECTION_HEADER) * compare_section_headers.size()) != 0)
                     continue;
 
                 if (compare_nt_header64.OptionalHeader.CheckSum != exe_nt_header64.OptionalHeader.CheckSum)
@@ -328,7 +331,7 @@ extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_
             utils::format_win32_error(err));
         OutputDebugStringW((formatted + L"\r\n").c_str());
 
-        ICreateErrorInfoPtr cei;
+        ComPtr<ICreateErrorInfo> cei;
         if (FAILED(CreateErrorInfo(&cei)))
             return hr;
         if (FAILED(cei->SetSource(const_cast<LPOLESTR>(L"Dalamud.Boot"))))
@@ -336,11 +339,11 @@ extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_
         if (FAILED(cei->SetDescription(const_cast<LPOLESTR>(formatted.c_str()))))
             return hr;
 
-        IErrorInfoPtr ei;
-        if (FAILED(cei.QueryInterface(IID_PPV_ARGS(&ei))))
+        ComPtr<IErrorInfo> ei;
+        if (FAILED(cei.As(&ei)))
             return hr;
 
-        (void)SetErrorInfo(0, ei);
+        (void)SetErrorInfo(0, ei.Get());
         return hr;
     }
 }
@@ -355,7 +358,7 @@ extern "C" void WINAPI RewrittenEntryPoint_AdjustedStack(RewrittenEntryPointPara
     SetLastError(ERROR_SUCCESS);
 
     try {
-        const auto pOriginalEntryPointBytes = reinterpret_cast<char*>(&params) + sizeof(params);
+        const auto pOriginalEntryPointBytes = reinterpret_cast<char*>(&params) + sizeof params;
         const auto pLoadInfo = pOriginalEntryPointBytes + params.entrypointLength;
 
         // Restore original entry point.
@@ -377,12 +380,12 @@ extern "C" void WINAPI RewrittenEntryPoint_AdjustedStack(RewrittenEntryPointPara
             hr = err == ERROR_SUCCESS ? E_FAIL : HRESULT_FROM_WIN32(err);
         }
 
-        ICreateErrorInfoPtr cei;
-        IErrorInfoPtr ei;
+        ComPtr<ICreateErrorInfo> cei;
+        ComPtr<IErrorInfo> ei;
         if (SUCCEEDED(CreateErrorInfo(&cei))
             && SUCCEEDED(cei->SetDescription(const_cast<wchar_t*>(unicode::convert<std::wstring>(e.what()).c_str())))
-            && SUCCEEDED(cei.QueryInterface(IID_PPV_ARGS(&ei)))) {
-            (void)SetErrorInfo(0, ei);
+            && SUCCEEDED(cei.As(&ei))) {
+            (void)SetErrorInfo(0, ei.Get());
         }
     }
 

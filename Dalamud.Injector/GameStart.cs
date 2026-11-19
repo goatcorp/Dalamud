@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -23,13 +25,15 @@ namespace Dalamud.Injector
         /// <param name="exePath">The path to the executable file.</param>
         /// <param name="arguments">Arguments to pass to the executable file.</param>
         /// <param name="dontFixAcl">Don't actually fix the ACL.</param>
+        /// <param name="wrap">Optional wrapper to launch the game in suspended mode, such as gdb.</param>
+        /// <param name="wrapArguments">Arguments for the wrapper to launch the game in suspended mode.</param>
         /// <param name="beforeResume">Action to execute before the process is started.</param>
         /// <param name="waitForGameWindow">Wait for the game window to be ready before proceeding.</param>
         /// <param name="appContainer">If set, launch the process inside this AppContainer.</param>
         /// <returns>The started process.</returns>
         /// <exception cref="Win32Exception">Thrown when a win32 error occurs.</exception>
         /// <exception cref="GameStartException">Thrown when the process did not start correctly.</exception>
-        public static Process LaunchGame(string workingDir, string exePath, string arguments, bool dontFixAcl, Action<Process> beforeResume, bool waitForGameWindow = true, AppContainerLaunchContext? appContainer = null)
+        public static Process LaunchGame(string workingDir, string exePath, string arguments, bool dontFixAcl, string? wrap, List<string> wrapArguments, Action<Process> beforeResume, bool waitForGameWindow = true, AppContainerLaunchContext? appContainer = null)
         {
             Process? process = null;
 
@@ -102,6 +106,23 @@ namespace Dalamud.Injector
                 if (runtimeOverride != null)
                     Environment.SetEnvironmentVariable("DALAMUD_RUNTIME", runtimeOverride);
 
+                var cmdline = $"\"{exePath}\" {arguments}";
+
+                if (!string.IsNullOrEmpty(wrap))
+                {
+                    var index = wrapArguments.IndexOf("%command%");
+                    if (index != -1)
+                    {
+                        cmdline = $"\"{wrap}\" {string.Join(' ', wrapArguments.Take(index))} {cmdline} {string.Join(' ', wrapArguments.Skip(index + 1))}";
+                    }
+                    else
+                    {
+                        cmdline = $"\"{wrap}\" {string.Join(' ', wrapArguments)} {cmdline}";
+                    }
+                }
+
+                var cmdflags = string.IsNullOrEmpty(wrap) ? PInvoke.CREATE_SUSPENDED : 0;
+
                 var attributeList = IntPtr.Zero;
                 var securityCapabilitiesPtr = IntPtr.Zero;
                 try
@@ -150,11 +171,11 @@ namespace Dalamud.Injector
 
                         created = PInvoke.CreateProcess(
                             null,
-                            $"\"{exePath}\" {arguments}",
+                            cmdline,
                             ref lpProcessAttributes,
                             IntPtr.Zero,
                             false,
-                            PInvoke.CREATE_SUSPENDED | PInvoke.EXTENDED_STARTUPINFO_PRESENT,
+                            cmdflags | PInvoke.EXTENDED_STARTUPINFO_PRESENT,
                             IntPtr.Zero,
                             workingDir,
                             ref lpStartupInfoEx,
@@ -169,11 +190,11 @@ namespace Dalamud.Injector
 
                         created = PInvoke.CreateProcess(
                             null,
-                            $"\"{exePath}\" {arguments}",
+                            cmdline,
                             ref lpProcessAttributes,
                             IntPtr.Zero,
                             false,
-                            PInvoke.CREATE_SUSPENDED,
+                            cmdflags,
                             IntPtr.Zero,
                             workingDir,
                             ref lpStartupInfo,
@@ -207,14 +228,45 @@ namespace Dalamud.Injector
                         Marshal.FreeHGlobal(securityCapabilitiesPtr);
                 }
 
-                if (!dontFixAcl)
-                    DisableSeDebug(lpProcessInformation.hProcess);
-
                 process = new ExistingProcess(lpProcessInformation.hProcess);
+
+                if (!string.IsNullOrEmpty(wrap))
+                {
+                    var tries = 0;
+                    const int maxTries = 1200;
+                    const int timeout = 50;
+                    Process found;
+
+                    do
+                    {
+                        Thread.Sleep(timeout);
+
+                        if (process.HasExited)
+                            throw new GameStartException();
+
+                        if (tries > maxTries)
+                            throw new GameStartException($"Couldn't find game process owned by wrapper after {maxTries * timeout}ms");
+
+                        tries++;
+                    }
+                    while (!TryFindGameProcess(process, out found));
+
+                    process = found;
+                }
+
+                if (!dontFixAcl)
+                    DisableSeDebug(process.Handle);
 
                 beforeResume?.Invoke(process);
 
-                PInvoke.ResumeThread(lpProcessInformation.hThread);
+                if (string.IsNullOrEmpty(wrap))
+                {
+                    PInvoke.ResumeThread(lpProcessInformation.hThread);
+                }
+                else
+                {
+                    Log.Information("[GameStart] Ready to resume process");
+                }
 
                 // Ensure that the game main window is prepared
                 if (waitForGameWindow)
@@ -246,7 +298,7 @@ namespace Dalamud.Injector
                 }
 
                 if (!dontFixAcl)
-                    CopyAclFromSelfToTargetProcess(lpProcessInformation.hProcess);
+                    CopyAclFromSelfToTargetProcess(process.Handle);
             }
             catch (Exception ex)
             {
@@ -418,6 +470,58 @@ namespace Dalamud.Injector
             return hwnd;
         }
 
+        private static bool TryFindGameProcess(Process parent, [NotNullWhen(true)] out Process? game)
+        {
+            var children = new List<Process>();
+
+            var snapshotHandle = PInvoke.CreateToolhelp32Snapshot(PInvoke.SnapshotFlags.Process, 0);
+            try
+            {
+                FindChildProcesses(children, snapshotHandle, parent.Id);
+            }
+            finally
+            {
+                if (snapshotHandle != default)
+                {
+                    PInvoke.CloseHandle(snapshotHandle);
+                }
+            }
+
+            foreach (var child in children)
+            {
+                if (child.ProcessName == "ffxiv_dx11")
+                {
+                    game = child;
+                    return true;
+                }
+            }
+
+            game = null;
+            return false;
+        }
+
+        private static void FindChildProcesses(List<Process> children, IntPtr snapshotHandle, int parent)
+        {
+            var i = children.Count;
+            var entry = new PInvoke.PROCESSENTRY32()
+            {
+                dwSize = (uint)Marshal.SizeOf<PInvoke.PROCESSENTRY32>(),
+            };
+
+            for (PInvoke.Process32First(snapshotHandle, ref entry); PInvoke.Process32Next(snapshotHandle, ref entry);)
+            {
+                if (entry.th32ParentProcessID == parent)
+                {
+                    children.Add(Process.GetProcessById((int)entry.th32ProcessID));
+                }
+            }
+
+            for (var end = children.Count; i < end; i++)
+            {
+                FindChildProcesses(children, snapshotHandle, children[i].Id);
+            }
+        }
+
         /// <summary>
         /// Exception thrown when the process has exited before a window could be found.
         /// </summary>
@@ -534,6 +638,19 @@ namespace Dalamud.Injector
                 SecurityIdentification,
                 SecurityImpersonation,
                 SecurityDelegation,
+            }
+
+            [Flags]
+            public enum SnapshotFlags : uint
+            {
+                HeapList = 0x00000001,
+                Process = 0x00000002,
+                Thread = 0x00000004,
+                Module = 0x00000008,
+                Module32 = 0x00000010,
+                Inherit = 0x80000000,
+                All = 0x0000001F,
+                NoHeaps = 0x40000000,
             }
             #endregion
 
@@ -690,6 +807,15 @@ namespace Dalamud.Injector
             [return: MarshalAs(UnmanagedType.Bool)]
             public static extern bool IsWindowVisible(IntPtr hWnd);
 
+            [DllImport("kernel32.dll", SetLastError = true)]
+            public static extern IntPtr CreateToolhelp32Snapshot(SnapshotFlags dwFlags, uint th32ProcessID);
+
+            [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Auto)]
+            public static extern bool Process32First([In] IntPtr hSnapshot, ref PROCESSENTRY32 lppe);
+
+            [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Auto)]
+            public static extern bool Process32Next([In] IntPtr hSnapshot, ref PROCESSENTRY32 lppe);
+
             #endregion
 
             #region Structures
@@ -820,6 +946,23 @@ namespace Dalamud.Injector
                 public UInt32 PrivilegeCount;
                 [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1)]
                 public LUID_AND_ATTRIBUTES[] Privileges;
+            }
+
+            [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+            public struct PROCESSENTRY32
+            {
+                public const int MAX_PATH = 260;
+                public UInt32 dwSize;
+                public UInt32 cntUsage;
+                public UInt32 th32ProcessID;
+                public IntPtr th32DefaultHeapID;
+                public UInt32 th32ModuleID;
+                public UInt32 cntThreads;
+                public UInt32 th32ParentProcessID;
+                public Int32 pcPriClassBase;
+                public UInt32 dwFlags;
+                [MarshalAs(UnmanagedType.ByValTStr, SizeConst = MAX_PATH)]
+                public string szExeFile;
             }
             #endregion
         }

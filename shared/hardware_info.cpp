@@ -3,7 +3,7 @@
 #include <array>
 #include <format>
 
-#include <Windows.h>
+#include <windows.h>
 #include <intrin.h>
 #include <dxgi.h>
 

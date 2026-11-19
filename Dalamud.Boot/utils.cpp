@@ -1,9 +1,9 @@
 #include <mutex>
 #include <ranges>
 
-#include <Windows.h>
-#include <PathCch.h>
-#include <Psapi.h>
+#include <windows.h>
+#include <pathcch.h>
+#include <psapi.h>
 
 #include <nmd_assembly.h>
 
@@ -171,7 +171,7 @@ DalamudExpected<std::unique_ptr<std::remove_pointer_t<HGLOBAL>, decltype(&FreeRe
 }
 
 DalamudExpected<std::wstring> utils::loaded_module::get_description() const {
-    auto rsrc = get_resource(MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
+    auto rsrc = get_resource(MAKEINTRESOURCEW(VS_VERSION_INFO), reinterpret_cast<LPCWSTR>(RT_VERSION));
     if (!rsrc)
         return DalamudUnexpected(std::move(rsrc.error()));
 
@@ -221,7 +221,7 @@ DalamudExpected<std::wstring> utils::loaded_module::get_description() const {
 }
 
 std::expected<std::reference_wrapper<const VS_FIXEDFILEINFO>, DalamudBootError> utils::loaded_module::get_file_version() const {
-    auto rsrc = get_resource(MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
+    auto rsrc = get_resource(MAKEINTRESOURCEW(VS_VERSION_INFO), reinterpret_cast<LPCWSTR>(RT_VERSION));
     if (!rsrc)
         return DalamudUnexpected(std::move(rsrc.error()));
 
