@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -25,6 +26,7 @@ using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Asserts;
 using Dalamud.Interface.Internal.DesignSystem;
 using Dalamud.Interface.Internal.ReShadeHandling;
+using Dalamud.Interface.Internal.Unwrapper;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Style;
@@ -49,18 +51,6 @@ using CSFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
 
 using DWMWINDOWATTRIBUTE = Windows.Win32.Graphics.Dwm.DWMWINDOWATTRIBUTE;
 
-// general dev notes, here because it's easiest
-
-/*
- * - Hooking ResizeBuffers seemed to be unnecessary, though I'm not sure why.  Left out for now since it seems to work without it.
- * - We may want to build our ImGui command list in a thread to keep it divorced from present.  We'd still have to block in present to
- *   synchronize on the list and render it, but ideally the overall delay we add to present would then be shorter.  This may cause minor
- *   timing issues with anything animated inside ImGui, but that is probably rare and may not even be noticeable.
- * - Our hook is too low level to really work well with debugging, as we only have access to the 'real' dx objects and not any
- *   that have been hooked/wrapped by tools.
- * - Might eventually want to render to a separate target and composite, especially with reshade etc in the mix.
- */
-
 namespace Dalamud.Interface.Internal;
 
 /// <summary>
@@ -68,7 +58,7 @@ namespace Dalamud.Interface.Internal;
 /// </summary>
 [ServiceManager.EarlyLoadedService]
 [InherentDependency<WindowSystemPersistence>] // Used by window system windows to restore state from the configuration
-internal partial class InterfaceManager : IInternalDisposableService
+internal partial class InterfaceManager : IInternalAsyncDisposableService
 {
     /// <summary>
     /// The default font size, in points.
@@ -82,8 +72,10 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private static readonly ModuleLog Log = ModuleLog.Create<InterfaceManager>();
 
-    private readonly ConcurrentBag<IDeferredDisposable> deferredDisposeTextures = [];
-    private readonly ConcurrentBag<IDisposable> deferredDisposeDisposables = [];
+    // Keep resources whose disposal was requested during UI construction alive across repeated presentations.
+    // PostCopy promotes pending cleanup into a batch that runs after the following snapshot capture.
+    private readonly ConcurrentQueue<Action> pendingRetireQueue = new();
+    private readonly List<Action> frameRetireActions = [];
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
@@ -94,7 +86,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     [ServiceManager.ServiceDependency]
     private readonly ClientState clientState = Service<ClientState>.Get();
 
-    // ReShadeAddonInterface requires hooks to be alive to unregister itself.
+    // Retain shared hook infrastructure until interface hooks have been disposed.
     [ServiceManager.ServiceDependency]
     [UsedImplicitly]
     private readonly HookManager hookManager = Service<HookManager>.Get();
@@ -104,18 +96,38 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private readonly ConcurrentQueue<Action> runBeforeImGuiRender = new();
     private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
+    private readonly Lock renderDalamudLock = new();
+    private readonly InterfaceCallbackLifetime callbackLifetime = new();
+
+    // Serialize hook setup, shared cleanup, and display-target release.
+    private readonly Lock hookCleanupLock = new();
 
     private readonly AssertHandler assertHandler = new();
     private readonly GamepadAutoExit gamepadAutoExit = new();
 
+    private Task? hookCleanupTask;
     private IWin32Backend? backend;
+    // Recursive presentation locks allow reentry, so construction needs a separate guard.
+    private bool isInitializingBackend;
+
+    // NvPresent participation controls automatic D3D11 protection; it does not report the driver setting.
+    private bool isSmoothMotionDetected;
 
     private Hook<SetCursorDelegate>? setCursorHook;
     private Hook<ReShadeDxgiSwapChainPresentDelegate>? reShadeDxgiSwapChainPresentHook;
     private Hook<DxgiSwapChainPresentDelegate>? dxgiSwapChainPresentHook;
     private Hook<ResizeBuffersDelegate>? dxgiSwapChainResizeBuffersHook;
+    private Hook<PresentDelegate>? kernelDeviceSwapchainPresentHook;
     private ObjectVTableHook<IDXGISwapChain4.Vtbl<IDXGISwapChain4>>? dxgiSwapChainHook;
     private ReShadeAddonInterface? reShadeAddonInterface;
+
+    // Late detour entries must forward without touching a disposed hook or its freed trampoline.
+    // Bytecode hooks use the restored target; vtable/import hooks retain the original function.
+    private SetCursorDelegate? setCursorFallback;
+    private ReShadeDxgiSwapChainPresentDelegate? reShadeDxgiSwapChainPresentFallback;
+    private DxgiSwapChainPresentDelegate? dxgiSwapChainPresentFallback;
+    private ResizeBuffersDelegate? dxgiSwapChainResizeBuffersFallback;
+    private PresentDelegate? kernelDeviceSwapchainPresentFallback;
 
     private IFontAtlas? dalamudAtlas;
     private ILockedImFont? defaultFontResourceLock;
@@ -131,6 +143,10 @@ internal partial class InterfaceManager : IInternalDisposableService
         this.framework.Update += this.FrameworkOnUpdate;
         this.clientState.Login += this.OnLogin;
     }
+
+    // Must match Client::Graphics::Kernel::SwapChain::Present(). This is the per-game-frame Step source; frame
+    // generation may invoke DXGI Present repeatedly for the same Step.
+    private delegate void PresentDelegate(nint thisPtr);
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     private delegate nint SetCursorDelegate(nint hCursor);
@@ -249,9 +265,12 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// </summary>
     public bool IsDispatchingEvents { get; set; } = true;
 
-    /// <summary>Gets a value indicating whether the main thread is executing <see cref="DxgiSwapChainPresentDetour"/>.</summary>
-    /// <remarks>This still will be <c>true</c> even when queried off the main thread.</remarks>
-    public bool IsMainThreadInPresent { get; private set; }
+    /// <summary>Gets a value indicating whether the calling thread owns the serialized presentation transaction.</summary>
+    /// <remarks>
+    /// The owner may execute texture work inline, including on worker callbacks.
+    /// Other threads must queue it for an admitted presentation.
+    /// </remarks>
+    public bool IsCurrentThreadInPresent => this.renderDalamudLock.IsHeldByCurrentThread;
 
     /// <summary>
     /// Gets a value indicating the native handle of the game main window.
@@ -287,8 +306,9 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// </summary>
     public Task FontBuildTask => WhenFontsReady().dalamudAtlas!.BuildTask;
 
-    /// <summary>Gets the number of calls to <see cref="DxgiSwapChainPresentDetour"/> so far.</summary>
+    /// <summary>Gets the number of overlay render attempts.</summary>
     /// <remarks>
+    /// Rejected or unready presentations are not counted; failures after readiness checks still count.
     /// The value increases even when Dalamud is hidden via &quot;/xlui hide&quot;.
     /// <see cref="DalamudInterface.FrameCount"/> does not.
     /// </remarks>
@@ -309,44 +329,20 @@ internal partial class InterfaceManager : IInternalDisposableService
     }
 
     /// <summary>
-    /// Dispose of managed and unmanaged resources.
+    /// Drains interface callbacks and releases resources while allowing the framework thread to progress.
     /// </summary>
-    void IInternalDisposableService.DisposeService()
+    /// <returns>A task that completes once callbacks have returned and interface resources are released.</returns>
+    async Task IInternalAsyncDisposableService.DisposeServiceAsync()
     {
         this.clientState.Login -= this.OnLogin;
-        this.assertHandler.Dispose();
 
-        // Unload hooks from the framework thread if possible.
-        // We're currently off the framework thread, as this function can only be called from
-        // ServiceManager.UnloadAllServices, which is called from EntryPoint.RunThread.
-        // The functions being unhooked are mostly called from the main thread, so unhooking from the main thread when
-        // possible would avoid any chance of unhooking a function that currently is being called.
-        // If unloading is initiated from "Unload Dalamud" /xldev menu, then the framework would still be running, as
-        // Framework.Destroy has never been called and thus Framework.IsFrameworkUnloading cannot be true, and this
-        // function will actually run the destroy from the framework thread.
-        // Otherwise, as Framework.IsFrameworkUnloading should have been set, this code should run immediately.
-        this.framework.RunOnFrameworkThread(this.ClearHooks).Wait();
+        // Stop interception on the framework thread, but yield it while worker callbacks return.
+        // Their native Present continuations may still need the framework/window thread to make progress.
+        await this.framework.RunOnFrameworkThread(this.ClearHooks).ConfigureAwait(false);
 
-        // Below this point, hooks are guaranteed to be no longer called.
-
-        // A font resource lock outlives the parent handle and the owner atlas. It should be disposed.
-        Interlocked.Exchange(ref this.defaultFontResourceLock, null)?.Dispose();
-
-        // Font handles become invalid after disposing the atlas, but just to be safe.
-        this.DefaultFontHandle?.Dispose();
-        this.DefaultFontHandle = null;
-
-        this.MonoFontHandle?.Dispose();
-        this.MonoFontHandle = null;
-
-        this.IconFontHandle?.Dispose();
-        this.IconFontHandle = null;
-
-        this.IconFontFixedWidthHandle?.Dispose();
-        this.IconFontFixedWidthHandle = null;
-
-        Interlocked.Exchange(ref this.dalamudAtlas, null)?.Dispose();
-        Interlocked.Exchange(ref this.backend, null)?.Dispose();
+        // Secondary windows call the input backend directly, outside the hook callback lifetime.
+        // Serialize their teardown with window messages and destroy them on their creating thread.
+        await this.framework.RunOnFrameworkThread(this.DisposeInterfaceResources).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -359,24 +355,36 @@ internal partial class InterfaceManager : IInternalDisposableService
     }
 
     /// <summary>
-    /// Enqueue a texture to be disposed at the end of the frame.
+    /// Queues an action for frame retirement.
+    /// </summary>
+    /// <remarks>
+    /// May be queued from any thread. During normal frame processing, pending actions are promoted after a
+    /// capture and executed after the following capture replaces that snapshot, under snapshot write exclusion.
+    /// Resize preserves both batches for live UI construction; shutdown drains them after backend disposal.
+    /// Actions must not re-enter snapshot rendering, capture, or resize while write exclusion is held.
+    /// This coordinates CPU-side snapshot use; it does not wait for GPU completion or preserve thread affinity.
+    /// </remarks>
+    /// <param name="action">
+    /// The cleanup action to run during retirement.
+    /// </param>
+    public void DeferUntilFrameRetired(Action action) => this.pendingRetireQueue.Enqueue(action);
+
+    /// <summary>
+    /// Queues a texture for disposal through <see cref="DeferUntilFrameRetired"/>.
     /// </summary>
     /// <param name="wrap">The texture.</param>
     public void EnqueueDeferredDispose(IDeferredDisposable wrap)
-    {
-        this.deferredDisposeTextures.Add(wrap);
-    }
+        => this.DeferUntilFrameRetired(wrap.RealDispose);
 
     /// <summary>
-    /// Enqueue an <see cref="ILockedImFont"/> to be disposed at the end of the frame.
+    /// Queues a disposable, such as an <see cref="ILockedImFont"/>, for release through <see cref="DeferUntilFrameRetired"/>.
     /// </summary>
     /// <param name="locked">The disposable.</param>
     public void EnqueueDeferredDispose(IDisposable locked)
-    {
-        this.deferredDisposeDisposables.Add(locked);
-    }
+        => this.DeferUntilFrameRetired(locked.Dispose);
 
-    /// <summary>Queues an action to be run before <see cref="ImGui.Render"/> call.</summary>
+    /// <summary>Queues an action before the backend render call in a serialized presentation callback.</summary>
+    /// <remarks>The action runs on the presentation thread, which may differ from the game thread.</remarks>
     /// <param name="action">The action.</param>
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
     public Task RunBeforeImGuiRender(Action action)
@@ -398,7 +406,8 @@ internal partial class InterfaceManager : IInternalDisposableService
         return tcs.Task;
     }
 
-    /// <summary>Queues a function to be run before <see cref="ImGui.Render"/> call.</summary>
+    /// <summary>Queues a function before the backend render call in a serialized presentation callback.</summary>
+    /// <remarks>The function runs on the presentation thread, which may differ from the game thread.</remarks>
     /// <typeparam name="T">The type of the return value.</typeparam>
     /// <param name="func">The function.</param>
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="func"/> is run.</returns>
@@ -420,7 +429,8 @@ internal partial class InterfaceManager : IInternalDisposableService
         return tcs.Task;
     }
 
-    /// <summary>Queues an action to be run after <see cref="ImGui.Render"/> call.</summary>
+    /// <summary>Queues an action after the backend render call in a serialized presentation callback.</summary>
+    /// <remarks>The action runs on the presentation thread, which may differ from the game thread.</remarks>
     /// <param name="action">The action.</param>
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
     public Task RunAfterImGuiRender(Action action)
@@ -442,7 +452,8 @@ internal partial class InterfaceManager : IInternalDisposableService
         return tcs.Task;
     }
 
-    /// <summary>Queues a function to be run after <see cref="ImGui.Render"/> call.</summary>
+    /// <summary>Queues a function after the backend render call in a serialized presentation callback.</summary>
+    /// <remarks>The function runs on the presentation thread, which may differ from the game thread.</remarks>
     /// <typeparam name="T">The type of the return value.</typeparam>
     /// <param name="func">The function.</param>
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="func"/> is run.</returns>
@@ -559,6 +570,14 @@ internal partial class InterfaceManager : IInternalDisposableService
         return im;
     }
 
+    private static void CallOriginalKernelDeviceSwapChainPresent(PresentDelegate original, nint thisPtr)
+    {
+        // Release native-update ownership while Present may wait for NvPresent worker renders.
+        // Restore every recursion level before the native update resumes.
+        using var presentation = ThreadSafety.EnterNativePresentation();
+        original(thisPtr);
+    }
+
     private void OnLogin()
     {
         var player = Service<Game.Player.PlayerState>.GetNullable();
@@ -590,11 +609,15 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private unsafe void FrameworkOnUpdate(IFramework framework1)
     {
-        // We now delay hooking until Framework is set up and has fired its first update.
+        using var callback = this.callbackLifetime.Enter();
+        if (!callback.CanUseBackend)
+            return;
+
+        // Delay hook installation until Framework is set up and has fired its first update.
         // Some graphics drivers seem to consider the game's shader cache as invalid if we hook too early.
         // The game loads shader packages on the file thread and then compiles them. It will show the logo once it is done.
         // This is a workaround, but it fixes an issue where the game would take a very long time to get to the title screen.
-        // NetworkModuleProxy is set up after lua scripts are loaded (EventFramework.LoadState >= 5), which can only happen
+        // NetworkModuleProxy is set up after Lua scripts are loaded (EventFramework.LoadState >= 5), which can only happen
         // after the shaders are compiled (if necessary) and loaded. AgentLobby.Update doesn't do much until this condition is met.
         if (CSFramework.Instance()->GetNetworkModuleProxy() == null)
             return;
@@ -603,42 +626,134 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         try
         {
-            this.SetupHooks(Service<FontAtlasFactory>.Get());
+            using (this.hookCleanupLock.EnterScope())
+            {
+                if (this.hookCleanupTask is null)
+                    this.SetupHooks(Service<TargetSigScanner>.Get(), Service<FontAtlasFactory>.Get());
+            }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Could not set up interface hooks");
 
-            // Fail init immediately and let service init deal with it
+            // Propagate initialization failure to services waiting for a scene.
             Service<InterfaceManagerWithScene>.ProvideException(ex);
 
-            // Make sure we don't get any calls from hooks, since we might have been setup half way
-            this.ClearHooks();
+            // Cleanup must not wait here: a worker may need this framework thread to finish its native call.
+            _ = this.ClearHooksAfterSetupFailure();
         }
     }
 
-    private void ClearHooks()
+    /// <summary>Removes partially installed hooks before releasing the retained display target.</summary>
+    /// <returns>A task that completes after cleanup has finished or its failure has been logged.</returns>
+    private async Task ClearHooksAfterSetupFailure()
     {
+        try
+        {
+            await this.ClearHooks().ConfigureAwait(false);
+            // Serialize cache release with service disposal, which awaits the same hook cleanup task.
+            using (this.hookCleanupLock.EnterScope())
+                SwapChainHelper.ResetGameDisplaySwapChain();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not clear partially installed interface hooks");
+        }
+    }
+
+    /// <summary>Stops interception and shares one task for draining callbacks and releasing hooks.</summary>
+    /// <returns>The shared hook cleanup task.</returns>
+    /// <remarks>Invoke on the framework thread while it is running.</remarks>
+    private Task ClearHooks()
+    {
+        using (this.hookCleanupLock.EnterScope())
+        {
+            if (this.hookCleanupTask is not null)
+                return this.hookCleanupTask;
+
+            this.callbackLifetime.Stop();
+            this.framework.Update -= this.FrameworkOnUpdate;
+            this.wndProcHookManager.PreWndProc -= this.WndProcHookManagerOnPreWndProc;
+            if (this.reShadeAddonInterface is { } addon)
+            {
+                addon.InitSwapChain -= this.ReShadeAddonInterfaceOnInitSwapChain;
+                addon.DestroySwapChain -= this.ReShadeAddonInterfaceOnDestroySwapChain;
+                addon.Present -= this.ReShadeAddonInterfaceOnPresent;
+                addon.ReShadeOverlay -= this.ReShadeAddonInterfaceOnReShadeOverlay;
+            }
+
+            // Disable without freeing trampolines or clearing fields still used by admitted callbacks.
+            this.kernelDeviceSwapchainPresentHook?.Disable();
+            this.setCursorHook?.Disable();
+            this.dxgiSwapChainPresentHook?.Disable();
+            this.reShadeDxgiSwapChainPresentHook?.Disable();
+            this.dxgiSwapChainResizeBuffersHook?.Disable();
+            this.dxgiSwapChainHook?.Disable();
+
+            return this.hookCleanupTask = Task.Run(this.FinishClearHooks);
+        }
+    }
+
+    /// <summary>Drains complete callbacks before disposing hooks and outstanding resize scopes.</summary>
+    private void FinishClearHooks()
+    {
+        // Hold no framework, device, render, or snapshot guard while native continuations finish.
+        this.callbackLifetime.WaitForDrain();
+        // An initialization callback admitted before Stop may have subscribed after the first removal.
         this.wndProcHookManager.PreWndProc -= this.WndProcHookManagerOnPreWndProc;
+        Interlocked.Exchange(ref this.kernelDeviceSwapchainPresentHook, null)?.Dispose();
         Interlocked.Exchange(ref this.setCursorHook, null)?.Dispose();
         Interlocked.Exchange(ref this.dxgiSwapChainPresentHook, null)?.Dispose();
         Interlocked.Exchange(ref this.reShadeDxgiSwapChainPresentHook, null)?.Dispose();
         Interlocked.Exchange(ref this.dxgiSwapChainResizeBuffersHook, null)?.Dispose();
         Interlocked.Exchange(ref this.dxgiSwapChainHook, null)?.Dispose();
         Interlocked.Exchange(ref this.reShadeAddonInterface, null)?.Dispose();
+        this.ClearReShadeResizeScopes();
     }
 
-    /// <summary>Checks if the provided swap chain is the target that Dalamud should draw its interface onto,
-    /// and initializes ImGui for drawing.</summary>
-    /// <param name="swapChain">The swap chain to test and initialize ImGui with if conditions are met.</param>
+    /// <summary>Releases fonts, the backend, and deferred resources after hook cleanup.</summary>
+    private void DisposeInterfaceResources()
+    {
+        this.assertHandler.Dispose();
+
+        // The retained font lock requires explicit release; disposing its handle or atlas does not release it.
+        Interlocked.Exchange(ref this.defaultFontResourceLock, null)?.Dispose();
+
+        // Release font handles before their owning atlas.
+        this.DefaultFontHandle?.Dispose();
+        this.DefaultFontHandle = null;
+
+        this.MonoFontHandle?.Dispose();
+        this.MonoFontHandle = null;
+
+        this.IconFontHandle?.Dispose();
+        this.IconFontHandle = null;
+
+        this.IconFontFixedWidthHandle?.Dispose();
+        this.IconFontFixedWidthHandle = null;
+
+        Interlocked.Exchange(ref this.dalamudAtlas, null)?.Dispose();
+        Interlocked.Exchange(ref this.backend, null)?.Dispose();
+        using (this.hookCleanupLock.EnterScope())
+            SwapChainHelper.ResetGameDisplaySwapChain();
+
+        // Drain remaining retirement actions after backend disposal, without acquiring snapshot write access.
+        foreach (var action in this.frameRetireActions)
+            action.InvokeSafely();
+        this.frameRetireActions.Clear();
+        while (this.pendingRetireQueue.TryDequeue(out var action))
+            action.InvokeSafely();
+    }
+
+    /// <summary>Gets or initializes the game swap-chain backend and checks font readiness.</summary>
+    /// <param name="swapChain">The presentation target.</param>
     /// <param name="flags">Flags passed to <see cref="IDXGISwapChain.Present"/>.</param>
-    /// <returns>An initialized instance of <see cref="IDXGISwapChain"/>, or <c>null</c> if <paramref name="swapChain"/>
-    /// is not the main swap chain.</returns>
+    /// <returns>The initialized backend, or <c>null</c> if the target or backend is not ready to draw.</returns>
+    /// <remarks>The caller must hold <see cref="ThreadSafety.NativeFrameworkRenderSyncRoot"/>
+    /// and <see cref="renderDalamudLock"/>.</remarks>
     private unsafe IImGuiBackend? RenderDalamudCheckAndInitialize(IDXGISwapChain* swapChain, uint flags)
     {
-        // Quoting ReShade dxgi_swapchain.cpp DXGISwapChain::on_present:
-        // > Some D3D11 games test presentation for timing and composition purposes
-        // > These calls are not rendering related, but rather a status request for the D3D runtime and as such should be ignored
+        // Status probes do not submit a frame.
         if ((flags & DXGI.DXGI_PRESENT_TEST) != 0)
             return null;
 
@@ -647,13 +762,27 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         Debug.Assert(this.dalamudAtlas is not null, "dalamudAtlas should have been set already");
 
-        var activeBackend = this.backend ?? this.InitBackend(swapChain);
+        var activeBackend = this.backend;
+        if (activeBackend is null)
+        {
+            if (this.isInitializingBackend)
+                return null;
+
+            this.isInitializingBackend = true;
+            try
+            {
+                activeBackend = this.InitBackend(swapChain);
+            }
+            finally
+            {
+                this.isInitializingBackend = false;
+            }
+        }
 
         if (!this.dalamudAtlas!.HasBuiltAtlas)
         {
             if (this.dalamudAtlas.BuildTask.Exception != null)
             {
-                // TODO: Can we do something more user-friendly here? Unload instead?
                 Log.Error(this.dalamudAtlas.BuildTask.Exception, "Failed to initialize Dalamud base fonts");
                 Util.Fatal("Failed to initialize Dalamud base fonts.\nPlease report this error.", "Dalamud");
             }
@@ -664,40 +793,56 @@ internal partial class InterfaceManager : IInternalDisposableService
         return activeBackend;
     }
 
-    /// <summary>Draws Dalamud to the given scene representing the ImGui context.</summary>
-    /// <param name="activeBackend">The scene to draw to.</param>
-    private void RenderDalamudDraw(IImGuiBackend activeBackend)
+    /// <summary>Serializes backend initialization and overlay rendering when framework admission succeeds.</summary>
+    /// <param name="swapChain">The presentation target.</param>
+    /// <param name="flags">Flags passed to <see cref="IDXGISwapChain.Present"/>.</param>
+    private unsafe void RenderDalamudDraw(IDXGISwapChain* swapChain, uint flags)
     {
-        this.CumulativePresentCalls++;
-        this.IsMainThreadInPresent = true;
+        // Middleware may hold the device lock needed by Step; waiting here can deadlock.
+        // Reject contention before backend initialization, counters, or queued work.
+        if (!ThreadSafety.NativeFrameworkRenderSyncRoot.TryEnter())
+            return;
 
-        while (this.runBeforeImGuiRender.TryDequeue(out var action))
-            action.InvokeSafely();
+        try
+        {
+            using (this.renderDalamudLock.EnterScope())
+            {
+                if (this.RenderDalamudCheckAndInitialize(swapChain, flags) is not { } activeBackend)
+                    return;
 
-        // Enable viewports if there are no issues.
-        var viewportsEnable = this.dalamudConfiguration.IsDisableViewport ||
-                              activeBackend.IsMainViewportFullScreen() ||
-                              ImGui.GetPlatformIO().Monitors.Size == 1;
-        if (viewportsEnable)
-            ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
-        else
-            ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+                this.CumulativePresentCalls++;
 
-        // Call drawing functions, which in turn will call Draw event.
-        activeBackend.Render();
+                this.PreImGuiRender();
 
-        this.PostImGuiRender();
-        this.IsMainThreadInPresent = false;
+                // Secondary viewports require windowed mode and multiple monitors.
+                var viewportsDisabled = this.dalamudConfiguration.IsDisableViewport ||
+                                      activeBackend.IsMainViewportFullScreen() ||
+                                      ImGui.GetPlatformIO().Monitors.Size == 1;
+                if (viewportsDisabled)
+                    ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
+                else
+                    ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+
+                // Render the captured frame; UI construction and Draw callbacks run during Step().
+                activeBackend.Render();
+
+                this.PostImGuiRender();
+            }
+        }
+        finally
+        {
+            ThreadSafety.NativeFrameworkRenderSyncRoot.Exit();
+        }
     }
 
-    private unsafe IImGuiBackend InitBackend(IDXGISwapChain* swapChain)
+    private unsafe Dx11Win32Backend InitBackend(IDXGISwapChain* swapChain)
     {
-        IWin32Backend newBackend;
+        Dx11Win32Backend newBackend;
         using (Timings.Start("IM Scene Init"))
         {
             try
             {
-                newBackend = new Dx11Win32Backend(swapChain);
+                newBackend = new Dx11Win32Backend(swapChain, this.isSmoothMotionDetected);
                 this.assertHandler.Setup();
             }
             catch (DllNotFoundException ex)
@@ -707,7 +852,6 @@ internal partial class InterfaceManager : IInternalDisposableService
 
                 Environment.Exit(-1);
 
-                // Doesn't reach here, but to make the compiler not complain
                 throw new InvalidOperationException();
             }
 
@@ -754,7 +898,7 @@ internal partial class InterfaceManager : IInternalDisposableService
                 configuration.ChosenStyle = builtInStyles[0].Name;
             }
 
-            // Ensure built-in styles are pinned to the start of the list
+            // Keep built-in styles at the start of the saved list.
             for (var i = 0; i < builtInStyles.Length; i++)
             {
                 if (configuration.SavedStyles.Count <= i || configuration.SavedStyles[i].Name != builtInStyles[i].Name)
@@ -763,7 +907,7 @@ internal partial class InterfaceManager : IInternalDisposableService
                     configuration.SavedStyles[i] = builtInStyles[i];
             }
 
-            // Use standard if the chosen style isn't there anymore
+            // Fall back to the standard style if the saved selection no longer exists.
             var style = configuration.SavedStyles.FirstOrDefault(x => x.Name == configuration.ChosenStyle);
             if (style == null)
             {
@@ -785,7 +929,7 @@ internal partial class InterfaceManager : IInternalDisposableService
                 ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
             }
 
-            // NOTE (Chiv) Toggle gamepad navigation via setting
+            // Apply the configured gamepad capabilities.
             if (!configuration.IsGamepadNavigationEnabled)
             {
                 ImGui.GetIO().BackendFlags &= ~ImGuiBackendFlags.HasGamepad;
@@ -797,7 +941,7 @@ internal partial class InterfaceManager : IInternalDisposableService
                 ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableSetMousePos;
             }
 
-            // NOTE (Chiv) Explicitly deactivate on dalamud boot
+            // Start with gamepad navigation inactive.
             ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
 
             ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
@@ -805,15 +949,22 @@ internal partial class InterfaceManager : IInternalDisposableService
             Log.Information("[IM] Scene & ImGui setup OK!");
         }
 
+        newBackend.PostCopy += this.PostImGuiCopy;
+        this.wndProcHookManager.PreWndProc += this.WndProcHookManagerOnPreWndProc;
+
+        // Publish only after configuration and all frame/input callbacks have been installed.
         this.backend = newBackend;
         Service<InterfaceManagerWithScene>.Provide(new(this));
 
-        this.wndProcHookManager.PreWndProc += this.WndProcHookManagerOnPreWndProc;
         return newBackend;
     }
 
     private void WndProcHookManagerOnPreWndProc(WndProcEventArgs args)
     {
+        using var callback = this.callbackLifetime.Enter();
+        if (!callback.CanUseBackend)
+            return;
+
         if (args.Message == WM.WM_SETTINGCHANGE)
         {
             if (this.dalamudConfiguration.WindowIsImmersive)
@@ -831,34 +982,55 @@ internal partial class InterfaceManager : IInternalDisposableService
             args.SuppressWithValue(r.Value);
     }
 
+    private void KernelDeviceSwapChainPresentDetour(nint thisPtr)
+    {
+        using var callback = this.callbackLifetime.Enter();
+        var original = callback.IsTracked ? this.kernelDeviceSwapchainPresentHook!.Original : this.kernelDeviceSwapchainPresentFallback!;
+
+        // Build UI once per game frame; presentation workers only render captured draw data.
+
+        try
+        {
+            if (callback.CanUseBackend && this.backend is not null && this.dalamudAtlas!.HasBuiltAtlas)
+                this.backend.Step();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Exception in KernelDeviceSwapChainPresentDetour");
+        }
+
+        CallOriginalKernelDeviceSwapChainPresent(original, thisPtr);
+    }
+
+    private void PreImGuiRender()
+    {
+        while (this.runBeforeImGuiRender.TryDequeue(out var action))
+            action.InvokeSafely();
+    }
+
     private void PostImGuiRender()
     {
         while (this.runAfterImGuiRender.TryDequeue(out var action))
             action.InvokeSafely();
+    }
 
-        if (!this.deferredDisposeTextures.IsEmpty)
+    private void PostImGuiCopy()
+    {
+        // Step invokes this under snapshot write exclusion. Retire the prior generation, then promote currently
+        // pending cleanup into the next retirement batch.
+        if (this.frameRetireActions.Count > 0)
         {
-            var count = 0;
-            while (this.deferredDisposeTextures.TryTake(out var d))
-            {
-                count++;
-                d.RealDispose();
-            }
-
-            Log.Verbose("[IM] Disposing {Count} textures", count);
+            foreach (var action in this.frameRetireActions)
+                action.InvokeSafely();
+            this.frameRetireActions.Clear();
         }
 
-        if (!this.deferredDisposeDisposables.IsEmpty)
-        {
-            // Not logging; the main purpose of this is to keep resources used for rendering the frame to be kept
-            // referenced until the resources are actually done being used, and it is expected that this will be
-            // frequent.
-            while (this.deferredDisposeDisposables.TryTake(out var d))
-                d.Dispose();
-        }
+        while (this.pendingRetireQueue.TryDequeue(out var action))
+            this.frameRetireActions.Add(action);
     }
 
     private unsafe void SetupHooks(
+        TargetSigScanner sigScanner,
         FontAtlasFactory fontAtlasFactory)
     {
         this.dalamudAtlas = fontAtlasFactory
@@ -931,8 +1103,23 @@ internal partial class InterfaceManager : IInternalDisposableService
         _ = this.dalamudAtlas.BuildFontsAsync();
 
         SwapChainHelper.BusyWaitForGameDeviceSwapChain();
+
+        // Detect NvPresent before hook selection unwraps the cache or selects a ReShade presentation path.
+        var nvPresent = NvPresentDetector.Inspect(SwapChainHelper.GameDisplaySwapChain);
+        this.isSmoothMotionDetected = nvPresent == NvPresentDetector.DetectionResult.Detected;
+        if (nvPresent == NvPresentDetector.DetectionResult.Unknown)
+        {
+            Log.Warning(
+                "Could not determine NvPresent participation in the game swap chain. " +
+                "Keeping the existing conditional D3D11 protection policy; middleware compatibility is undetermined.");
+        }
+        else
+        {
+            Log.Information("Game swap-chain NvPresent participation: {Result}.", nvPresent);
+        }
+
         var swapChainDesc = default(DXGI_SWAP_CHAIN_DESC);
-        if (SwapChainHelper.GameDeviceSwapChain->GetDesc(&swapChainDesc).SUCCEEDED)
+        if (SwapChainHelper.GameDisplaySwapChain->GetDesc(&swapChainDesc).SUCCEEDED)
             this.gameWindowHandle = swapChainDesc.OutputWindow;
 
         try
@@ -952,6 +1139,7 @@ internal partial class InterfaceManager : IInternalDisposableService
             "SetCursor",
             0,
             this.SetCursorDetour);
+        this.setCursorFallback = this.setCursorHook.Original;
 
         if (ReShadeAddonInterface.ReShadeIsSignedByReShade &&
             this.dalamudConfiguration.ReShadeHandlingMode is ReShadeHandlingMode.ReShadeAddonPresent or ReShadeHandlingMode.ReShadeAddonReShadeOverlay)
@@ -988,6 +1176,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         }
 
         Log.Information("===== S W A P C H A I N =====");
+
         var sb = new StringBuilder();
         foreach (var m in ReShadeAddonInterface.AllReShadeModules)
         {
@@ -1008,6 +1197,16 @@ internal partial class InterfaceManager : IInternalDisposableService
         if (ReShadeAddonInterface.AllReShadeModules.Length > 1)
             Log.Warning("Multiple ReShade dlls are detected.");
 
+        if (!sigScanner.TryScanText("E8 ?? ?? ?? ?? C6 46 79 00 EB 40", out var pPresent))
+        {
+            throw new InvalidOperationException("Could not find Client::Graphics::Kernel::SwapChain::Present(), no UI will be drawn");
+        }
+
+        this.kernelDeviceSwapchainPresentHook = Hook<PresentDelegate>.FromAddress(
+            pPresent,
+            this.KernelDeviceSwapChainPresentDetour);
+        this.kernelDeviceSwapchainPresentFallback = Marshal.GetDelegateForFunctionPointer<PresentDelegate>(this.kernelDeviceSwapchainPresentHook.Address);
+
         ResizeBuffersDelegate dxgiSwapChainResizeBuffersDelegate;
         ReShadeDxgiSwapChainPresentDelegate? reShadeDxgiSwapChainPresentDelegate = null;
         DxgiSwapChainPresentDelegate? dxgiSwapChainPresentDelegate = null;
@@ -1021,17 +1220,48 @@ internal partial class InterfaceManager : IInternalDisposableService
             // This is the only mode honored when SwapChainHookMode is set to VTable.
             case ReShadeHandlingMode.Default:
             case ReShadeHandlingMode.UnwrapReShade:
-                if (SwapChainHelper.UnwrapReShade())
-                    Log.Information("Unwrapped ReShade");
-                else
+                var unwrappedReShade = false;
+                var unwrappedNvPresent = false;
+                var visitedSwapChains = new HashSet<nint>();
+                bool changed;
+
+                // Peel either nesting order with shared cycle detection until no wrapper can be removed.
+                do
+                {
+                    changed = false;
+                    if (SwapChainHelper.UnwrapReShade(visitedSwapChains))
+                    {
+                        unwrappedReShade = true;
+                        changed = true;
+                        Log.Information("Unwrapped ReShade");
+                    }
+
+                    if (SwapChainHelper.UnwrapNvPresent(visitedSwapChains))
+                    {
+                        this.isSmoothMotionDetected = true;
+                        unwrappedNvPresent = true;
+                        changed = true;
+                        Log.Information("Unwrapped NvPresent");
+                    }
+                }
+                while (changed);
+
+                if (!unwrappedReShade)
                     Log.Warning("Could not unwrap ReShade");
+                if (unwrappedNvPresent)
+                    Log.Information("Using Smooth Motion");
                 goto default;
 
-            // Do no special ReShade handling.
-            // If SwapChainHookMode is set to VTable, do no special handling.
+            // Use the DXGI presentation hook, unwrapping NvPresent when recognized.
             case ReShadeHandlingMode.None:
             case var _ when this.dalamudConfiguration.SwapChainHookMode == SwapChainHelper.HookMode.VTable:
             default:
+                if (SwapChainHelper.UnwrapNvPresent())
+                {
+                    this.isSmoothMotionDetected = true;
+                    Log.Information("Unwrapped NvPresent, using Smooth Motion");
+                }
+
                 dxgiSwapChainResizeBuffersDelegate = this.AsHookDxgiSwapChainResizeBuffersDetour;
                 dxgiSwapChainPresentDelegate = this.DxgiSwapChainPresentDetour;
                 break;
@@ -1076,6 +1306,7 @@ internal partial class InterfaceManager : IInternalDisposableService
                 this.dxgiSwapChainResizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(
                     (nint)SwapChainHelper.GameDeviceSwapChainVtbl->ResizeBuffers,
                     dxgiSwapChainResizeBuffersDelegate);
+                this.dxgiSwapChainResizeBuffersFallback = Marshal.GetDelegateForFunctionPointer<ResizeBuffersDelegate>(this.dxgiSwapChainResizeBuffersHook.Address);
                 Log.Information(
                     "Hooked IDXGISwapChain::ResizeBuffers using bytecode: {addr}",
                     Util.DescribeAddress(this.dxgiSwapChainResizeBuffersHook.Address));
@@ -1085,6 +1316,7 @@ internal partial class InterfaceManager : IInternalDisposableService
                     this.dxgiSwapChainPresentHook = Hook<DxgiSwapChainPresentDelegate>.FromAddress(
                         (nint)SwapChainHelper.GameDeviceSwapChainVtbl->Present,
                         dxgiSwapChainPresentDelegate);
+                    this.dxgiSwapChainPresentFallback = Marshal.GetDelegateForFunctionPointer<DxgiSwapChainPresentDelegate>(this.dxgiSwapChainPresentHook.Address);
                     Log.Information(
                         "Hooked IDXGISwapChain::Present using bytecode: {addr}",
                         Util.DescribeAddress(this.dxgiSwapChainPresentHook.Address));
@@ -1095,6 +1327,7 @@ internal partial class InterfaceManager : IInternalDisposableService
                     this.reShadeDxgiSwapChainPresentHook = Hook<ReShadeDxgiSwapChainPresentDelegate>.FromAddress(
                         pfnReShadeDxgiSwapChainPresent,
                         reShadeDxgiSwapChainPresentDelegate);
+                    this.reShadeDxgiSwapChainPresentFallback = Marshal.GetDelegateForFunctionPointer<ReShadeDxgiSwapChainPresentDelegate>(this.reShadeDxgiSwapChainPresentHook.Address);
                     Log.Information(
                         "Hooked ReShade::DXGISwapChain::on_present using bytecode: {addr}",
                         Util.DescribeAddress(this.reShadeDxgiSwapChainPresentHook.Address));
@@ -1106,10 +1339,11 @@ internal partial class InterfaceManager : IInternalDisposableService
             case SwapChainHelper.HookMode.VTable:
             {
                 Log.Information("Hooking using VTable...");
-                this.dxgiSwapChainHook = new(SwapChainHelper.GameDeviceSwapChain);
+                this.dxgiSwapChainHook = new(SwapChainHelper.GameDisplaySwapChain);
                 this.dxgiSwapChainResizeBuffersHook = this.dxgiSwapChainHook.CreateHook(
                     nameof(IDXGISwapChain.ResizeBuffers),
                     dxgiSwapChainResizeBuffersDelegate);
+                this.dxgiSwapChainResizeBuffersFallback = this.dxgiSwapChainResizeBuffersHook.Original;
                 Log.Information(
                     "Hooked IDXGISwapChain::ResizeBuffers using VTable: {addr}",
                     Util.DescribeAddress(this.dxgiSwapChainResizeBuffersHook.Address));
@@ -1119,6 +1353,7 @@ internal partial class InterfaceManager : IInternalDisposableService
                     this.dxgiSwapChainPresentHook = this.dxgiSwapChainHook.CreateHook(
                         nameof(IDXGISwapChain.Present),
                         dxgiSwapChainPresentDelegate);
+                    this.dxgiSwapChainPresentFallback = this.dxgiSwapChainPresentHook.Original;
                     Log.Information(
                         "Hooked IDXGISwapChain::Present using VTable: {addr}",
                         Util.DescribeAddress(this.dxgiSwapChainPresentHook.Address));
@@ -1138,6 +1373,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         this.dxgiSwapChainResizeBuffersHook.Enable();
         this.dxgiSwapChainPresentHook?.Enable();
         this.dxgiSwapChainHook?.Enable();
+        this.kernelDeviceSwapchainPresentHook.Enable();
 
         // Set up ReShade callbacks after we are sure we are set
         if (this.reShadeAddonInterface is null)
@@ -1159,12 +1395,13 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private nint SetCursorDetour(nint hCursor)
     {
-        if (this.lastWantCapture && (!this.backend?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
+        using var callback = this.callbackLifetime.Enter();
+        var original = callback.IsTracked ? this.setCursorHook!.Original : this.setCursorFallback!;
+
+        if (callback.CanUseBackend && this.lastWantCapture && (!this.backend?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
             return default;
 
-        return this.setCursorHook?.IsDisposed is not false
-                   ? SetCursor((HCURSOR)hCursor)
-                   : this.setCursorHook.Original(hCursor);
+        return original(hCursor);
     }
 
     private void OnNewInputFrame()

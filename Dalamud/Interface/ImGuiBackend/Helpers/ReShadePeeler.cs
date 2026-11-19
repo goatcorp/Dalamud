@@ -1,7 +1,10 @@
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+using Dalamud.Support;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
@@ -11,7 +14,7 @@ using static TerraFX.Interop.Windows.Windows;
 namespace Dalamud.Interface.ImGuiBackend.Helpers;
 
 /// <summary>
-/// Peels ReShade off stuff.
+/// Removes ReShade wrappers from COM interfaces used for rendering.
 /// </summary>
 [SuppressMessage(
     "StyleCop.CSharp.LayoutRules",
@@ -33,51 +36,64 @@ internal static unsafe class ReShadePeeler
         where T : unmanaged, IUnknown.Interface
     {
         var changed = false;
+
+        // Bound each peel call to 64 distinct wrappers.
+        var visited = new HashSet<nint>();
         while (comptr->Get() != null && IsReShadedComObject(comptr->Get()))
         {
-            // Expectation: the pointer to the underlying object should come early after the overriden vtable.
+            if (visited.Count >= 64)
+                break;
+
+            var currentObject = (nint)comptr->Get();
+            if (!visited.Add(currentObject))
+                break;
+
+            // Scan pointer-sized fields through offset 0x20 for an underlying interface. This is a layout heuristic.
+            var peeled = false;
             for (nint i = 8; i <= 0x20; i += 8)
             {
                 var ppObjectBehind = (nint)comptr->Get() + i;
 
-                // Is the thing directly pointed from the address an actual something in the memory?
+                // Validate the candidate, its vtable, and its function pointers before querying its interface.
                 if (!IsValidReadableMemoryAddress(ppObjectBehind, 8))
                     continue;
 
                 var pObjectBehind = *(nint*)ppObjectBehind;
 
-                // Is the address of vtable readable?
                 if (!IsValidReadableMemoryAddress(pObjectBehind, nint.Size))
                     continue;
                 var pObjectBehindVtbl = *(nint*)pObjectBehind;
 
-                // Is the vtable itself readable?
                 if (!IsValidReadableMemoryAddress(pObjectBehindVtbl, vtblSize))
                     continue;
 
-                // Are individual functions in vtable executable?
                 var valid = true;
                 for (var j = 0; valid && j < vtblSize; j += nint.Size)
                     valid &= IsValidExecutableMemoryAddress(*(nint*)(pObjectBehindVtbl + j), 1);
                 if (!valid)
                     continue;
 
-                // Interpret the object as an IUnknown.
-                // Note that `using` is not used, and `Attach` is used. We do not alter the reference count yet.
+                // Borrow the candidate without AddRef; this temporary pointer must not be disposed.
+                // QueryInterface acquires the reference transferred to comptr on successful replacement.
                 var punk = default(ComPtr<IUnknown>);
                 punk.Attach((IUnknown*)pObjectBehind);
 
-                // Is the IUnknown object also the type we want?
                 using var comptr2 = default(ComPtr<T>);
-                if (punk.As(&comptr2).FAILED)
+                if (punk.As(&comptr2).Value != 0 || comptr2.Get() == null)
+                    continue;
+
+                // A self-reference is not a successfully removed wrapper.
+                if ((nint)comptr2.Get() == currentObject)
                     continue;
 
                 comptr2.Swap(comptr);
                 changed = true;
+                peeled = true;
                 break;
             }
 
-            if (!changed)
+            // Stop when this wrapper matches but exposes no valid underlying interface.
+            if (!peeled)
                 break;
         }
 
@@ -86,7 +102,7 @@ internal static unsafe class ReShadePeeler
 
     private static bool BelongsInReShadeDll(nint ptr)
     {
-        foreach (ProcessModule processModule in Process.GetCurrentProcess().Modules)
+        foreach (ProcessModule processModule in CurrentProcessModules.ModuleCollection)
         {
             if (ptr < processModule.BaseAddress)
                 continue;
@@ -163,8 +179,12 @@ internal static unsafe class ReShadePeeler
         }
     }
 
+    // Check current mappings only; readable memory does not establish COM identity or preserve object lifetime.
     private static bool IsValidReadableMemoryAddress(nint p, nint size)
     {
+        if (size < 0)
+            return false;
+
         while (size > 0)
         {
             if (!IsValidUserspaceMemoryAddress(p))
@@ -182,8 +202,11 @@ internal static unsafe class ReShadePeeler
                 })
                 return false;
 
-            var regionSize = (nint)((mbi.RegionSize + 0xFFFUL) & ~0x1000UL);
-            var checkedSize = ((nint)mbi.BaseAddress + regionSize) - p;
+            var regionEnd = (nint)mbi.BaseAddress + (nint)mbi.RegionSize;
+            var checkedSize = regionEnd - p;
+            if (checkedSize <= 0)
+                return false;
+            checkedSize = Math.Min(checkedSize, size);
             size -= checkedSize;
             p += checkedSize;
         }
@@ -191,8 +214,12 @@ internal static unsafe class ReShadePeeler
         return true;
     }
 
+    // Check executable protection across the requested range without retaining the mapped memory.
     private static bool IsValidExecutableMemoryAddress(nint p, nint size)
     {
+        if (size < 0)
+            return false;
+
         while (size > 0)
         {
             if (!IsValidUserspaceMemoryAddress(p))
@@ -210,8 +237,11 @@ internal static unsafe class ReShadePeeler
                 })
                 return false;
 
-            var regionSize = (nint)((mbi.RegionSize + 0xFFFUL) & ~0x1000UL);
-            var checkedSize = ((nint)mbi.BaseAddress + regionSize) - p;
+            var regionEnd = (nint)mbi.BaseAddress + (nint)mbi.RegionSize;
+            var checkedSize = regionEnd - p;
+            if (checkedSize <= 0)
+                return false;
+            checkedSize = Math.Min(checkedSize, size);
             size -= checkedSize;
             p += checkedSize;
         }

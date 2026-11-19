@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
 using TerraFX.Interop.DirectX;
@@ -34,6 +33,7 @@ internal sealed partial class TextureManager
         private ComPtr<ID3D11Buffer> vertexBufferFill;
         private ComPtr<ID3D11Buffer> vertexBufferMutable;
         private ComPtr<ID3D11Buffer> indexBuffer;
+        private ComPtr<ID3D11ShaderResourceView> whiteTexture;
 
         /// <summary>Finalizes an instance of the <see cref="SimpleDrawerImpl"/> class.</summary>
         ~SimpleDrawerImpl() => this.Dispose();
@@ -52,6 +52,7 @@ internal sealed partial class TextureManager
             this.vertexBufferFill.Reset();
             this.vertexBufferMutable.Reset();
             this.indexBuffer.Reset();
+            this.whiteTexture.Reset();
             GC.SuppressFinalize(this);
         }
 
@@ -252,6 +253,29 @@ internal sealed partial class TextureManager
                 device->CreateBuffer(&desc, &subr, &buffer).ThrowOnError();
                 this.indexBuffer.Attach(buffer);
             }
+
+            if (this.whiteTexture.IsEmpty())
+            {
+                // Keep the alpha-fill sample ready: asset loading can wait for tracking cleanup
+                // that needs the caller's device lock.
+                var pixel = uint.MaxValue;
+                var desc = new D3D11_TEXTURE2D_DESC
+                {
+                    Width = 1,
+                    Height = 1,
+                    MipLevels = 1,
+                    ArraySize = 1,
+                    Format = DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM,
+                    SampleDesc = new(1, 0),
+                    Usage = D3D11_USAGE.D3D11_USAGE_IMMUTABLE,
+                    BindFlags = (uint)D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE,
+                };
+                var subr = new D3D11_SUBRESOURCE_DATA { pSysMem = &pixel, SysMemPitch = sizeof(uint) };
+                using var texture = default(ComPtr<ID3D11Texture2D>);
+                device->CreateTexture2D(&desc, &subr, texture.GetAddressOf()).ThrowOnError();
+                fixed (ID3D11ShaderResourceView** ppView = &this.whiteTexture.GetPinnableReference())
+                    device->CreateShaderResourceView((ID3D11Resource*)texture.Get(), null, ppView).ThrowOnError();
+            }
         }
 
         /// <summary>Draws the given shader resource view to the current render target.</summary>
@@ -381,7 +405,7 @@ internal sealed partial class TextureManager
             ctx->PSSetShader(this.pixelShader, null, 0);
             var simp = this.sampler.Get();
             ctx->PSSetSamplers(0, 1, &simp);
-            var ppn = (ID3D11ShaderResourceView*)Service<DalamudAssetManager>.Get().White4X4.Handle.Handle;
+            var ppn = this.whiteTexture.Get();
             ctx->PSSetShaderResources(0, 1, &ppn);
 
             ctx->GSSetShader(null, null, 0);

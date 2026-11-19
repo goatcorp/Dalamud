@@ -7,7 +7,6 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Interface.Internal;
-using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.Logging.Internal;
@@ -207,9 +206,11 @@ internal sealed partial class TextureManager
             leaveOpen ? null : stream);
 
     /// <inheritdoc/>
+    // Step runs Draw before presentation queues drain; loader workers may be waiting on those queues.
+    // Synchronous creation must progress independently of loader availability.
     public IDalamudTextureWrap CreateFromTexFile(TexFile file) =>
         this.BlameSetName(
-            this.CreateFromTexFileAsync(file).Result,
+            this.NoThrottleCreateFromTexFile(file.Header, file.TextureBuffer),
             $"{nameof(this.CreateFromTexFile)}({nameof(file)})");
 
     /// <inheritdoc/>
@@ -346,8 +347,7 @@ internal sealed partial class TextureManager
         return wrap;
     }
 
-    /// <summary>Creates a texture from the given <see cref="TexFile"/>. Skips the load throttler; intended to be used
-    /// from implementation of <see cref="SharedImmediateTexture"/>s.</summary>
+    /// <summary>Creates a texture from the given <see cref="TexFile"/> without using the load throttler.</summary>
     /// <param name="header">Header of a <c>.tex</c> file.</param>
     /// <param name="buffer">Texture buffer.</param>
     /// <returns>The loaded texture.</returns>
@@ -395,24 +395,23 @@ internal sealed partial class TextureManager
 
     private void ReleaseUnmanagedResources() => this.device.Reset();
 
-    /// <summary>Runs the given action in IDXGISwapChain.Present immediately or waiting as needed.</summary>
+    /// <summary>Runs the action inline for the presentation owner, otherwise queues it before rendering.</summary>
     /// <param name="action">The action to run.</param>
-    // Not sure why this and the below can't be unconditional RunOnFrameworkThread
     private async Task RunDuringPresent(Action action)
     {
-        if (this.interfaceManager.IsMainThreadInPresent && ThreadSafety.IsMainThread)
+        if (this.interfaceManager.IsCurrentThreadInPresent)
             action();
         else
             await this.interfaceManager.RunBeforeImGuiRender(action);
     }
 
-    /// <summary>Runs the given function in IDXGISwapChain.Present immediately or waiting as needed.</summary>
+    /// <summary>Runs the function inline for the presentation owner, otherwise queues it before rendering.</summary>
     /// <typeparam name="T">The type of the return value.</typeparam>
     /// <param name="func">The function to run.</param>
     /// <returns>The return value from the function.</returns>
     private async Task<T> RunDuringPresent<T>(Func<T> func)
     {
-        if (this.interfaceManager.IsMainThreadInPresent && ThreadSafety.IsMainThread)
+        if (this.interfaceManager.IsCurrentThreadInPresent)
             return func();
         return await this.interfaceManager.RunBeforeImGuiRender(func);
     }

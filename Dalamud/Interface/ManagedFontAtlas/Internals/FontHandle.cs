@@ -92,8 +92,7 @@ internal abstract class FontHandle : IFontHandle
     }
 
     /// <summary>
-    /// Obtains an instance of <see cref="ImFontPtr"/> corresponding to this font handle,
-    /// to be released after rendering the current frame.
+    /// Obtains the <see cref="ImFontPtr"/> for this font handle and queues its lock for release through frame retirement.
     /// </summary>
     /// <returns>The font pointer, or default if unavailble.</returns>
     /// <remarks>

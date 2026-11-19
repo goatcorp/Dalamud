@@ -419,7 +419,12 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     {
         this.RunFrameworkTick();
 
-        return this.updateHook.OriginalDisposeSafe(thisPtr);
+        // Exclude worker renders from native UI updates and finalization.
+        // The kernel Present detour suspends this lock's ownership only while native presentation runs.
+        using (ThreadSafety.NativeFrameworkRenderSyncRoot.EnterScope())
+        {
+            return this.updateHook.OriginalDisposeSafe(thisPtr);
+        }
     }
 
     private unsafe void RunFrameworkTick()

@@ -93,11 +93,12 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     /// <param name="context">A pointer to an instance of <see cref="ID3D11DeviceContext"/>.</param>
     public Dx11Renderer(IDXGISwapChain* swapChain, ID3D11Device* device, ID3D11DeviceContext* context)
     {
-        var io = ImGui.GetIO();
-        if (ImGui.GetIO().Handle->BackendRendererName is not null)
-            throw new InvalidOperationException("ImGui backend renderer seems to be have been already attached.");
         try
         {
+            var io = ImGui.GetIO();
+            if (io.Handle->BackendRendererName is not null)
+                throw new InvalidOperationException("ImGui backend renderer seems to be have been already attached.");
+
             DXGI_SWAP_CHAIN_DESC desc;
             swapChain->GetDesc(&desc).ThrowOnError();
             this.rtvFormat = desc.BufferDesc.Format;
@@ -120,7 +121,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                 }
                 catch
                 {
-                    // don't care; not using DComposition then
+                    // Use standard swap chains when DirectComposition is unavailable.
                 }
 
                 this.viewportHandler = new(this);
@@ -132,7 +133,8 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         }
         catch
         {
-            this.ReleaseUnmanagedResources();
+            // Release partial state while the backend's ImGui context is still current.
+            this.Dispose();
             throw;
         }
     }
@@ -164,6 +166,29 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     /// <inheritdoc/>
     public void RenderDrawData(ImDrawDataPtr drawData) =>
         this.mainViewport.Draw(drawData, this.mainViewport.SwapChain == null);
+
+    /// <inheritdoc/>
+    public void RenderViewport(nint rendererUserData, ImDrawDataPtr drawData)
+    {
+        ThreadSafety.AssertMainThread();
+
+        // Missing-data checks do not validate the lifetime of the borrowed renderer handle.
+        if (rendererUserData == nint.Zero)
+            return;
+
+        ViewportData vp;
+        try
+        {
+            vp = ViewportData.Attach((void*)rendererUserData);
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+
+        vp.Draw(drawData, true);
+        vp.PresentIfSwapChainAvailable();
+    }
 
     /// <summary>
     /// Rebuilds font texture.
@@ -259,6 +284,9 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         if (drawData.DisplaySize.X <= 0 || drawData.DisplaySize.Y <= 0)
             return;
 
+        // Save before target binding so empty draw lists and setup failures also restore the caller's state.
+        using var oldState = new D3D11DeviceContextStateBackup(this.featureLevel, this.context.Get());
+
         // Set up render target
         this.context.Get()->OMSetRenderTargets(1, &renderTargetView, null);
         if (clearRenderTarget)
@@ -302,8 +330,6 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             this.device.Get()->CreateBuffer(&desc, null, &buffer).ThrowOnError();
             this.indexBuffer.Attach(buffer);
         }
-
-        using var oldState = new D3D11DeviceContextStateBackup(this.featureLevel, this.context.Get());
 
         // Setup desired DX state
         this.SetupRenderState(drawData);
@@ -409,13 +435,13 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                     {
                         if ((nint)cmd.UserCallback == (nint)CustomImDrawCallbackEnum.Blur)
                         {
+                            // The command borrows this payload; frame retirement returns it after repeated renders.
                             var data = (BlurCallbackData*)cmd.UserCallbackData;
                             var blurStrength = data->BlurStrength;
                             var rounding = data->Rounding;
                             var tintColor = data->TintColor;
                             var luminosityColor = data->LuminosityColor;
                             var noiseOpacity = data->NoiseOpacity;
-                            BlurCallbackDataPool.Return(data);
 
                             var blurV4 = cmd.ClipRect - clipOff;
                             if (blurV4.X >= blurV4.Z || blurV4.Y >= blurV4.W)
@@ -1159,24 +1185,34 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             return;
         this.releaseUnmanagedResourceCalled = true;
 
-        this.mainViewport.Dispose();
-        var vp = ImGui.GetPlatformIO().Viewports[0];
-        vp.RendererUserData = null;
-        ImGui.DestroyPlatformWindows();
+        if (this.mainViewport is not null)
+        {
+            this.mainViewport.Dispose();
+            var vp = ImGui.GetPlatformIO().Viewports[0];
+            vp.RendererUserData = null;
+        }
 
-        this.viewportHandler.Dispose();
+        if (this.viewportHandler is not null)
+        {
+            // Viewport destruction still needs the registered renderer callbacks.
+            ImGui.DestroyPlatformWindows();
+            this.viewportHandler.Dispose();
+        }
 
-        var io = ImGui.GetIO();
-        if (io.Handle->BackendRendererName == (void*)this.renderNamePtr)
-            io.Handle->BackendRendererName = null;
+        // Earlier construction failures have no renderer registration or font IDs to clear.
         if (this.renderNamePtr != 0)
+        {
+            var io = ImGui.GetIO();
+            if (io.Handle->BackendRendererName == (void*)this.renderNamePtr)
+                io.Handle->BackendRendererName = null;
             Marshal.FreeHGlobal(this.renderNamePtr);
+
+            foreach (var i in Enumerable.Range(0, io.Fonts.Textures.Size))
+                io.Fonts.SetTexID(i, ImTextureID.Null);
+        }
 
         foreach (var fontResourceView in this.fontTextures)
             fontResourceView.Dispose();
-
-        foreach (var i in Enumerable.Range(0, io.Fonts.Textures.Size))
-            io.Fonts.SetTexID(i, ImTextureID.Null);
 
         this.device.Reset();
         this.context.Reset();

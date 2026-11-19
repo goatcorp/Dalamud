@@ -156,6 +156,9 @@ internal class ServiceScopeImpl : IServiceScope
 
                             switch (await serviceTask)
                             {
+                                case IInternalAsyncDisposableService d:
+                                    await d.DisposeServiceAsync();
+                                    break;
                                 case IInternalDisposableService d:
                                     d.DisposeService();
                                     break;
@@ -175,12 +178,8 @@ internal class ServiceScopeImpl : IServiceScope
             }
         }
 
-        // Unless Dalamud is unloading (plugin cannot be reloading at that point), ensure that there are no more
-        // event callback call in progress when this function returns. Since above service dispose operations should
-        // have unregistered the event listeners, on next framework tick, none can be running anymore.
-        // This has an additional effect of ensuring that DtrBar entries are completely removed on return.
-        // Note that this still does not handle Framework.RunOnTick with specified delays.
-        // If we're unloading, something else may block the framework thread, so we skip it in this case.
+        // After listeners detach, one tick lets framework callbacks finish and DtrBar removals apply.
+        // Delayed RunOnTick callbacks are not covered. Skip the tick during unload, when the framework may be blocked.
         if (!ServiceManager.UnloadCancellationToken.IsCancellationRequested)
         {
             await (Service<Framework>.GetNullable()?.DelayTicks(1) ?? Task.CompletedTask).SuppressException();

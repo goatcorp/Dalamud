@@ -160,12 +160,12 @@ public interface ITextureProvider : IDalamudService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Get a texture handle for the specified Lumina <see cref="TexFile"/>.
-    /// Alias for fetching <see cref="Task{TResult}.Result"/> from <see cref="CreateFromTexFileAsync"/>.
+    /// Synchronously creates a texture from the specified Lumina <see cref="TexFile"/> without waiting for
+    /// queued texture loads.
     /// </summary>
     /// <param name="file">The texture to obtain a handle to.</param>
     /// <returns>A texture wrap that can be used to render the texture. Dispose after use.</returns>
-    /// <remarks><para>This function may throw an exception.</para></remarks>
+    /// <remarks>Texture format conversion and resource creation run on the calling thread.</remarks>
     IDalamudTextureWrap CreateFromTexFile(TexFile file);
 
     /// <summary>Get a texture handle for the specified Lumina <see cref="TexFile"/>.</summary>
