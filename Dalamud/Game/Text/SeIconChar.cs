@@ -48,7 +48,13 @@ public enum SeIconChar
     /// <summary>
     /// The Hydaelyn icon unicode character.
     /// </summary>
+    [Obsolete("Use SeIconChar.Hydaelyn (spelling) instead")]
     Hyadelyn = 0xE048,
+
+    /// <summary>
+    /// The Hydaelyn icon unicode character.
+    /// </summary>
+    Hydaelyn = 0xE048,
 
     /// <summary>
     /// The no mouse click icon unicode character.

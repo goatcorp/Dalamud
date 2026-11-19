@@ -17,7 +17,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 public class IconBrowserWidget : IDataWindowWidget
 {
-    private const int MaxIconId = 250_000;
+    private const int MaxIconId = 260_000;
 
     private Vector2 iconSize = new(64.0f, 64.0f);
     private Vector2 editIconSize = new(64.0f, 64.0f);

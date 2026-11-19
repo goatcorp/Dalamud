@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text;
 
 namespace Dalamud.Utility;
 
@@ -14,19 +15,15 @@ public static class Hash
     /// <returns>The computed hash.</returns>
     internal static string GetStringSha256Hash(string text)
     {
-        return string.IsNullOrEmpty(text) ? string.Empty : GetSha256Hash(System.Text.Encoding.UTF8.GetBytes(text));
-    }
+        if (string.IsNullOrEmpty(text))
+            return string.Empty;
 
-    /// <summary>
-    /// Get the SHA-256 hash of a byte array.
-    /// </summary>
-    /// <param name="buffer">The byte array to hash.</param>
-    /// <returns>The computed hash.</returns>
-    internal static string GetSha256Hash(byte[] buffer)
-    {
-        var hash = SHA256.HashData(buffer);
-        return ByteArrayToString(hash);
-    }
+        var strUtf8Len = Encoding.UTF8.GetByteCount(text);
+        var strBytes = strUtf8Len <= 512 ? stackalloc byte[512] : new byte[strUtf8Len];
+        Encoding.UTF8.GetBytes(text, strBytes);
 
-    private static string ByteArrayToString(byte[] ba) => Convert.ToHexString(ba);
+        Span<byte> hash = stackalloc byte[32];
+        SHA256.HashData(strBytes[..strUtf8Len], hash);
+        return Convert.ToHexString(hash);
+    }
 }
