@@ -57,6 +57,11 @@ public enum SettingsOpenKind
     ServerInfoBar,
 
     /// <summary>
+    /// Open to the "Game Tooltips" page.
+    /// </summary>
+    Tooltips,
+
+    /// <summary>
     /// Open to the "Badges" page.
     /// </summary>
     Badge,
