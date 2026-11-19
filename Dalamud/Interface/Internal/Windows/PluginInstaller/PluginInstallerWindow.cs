@@ -2707,10 +2707,19 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.Indent();
 
             // Installable from
+            string? repoSourceText = null;
             if (manifest.SourceRepo.IsThirdParty)
             {
-                var repoText = Locs.PluginBody_Plugin3rdPartyRepo(manifest.SourceRepo.PluginMasterUrl);
-                ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
+                repoSourceText = Locs.PluginBody_Plugin3rdPartyRepo(manifest.SourceRepo.PluginMasterUrl);
+            }
+            else if (configuration.ThirdRepoList.Any(x => x.IsEnabled))
+            {
+                repoSourceText = Locs.PluginBody_PluginMainRepo();
+            }
+
+            if (!repoSourceText.IsNullOrEmpty())
+            {
+                ImGui.TextColored(ImGuiColors.DalamudGrey3, repoSourceText);
 
                 ImGuiHelpers.ScaledDummy(2);
             }
@@ -3055,6 +3064,10 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 var repoText = Locs.PluginBody_Plugin3rdPartyRepo(manifest.InstalledFromUrl);
                 ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
+            }
+            else if (configuration.ThirdRepoList.Any(x => x.IsEnabled))
+            {
+                ImGui.TextColored(ImGuiColors.DalamudGrey3, Locs.PluginBody_PluginMainRepo());
             }
 
             // Description
@@ -4539,6 +4552,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string PluginBody_DevPluginPath(string path) => Loc.Localize("InstallerDevPluginPath", "From {0}").Format(path);
 
         public static string PluginBody_Plugin3rdPartyRepo(string url) => Loc.Localize("InstallerPlugin3rdPartyRepo", "From custom plugin repository {0}").Format(url);
+
+        public static string PluginBody_PluginMainRepo() => Loc.Localize("InstallerPluginMainRepo", "From the official plugin repository");
 
         public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible.");
 

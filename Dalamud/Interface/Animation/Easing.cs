@@ -8,9 +8,8 @@ namespace Dalamud.Interface.Animation;
 /// </summary>
 public abstract class Easing
 {
-    // TODO: Use game delta time here instead
-    private readonly Stopwatch animationTimer = new();
-
+    private long start;
+    private long end;
     private double valueInternal;
 
     /// <summary>
@@ -78,24 +77,30 @@ public abstract class Easing
     /// <summary>
     /// Gets a value indicating whether the animation is running.
     /// </summary>
-    public bool IsRunning => this.animationTimer.IsRunning;
+    public bool IsRunning { get; private set; }
+
+    /// <summary>
+    /// Gets or the elapsed time of the animation.
+    /// </summary>
+    public TimeSpan Elapsed => Stopwatch.GetElapsedTime(this.start, this.IsRunning ? Stopwatch.GetTimestamp() : this.end);
 
     /// <summary>
     /// Gets a value indicating whether the animation is done.
     /// </summary>
-    public bool IsDone => this.animationTimer.ElapsedMilliseconds > this.Duration.TotalMilliseconds;
+    public bool IsDone => this.Elapsed.TotalMilliseconds > this.Duration.TotalMilliseconds;
 
     /// <summary>
     /// Gets the progress of the animation, from 0 to 1.
     /// </summary>
-    protected double Progress => this.animationTimer.ElapsedMilliseconds / this.Duration.TotalMilliseconds;
+    protected double Progress => this.Elapsed.TotalMilliseconds / this.Duration.TotalMilliseconds;
 
     /// <summary>
     /// Starts the animation from where it was last stopped, or from the start if it was never started before.
     /// </summary>
     public void Start()
     {
-        this.animationTimer.Start();
+        this.start = Stopwatch.GetTimestamp();
+        this.IsRunning = true;
     }
 
     /// <summary>
@@ -103,7 +108,8 @@ public abstract class Easing
     /// </summary>
     public void Stop()
     {
-        this.animationTimer.Stop();
+        this.end = Stopwatch.GetTimestamp();
+        this.IsRunning = false;
     }
 
     /// <summary>
@@ -111,7 +117,8 @@ public abstract class Easing
     /// </summary>
     public void Restart()
     {
-        this.animationTimer.Restart();
+        this.end = 0;
+        this.Start();
     }
 
     /// <summary>
@@ -119,7 +126,9 @@ public abstract class Easing
     /// </summary>
     public void Reset()
     {
-        this.animationTimer.Reset();
+        this.start = 0;
+        this.end = 0;
+        this.IsRunning = false;
     }
 
     /// <summary>
