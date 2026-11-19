@@ -53,6 +53,7 @@
     <Project Path="generators/Dalamud.EnumGenerator/Dalamud.EnumGenerator.Sample/Dalamud.EnumGenerator.Sample.csproj" />
     <Project Path="generators/Dalamud.EnumGenerator/Dalamud.EnumGenerator.Tests/Dalamud.EnumGenerator.Tests.csproj" />
     <Project Path="generators/Dalamud.EnumGenerator/Dalamud.EnumGenerator/Dalamud.EnumGenerator.csproj" />
+    <Project Path="generators/Dalamud.UnicodeDataGenerator/Dalamud.UnicodeDataGenerator.csproj" />
   </Folder>
   <Folder Name="/Utilities/">
     <Project Path="Dalamud.CorePlugin/Dalamud.CorePlugin.csproj">
