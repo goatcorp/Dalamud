@@ -37,7 +37,11 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public short SortOrder;
 
-		public ImGuiSortDirection RawBits0;
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiSortDirection SortDirection;
+
 
 		/// <summary>
 		/// To be documented.
@@ -50,8 +54,6 @@ namespace Dalamud.Bindings.ImGui
 			SortDirection = sortDirection;
 		}
 
-
-		public ImGuiSortDirection SortDirection { get => Bitfield.Get(RawBits0, 0, 8); set => Bitfield.Set(ref RawBits0, value, 0, 8); }
 
 		/// <summary>
 		/// To be documented.
@@ -122,7 +124,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiSortDirection SortDirection { get => Handle->SortDirection; set => Handle->SortDirection = value; }
+		public ref ImGuiSortDirection SortDirection => ref Unsafe.AsRef<ImGuiSortDirection>(&Handle->SortDirection);
 		/// <summary>
 		/// To be documented.
 		/// </summary>

@@ -42,7 +42,7 @@ public static partial class ImRaii
         /// <returns> A disposable object that evaluates to true if any part of the begun child is currently visible. Use with using. </returns>
         internal ChildDisposable(ImU8String strId, Vector2 size, bool border)
         {
-            this.Success = ImGui.BeginChild(strId, size, border);
+            this.Success = ImGui.BeginChild(strId, size, border ? ImGuiChildFlags.Borders : ImGuiChildFlags.None);
             this.Alive = true;
         }
 
@@ -54,7 +54,11 @@ public static partial class ImRaii
         /// <returns> A disposable object that evaluates to true if any part of the begun child is currently visible. Use with using. </returns>
         internal ChildDisposable(ImU8String strId, Vector2 size, bool border, ImGuiWindowFlags flags)
         {
-            this.Success = ImGui.BeginChild(strId, size, border, flags);
+            this.Success = ImGui.BeginChild(
+                strId,
+                size,
+                border ? ImGuiChildFlags.Borders : ImGuiChildFlags.None,
+                flags);
             this.Alive = true;
         }
 

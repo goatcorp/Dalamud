@@ -15,4 +15,16 @@ public unsafe partial struct ImGuiViewportPtr
 		{
 			ImGuiNative.Destroy(Handle);
 		}
+		public unsafe Vector2 GetCenter()
+		{
+			Vector2 ret = ImGuiNative.GetCenter(Handle);
+			return ret;
+		}
+		public unsafe Vector2 GetWorkCenter()
+		{
+			Vector2 ret = ImGuiNative.GetWorkCenter(Handle);
+			return ret;
+		}
 }
+// DISCARDED: GetDebugName
+// DISCARDED: GetDebugNameS

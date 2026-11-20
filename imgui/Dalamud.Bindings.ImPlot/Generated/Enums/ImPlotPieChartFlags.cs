@@ -29,5 +29,20 @@ namespace Dalamud.Bindings.ImPlot
 		/// To be documented.
 		/// </summary>
 		Normalize = unchecked(1024),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		IgnoreHidden = unchecked(2048),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		Exploding = unchecked(4096),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NoSliceBorder = unchecked(8192),
 	}
 }

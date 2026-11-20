@@ -7,16 +7,15 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.Unicode;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text;
 using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.GameFonts;
-using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Interface.Fonts;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 
 #if IMEDEBUG
 using Serilog;
@@ -42,26 +41,6 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                   .Select(x => ((int)x.GetRawConstantValue()!, x.Name))
                   .DistinctBy(x => x.Item1)
                   .ToDictionary(x => x.Item1, x => x.Name);
-
-    private static readonly UnicodeRange[] HanRange =
-    [
-        UnicodeRanges.CjkRadicalsSupplement,
-        UnicodeRanges.CjkSymbolsandPunctuation,
-        UnicodeRanges.CjkUnifiedIdeographsExtensionA,
-        UnicodeRanges.CjkUnifiedIdeographs,
-        UnicodeRanges.CjkCompatibilityIdeographs,
-        UnicodeRanges.CjkCompatibilityForms
-        // No more; Extension B~ are outside BMP range
-    ];
-
-    private static readonly UnicodeRange[] HangulRange =
-    [
-        UnicodeRanges.HangulJamo,
-        UnicodeRanges.HangulSyllables,
-        UnicodeRanges.HangulCompatibilityJamo,
-        UnicodeRanges.HangulJamoExtendedA,
-        UnicodeRanges.HangulJamoExtendedB
-    ];
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
@@ -115,8 +94,8 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         this.interfaceManager = imws.Manager;
         this.setPlatformImeDataDelegate = this.ImGuiSetPlatformImeData;
 
-        var io = ImGui.GetIO();
-        io.SetPlatformImeDataFn = Marshal.GetFunctionPointerForDelegate(this.setPlatformImeDataDelegate).ToPointer();
+        var pio = ImGui.GetPlatformIO();
+        pio.PlatformSetImeDataFn = Marshal.GetFunctionPointerForDelegate(this.setPlatformImeDataDelegate).ToPointer();
         this.interfaceManager.Draw += this.Draw;
         this.wndProcHookManager.PreWndProc += this.WndProcHookManagerOnPreWndProc;
     }
@@ -126,17 +105,8 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
     /// </summary>
     ~DalamudIme() => this.ReleaseUnmanagedResources();
 
-    private delegate void ImGuiSetPlatformImeDataDelegate(ImGuiViewportPtr viewport, ImGuiPlatformImeDataPtr data);
-
-    /// <summary>
-    /// Gets a value indicating whether Han(Chinese) input has been detected.
-    /// </summary>
-    public bool EncounteredHan { get; private set; }
-
-    /// <summary>
-    /// Gets a value indicating whether Hangul(Korean) input has been detected.
-    /// </summary>
-    public bool EncounteredHangul { get; private set; }
+    private delegate void ImGuiSetPlatformImeDataDelegate(
+        ImGuiContextPtr ctx, ImGuiViewportPtr viewport, ImGuiPlatformImeDataPtr data);
 
     /// <summary>
     /// Gets a value indicating whether to display the cursor in input text. This also deals with blinking.
@@ -174,39 +144,6 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>
-    /// Looks for the characters inside <paramref name="str"/> and enables fonts accordingly.
-    /// </summary>
-    /// <param name="str">The string.</param>
-    public void ReflectCharacterEncounters(string str)
-    {
-        foreach (var chr in str)
-        {
-            if (!this.EncounteredHan)
-            {
-                if (HanRange.Any(x => x.FirstCodePoint <= chr && chr < x.FirstCodePoint + x.Length))
-                {
-                    if (Service<FontAtlasFactory>.Get()
-                                                 ?.GetFdtReader(GameFontFamilyAndSize.Axis12)
-                                                 .FindGlyph(chr) is null)
-                    {
-                        this.EncounteredHan = true;
-                        Service<InterfaceManager>.Get().RebuildFonts();
-                    }
-                }
-            }
-
-            if (!this.EncounteredHangul)
-            {
-                if (HangulRange.Any(x => x.FirstCodePoint <= chr && chr < x.FirstCodePoint + x.Length))
-                {
-                    this.EncounteredHangul = true;
-                    Service<InterfaceManager>.Get().RebuildFonts();
-                }
-            }
-        }
-    }
-
     private static ImGuiInputTextStatePtr GetInputTextState() => new(&ImGui.GetCurrentContext().Handle->InputTextState);
 
     private static (string String, bool Supported) ToUcs2(char* data, int nc = -1)
@@ -225,14 +162,12 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         {
             if (char.IsHighSurrogate(data[i]) && i + 1 < nc && char.IsLowSurrogate(data[i + 1]))
             {
-                // Surrogate pair is found, but only UCS-2 characters are supported. Skip the next low surrogate.
-                sb.Append('\xFFFD');
-                supported = false;
+                sb.Append(data[i]);
+                sb.Append(data[i + 1]);
                 i++;
             }
             else if (char.IsSurrogate(data[i]) || !Rune.IsValid(data[i]))
             {
-                // Lone surrogate pair, or an invalid codepoint.
                 sb.Append('\xFFFD');
                 supported = false;
             }
@@ -248,7 +183,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
     private static string ImmGetCompositionString(HIMC hImc, uint comp)
     {
         var numBytes = ImmGetCompositionStringW(hImc, comp, null, 0);
-        if (numBytes == 0)
+        if (numBytes <= 0)
             return string.Empty;
 
         var data = stackalloc char[numBytes / 2];
@@ -257,12 +192,35 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         return ToUcs2(data, numBytes / 2).String;
     }
 
+    private static int ClampUtf16Offset(string s, int offset)
+    {
+        offset = Math.Clamp(offset, 0, s.Length);
+        if (offset > 0 && offset < s.Length && char.IsLowSurrogate(s[offset]) && char.IsHighSurrogate(s[offset - 1]))
+            offset--;
+        return offset;
+    }
+
+    // Skip drawing when fg is fully transparent, and divide bg alpha by fg alpha to counteract text-alpha scaling on the edge.
+    private static void DrawInputModeIcon(ImDrawListPtr drawList, Vector2 pos, char icon, uint bg, uint fg)
+    {
+        var fgAlpha = fg >> 24;
+        if (fgAlpha == 0)
+            return;
+
+        var edgeAlpha = Math.Min(255u, (bg >> 24) * 255u / fgAlpha);
+        var edge = edgeAlpha != 0;
+        using var edgeScope = edge
+                                  ? ImGui.PushTextEdge((bg & 0x00FFFFFFu) | (edgeAlpha << 24), StyleLength.Px(2))
+                                  : default;
+        drawList.AddText(pos, fg, new ReadOnlySpan<char>(in icon));
+    }
+
     private void ReleaseUnmanagedResources()
     {
         if (ImGuiHelpers.IsImGuiInitialized)
         {
-            var io = ImGui.GetIO();
-            io.SetPlatformImeDataFn = null;
+            var pio = ImGui.GetPlatformIO();
+            pio.PlatformSetImeDataFn = null;
         }
     }
 
@@ -535,8 +493,6 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         Log.Verbose($"{nameof(this.ReplaceCompositionString)}({newString})");
 #endif
 
-        this.ReflectCharacterEncounters(newString);
-
         var textState = GetInputTextState();
         if (this.temporaryUndoSelection is not null)
         {
@@ -546,11 +502,11 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         }
 
         textState.SanitizeSelectionRange();
-        if (textState.ReplaceSelectionAndPushUndo(newString))
+        if (textState.ReplaceSelectionAndPushUndo(newString, out var insertedLength))
             this.temporaryUndoSelection = textState.GetSelectionTuple();
 
         // Put the cursor at the beginning, so that the candidate window appears aligned with the text.
-        textState.SetSelectionRange(textState.GetSelectionTuple().Start, newString.Length, 0);
+        textState.SetSelectionRange(textState.GetSelectionTuple().Start, insertedLength, 0);
 
         if (finalCommit)
         {
@@ -559,7 +515,9 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         }
 
         this.compositionString = newString;
-        this.compositionCursorOffset = ImmGetCompositionStringW(hImc, GCS.GCS_CURSORPOS, null, 0);
+        this.compositionCursorOffset = ClampUtf16Offset(
+            this.compositionString,
+            ImmGetCompositionStringW(hImc, GCS.GCS_CURSORPOS, null, 0));
 
         var attrLength = ImmGetCompositionStringW(hImc, GCS.GCS_COMPATTR, null, 0);
         if (attrLength > 0)
@@ -575,9 +533,11 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
             while (r < attr.Length && attr[r] is ATTR_TARGET_CONVERTED or ATTR_TARGET_NOTCONVERTED)
                 r++;
 
-            if (r == 0 || l == this.compositionString.Length)
+            if (r == 0 || l >= this.compositionString.Length)
                 (l, r) = (0, this.compositionString.Length);
 
+            l = ClampUtf16Offset(this.compositionString, l);
+            r = ClampUtf16Offset(this.compositionString, r);
             (this.partialConversionFrom, this.partialConversionTo) = (l, r);
         }
         else
@@ -618,7 +578,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
             return;
 
         var size = (int)ImmGetCandidateListW(hImc, 0, null, 0);
-        if (size == 0)
+        if (size <= 0)
             return;
 
         var pStorage = stackalloc byte[size];
@@ -636,11 +596,10 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                      (int)Math.Min(candlist.dwCount - candlist.dwPageStart, candlist.dwPageSize)))
         {
             this.candidateStrings.Add(ToUcs2((char*)(pStorage + candlist.dwOffset[i])));
-            this.ReflectCharacterEncounters(this.candidateStrings[^1].String);
         }
     }
 
-    private void ImGuiSetPlatformImeData(ImGuiViewportPtr viewport, ImGuiPlatformImeDataPtr data)
+    private void ImGuiSetPlatformImeData(ImGuiContextPtr ctx, ImGuiViewportPtr viewport, ImGuiPlatformImeDataPtr data)
     {
         this.cursorScreenPos = data.InputPos;
         this.associatedViewport = data.WantVisible ? viewport : default;
@@ -658,10 +617,13 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         if (viewport.Handle is null)
             return;
 
+        ImFontPtr imeIconFont = InterfaceManager.DefaultFont;
+        using var fontScope = ImRaii.PushFont(imeIconFont);
+        using var markupScope = ImGui.PushTextMarkup(TextMarkup.Plain, inherit: false);
+
         var drawCand = ime.candidateStrings.Count != 0;
         var drawConv = drawCand || ime.ShowPartialConversion;
         var drawIme = ime.inputModeIcon != 0;
-        var imeIconFont = InterfaceManager.DefaultFont;
 
         var pad = ImGui.GetStyle().WindowPadding;
         var candTextSize = ImGui.CalcTextSize(ime.compositionString == string.Empty ? " " : ime.compositionString);
@@ -679,7 +641,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         var maxTextWidth = 0f;
         for (var i = 0; i < ime.candidateStrings.Count; i++)
         {
-            var textSize = ImGui.CalcTextSize($"{i + 1}. {ime.candidateStrings[i]}");
+            var textSize = ImGui.CalcTextSize($"{i + 1}. {ime.candidateStrings[i].String}");
             maxTextWidth = maxTextWidth > textSize.X ? maxTextWidth : textSize.X;
         }
 
@@ -756,34 +718,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
             ImGui.GetColorU32(new Vector4(1, 1, 1, stateOpacity) * *ImGui.GetStyleColorVec4(ImGuiCol.Text));
         if (!expandUpward && drawIme)
         {
-            if (stateBg >= 0x1000000)
-            {
-                for (var dx = -2; dx <= 2; dx++)
-                {
-                    for (var dy = -2; dy <= 2; dy++)
-                    {
-                        if (dx != 0 || dy != 0)
-                        {
-                            imeIconFont.RenderChar(
-                                drawList,
-                                imeIconFont.FontSize,
-                                cursor + new Vector2(dx, dy),
-                                stateBg,
-                                ime.inputModeIcon);
-                        }
-                    }
-                }
-            }
-
-            if (stateFg >= 0x1000000)
-            {
-                imeIconFont.RenderChar(
-                    drawList,
-                    imeIconFont.FontSize,
-                    cursor,
-                    stateFg,
-                    ime.inputModeIcon);
-            }
+            DrawInputModeIcon(drawList, cursor, ime.inputModeIcon, stateBg, stateFg);
 
             cursor.Y += candTextSize.Y + spaceY;
         }
@@ -805,7 +740,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                 var selected = i == (native.dwSelection % ImePageSize);
                 var color = ImGui.GetColorU32(ImGuiCol.Text);
                 if (selected)
-                    color = ImGui.GetColorU32(ImGuiCol.NavHighlight);
+                    color = ImGui.GetColorU32(ImGuiCol.NavCursor);
 
                 var s = $"{i + 1}. {ime.candidateStrings[i].String}";
                 drawList.AddText(cursor, color, s);
@@ -838,34 +773,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
 
         if (expandUpward && drawIme)
         {
-            if (stateBg >= 0x1000000)
-            {
-                for (var dx = -2; dx <= 2; dx++)
-                {
-                    for (var dy = -2; dy <= 2; dy++)
-                    {
-                        if (dx != 0 || dy != 0)
-                        {
-                            imeIconFont.RenderChar(
-                                drawList,
-                                imeIconFont.FontSize,
-                                cursor + new Vector2(dx, dy),
-                                ImGui.GetColorU32(ImGuiCol.WindowBg),
-                                ime.inputModeIcon);
-                        }
-                    }
-                }
-            }
-
-            if (stateFg >= 0x1000000)
-            {
-                imeIconFont.RenderChar(
-                    drawList,
-                    imeIconFont.FontSize,
-                    cursor,
-                    ImGui.GetColorU32(ImGuiCol.Text),
-                    ime.inputModeIcon);
-            }
+            DrawInputModeIcon(drawList, cursor, ime.inputModeIcon, stateBg, stateFg);
         }
 
         return;

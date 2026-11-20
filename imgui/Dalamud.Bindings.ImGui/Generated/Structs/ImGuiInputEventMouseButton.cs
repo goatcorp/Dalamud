@@ -32,14 +32,20 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public byte Down;
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiMouseSource MouseSource;
+
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiInputEventMouseButton(int button = default, bool down = default)
+		public unsafe ImGuiInputEventMouseButton(int button = default, bool down = default, ImGuiMouseSource mouseSource = default)
 		{
 			Button = button;
 			Down = down ? (byte)1 : (byte)0;
+			MouseSource = mouseSource;
 		}
 
 

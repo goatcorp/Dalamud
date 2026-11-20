@@ -92,6 +92,22 @@ public static class TaskExtensions
     /// </example>
     public static Task SuppressException(this Task task) => task.ContinueWith(static r => r.Exception);
 
+    /// <summary>Marks the exception of a task as observed if it faults, so that it is not reported as unobserved.
+    /// </summary>
+    /// <param name="task">The task.</param>
+    /// <typeparam name="T">The type of the task.</typeparam>
+    /// <returns>The same task.</returns>
+    internal static T ObserveFaults<T>(this T task)
+        where T : Task
+    {
+        task.ContinueWith(
+            static t => _ = t.Exception,
+            CancellationToken.None,
+            TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
+        return task;
+    }
+
     private static bool IsWaitingValid(Task task)
     {
         // In the case the task has been started with the LongRunning flag, it will not be in the TPL thread pool and we can allow waiting regardless.

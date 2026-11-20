@@ -211,7 +211,7 @@ internal unsafe partial class Dx11Renderer
             }
 
             using var dcTarget = default(ComPtr<IDCompositionTarget>);
-            renderer.dcompDevice.Get()->CreateTargetForHwnd(hWnd, BOOL.TRUE, dcTarget.GetAddressOf());
+            renderer.dcompDevice.Get()->CreateTargetForHwnd(hWnd, BOOL.TRUE, dcTarget.GetAddressOf()).ThrowOnError();
 
             using var dcVisual = default(ComPtr<IDCompositionVisual>);
             renderer.dcompDevice.Get()->CreateVisual(dcVisual.GetAddressOf()).ThrowOnError();
@@ -290,11 +290,14 @@ internal unsafe partial class Dx11Renderer
                 return;
 
             this.EnsureRenderTarget();
+
+            // DirectComposition viewports are alpha-composited, which is incompatible with dual-source subpixel blending.
             this.parent.RenderDrawDataInternal(
                 this.renderTarget,
                 this.renderTargetView,
                 drawData,
-                clearRenderTarget);
+                clearRenderTarget,
+                !this.swapChain.IsEmpty() && this.dcompTarget.IsEmpty());
         }
 
         public void PresentIfSwapChainAvailable()

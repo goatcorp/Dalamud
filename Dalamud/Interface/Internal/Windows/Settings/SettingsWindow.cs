@@ -7,13 +7,13 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Fonts.Internal;
+using Dalamud.Interface.Fonts.Internal.Glyphs;
 using Dalamud.Interface.Internal.DesignSystem;
 using Dalamud.Interface.Internal.Windows.Settings.Tabs;
-using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using Dalamud.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Settings;
 
@@ -112,26 +112,26 @@ internal sealed class SettingsWindow : Window
     {
         var configuration = Service<DalamudConfiguration>.Get();
         var interfaceManager = Service<InterfaceManager>.Get();
-        var fontAtlasFactory = Service<FontAtlasFactory>.Get();
+        var fontFactory = Service<FontFactory>.Get();
         var localization = Service<Localization>.Get();
 
-        var scaleChanged = !Equals(ImGui.GetIO().FontGlobalScale, configuration.GlobalUiScale);
-        var rebuildFont = !Equals(fontAtlasFactory.DefaultFontSpec, configuration.DefaultFontSpec);
-        rebuildFont |= scaleChanged;
+        // ImGui applies FontScaleMain dynamically, so a UI scale change does not require rebuilding fonts.
+        var scaleChanged = !Equals(ImGui.GetStyle().FontScaleMain, configuration.GlobalUiScale);
+        var rebuildFont = !Equals(
+                              fontFactory.DefaultTextStyle,
+                              configuration.DefaultTextStyle ?? FontFactory.BuiltInDefaultTextStyle);
 
-        ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
+        ImGui.GetStyle().FontScaleMain = configuration.GlobalUiScale;
         if (scaleChanged)
         {
             interfaceManager.InvokeGlobalScaleChanged();
         }
 
-        fontAtlasFactory.DefaultFontSpecOverride = null;
+        fontFactory.DefaultTextStyleOverride = null;
+        SubpixelSettings.Override = null;
 
         if (rebuildFont)
-        {
             interfaceManager.RebuildFonts();
-            interfaceManager.InvokeFontChanged();
-        }
 
         foreach (var settingsTab in this.tabs)
         {
@@ -295,19 +295,19 @@ internal sealed class SettingsWindow : Window
         if (!configuration.IsGamepadNavigationEnabled)
         {
             ImGui.GetIO().BackendFlags &= ~ImGuiBackendFlags.HasGamepad;
-            ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableSetMousePos;
+            ImGui.GetIO().ConfigNavMoveSetMousePos = false;
 
             Service<GamepadState>.Get().EnableGamepadNav = false;
         }
         else
         {
             ImGui.GetIO().BackendFlags |= ImGuiBackendFlags.HasGamepad;
-            ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableSetMousePos;
+            ImGui.GetIO().ConfigNavMoveSetMousePos = true;
         }
 
+        // No font rebuild is needed here because default font changes apply when chosen and language changes raise
+        // LocalizationChanged.
         configuration.QueueSave();
-
-        Service<InterfaceManager>.Get().RebuildFonts();
     }
 
     private void OnLocalizationChanged(string langCode)

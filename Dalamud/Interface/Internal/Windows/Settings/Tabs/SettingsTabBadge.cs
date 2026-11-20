@@ -95,7 +95,7 @@ internal sealed class SettingsTabBadge : SettingsTab
 
             var iconSize = ImGuiHelpers.ScaledVector2(64, 64);
             var cursorBeforeImage = ImGui.GetCursorPos();
-            var rectOffset = ImGui.GetWindowContentRegionMin() + ImGui.GetWindowPos();
+            var rectOffset = ImGui.GetCursorStartPos() + ImGui.GetWindowPos();
 
             if (ImGui.IsRectVisible(rectOffset + cursorBeforeImage, rectOffset + cursorBeforeImage + iconSize))
             {

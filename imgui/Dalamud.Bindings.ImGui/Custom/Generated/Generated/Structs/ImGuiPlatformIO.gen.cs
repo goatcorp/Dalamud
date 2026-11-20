@@ -11,6 +11,20 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImGuiPlatformIO
 {
+		public unsafe void ClearPlatformHandlers()
+		{
+			fixed (ImGuiPlatformIO* @this = &this)
+			{
+				ImGuiNative.ClearPlatformHandlers(@this);
+			}
+		}
+		public unsafe void ClearRendererHandlers()
+		{
+			fixed (ImGuiPlatformIO* @this = &this)
+			{
+				ImGuiNative.ClearRendererHandlers(@this);
+			}
+		}
 		public unsafe void Destroy()
 		{
 			fixed (ImGuiPlatformIO* @this = &this)

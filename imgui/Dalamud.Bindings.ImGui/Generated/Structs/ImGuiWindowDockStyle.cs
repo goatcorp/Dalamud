@@ -31,6 +31,9 @@ namespace Dalamud.Bindings.ImGui
 		public uint Colors_3;
 		public uint Colors_4;
 		public uint Colors_5;
+		public uint Colors_6;
+		public uint Colors_7;
+		public uint Colors_8;
 
 
 		/// <summary>
@@ -46,6 +49,9 @@ namespace Dalamud.Bindings.ImGui
 				Colors_3 = colors[3];
 				Colors_4 = colors[4];
 				Colors_5 = colors[5];
+				Colors_6 = colors[6];
+				Colors_7 = colors[7];
+				Colors_8 = colors[8];
 			}
 		}
 
@@ -62,6 +68,9 @@ namespace Dalamud.Bindings.ImGui
 				Colors_3 = colors[3];
 				Colors_4 = colors[4];
 				Colors_5 = colors[5];
+				Colors_6 = colors[6];
+				Colors_7 = colors[7];
+				Colors_8 = colors[8];
 			}
 		}
 

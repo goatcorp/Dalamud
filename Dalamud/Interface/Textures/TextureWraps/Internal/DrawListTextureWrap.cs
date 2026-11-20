@@ -1,6 +1,7 @@
 using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.ImGuiBackend.Helpers.D3D11;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Plugin.Internal.Types;
@@ -32,7 +33,6 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
 
     private int width;
     private int height;
-    private DXGI_FORMAT format = DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM;
 
     /// <summary>Initializes a new instance of the <see cref="DrawListTextureWrap"/> class.</summary>
     /// <param name="device">Pointer to a D3D11 device. Ownership is taken.</param>
@@ -59,7 +59,6 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
         fixed (ID3D11DeviceContext** pdc = &this.deviceContext.GetPinnableReference())
             this.device.Get()->GetImmediateContext(pdc);
 
-        this.emptyTexture = emptyTexture;
         this.srv = new((ID3D11ShaderResourceView*)emptyTexture.Handle.Handle);
     }
 
@@ -75,8 +74,8 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
         get => this.width;
         set
         {
-            ArgumentOutOfRangeException.ThrowIfNegative(value, nameof(value));
-            this.Resize(value, this.height, this.format);
+            ArgumentOutOfRangeException.ThrowIfNegative(value);
+            this.Resize(value, this.height);
         }
     }
 
@@ -87,7 +86,7 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
         set
         {
             ArgumentOutOfRangeException.ThrowIfNegative(value, nameof(value));
-            this.Resize(this.width, value, this.format).ThrowOnError();
+            this.Resize(this.width, value);
         }
     }
 
@@ -101,29 +100,12 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
                 throw new ArgumentOutOfRangeException(nameof(value), value, "X component is invalid.");
             if (value.Y is <= 0 or float.NaN)
                 throw new ArgumentOutOfRangeException(nameof(value), value, "Y component is invalid.");
-            this.Resize((int)MathF.Ceiling(value.X), (int)MathF.Ceiling(value.Y), this.format).ThrowOnError();
+            this.Resize((int)MathF.Ceiling(value.X), (int)MathF.Ceiling(value.Y));
         }
     }
 
     /// <inheritdoc/>
     public Vector4 ClearColor { get; set; }
-
-    /// <summary>Gets or sets the <see cref="DXGI_FORMAT"/>.</summary>
-    public int DxgiFormat
-    {
-        get => (int)this.format;
-        set
-        {
-            if (!this.textureManager.IsDxgiFormatSupportedForCreateFromExistingTextureAsync((DXGI_FORMAT)value))
-            {
-                throw new ArgumentException(
-                    "Specified format is not a supported rendering target format.",
-                    nameof(value));
-            }
-
-            this.Resize(this.width, this.Height, (DXGI_FORMAT)value).ThrowOnError();
-        }
-    }
 
     /// <inheritdoc/>
     public void Dispose()
@@ -157,10 +139,9 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
             new ImDrawData
             {
                 Valid = 1,
-                CmdListsCount = 1,
                 TotalIdxCount = drawListPtr.IdxBuffer.Size,
                 TotalVtxCount = drawListPtr.VtxBuffer.Size,
-                CmdLists = (ImDrawList**)(&drawListPtr),
+                CmdLists = new(1, 1, &drawListPtr),
                 DisplayPos = displayPos,
                 DisplaySize = this.Size,
                 FramebufferScale = scale,
@@ -184,38 +165,33 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
 
         // Clear the texture first, as the texture exists.
         var clearColor = this.ClearColor;
-        this.deviceContext.Get()->ClearRenderTargetView(this.rtvPremultiplied.Get(), (float*)&clearColor);
+        var premulClear = clearColor with { W = 1 } * clearColor.W;
+        this.deviceContext.Get()->ClearRenderTargetView(this.rtv.Get(), (float*)&clearColor);
+        this.deviceContext.Get()->ClearRenderTargetView(this.rtvPremultiplied.Get(), (float*)&premulClear);
 
         // If there is nothing to draw, then stop.
         if (!drawData.Valid
-            || drawData.CmdListsCount < 1
+            || drawData.CmdLists.Size < 1
             || drawData.TotalIdxCount < 1
             || drawData.TotalVtxCount < 1
-            || drawData.CmdLists.IsNull
+            || drawData.CmdLists.Data is null
             || drawData.DisplaySize.X <= 0
             || drawData.DisplaySize.Y <= 0
             || drawData.FramebufferScale.X == 0
             || drawData.FramebufferScale.Y == 0)
             return;
 
-        using (new DeviceContextStateBackup(this.device.Get()->GetFeatureLevel(), this.deviceContext))
+        using (new D3D11DeviceContextStateBackup(this.device.Get()->GetFeatureLevel(), this.deviceContext))
         {
-            Service<Renderer>.Get().RenderDrawData(this.rtvPremultiplied.Get(), drawData);
-            Service<Renderer>.Get().MakeStraight(this.srvPremultiplied.Get(), this.rtv.Get());
+            var renderer = Service<Renderer>.Get();
+            renderer.RenderDrawData(this.rtvPremultiplied.Get(), drawData);
+            renderer.MakeStraight(this.srvPremultiplied.Get(), this.rtv.Get(), this.width, this.height);
         }
     }
 
-    /// <summary>Resizes the texture.</summary>
-    /// <param name="newWidth">New texture width.</param>
-    /// <param name="newHeight">New texture height.</param>
-    /// <param name="newFormat">New format.</param>
-    /// <returns><see cref="S.S_OK"/> if the texture has been resized, <see cref="S.S_FALSE"/> if the texture has not
-    /// been resized, or a value with <see cref="HRESULT.FAILED"/> that evaluates to <see langword="true"/>.</returns>
-    private HRESULT Resize(int newWidth, int newHeight, DXGI_FORMAT newFormat)
+    // Recreates render targets at the new size, or releases them when either dimension is 0. Callers validate non-negative dimensions.
+    private void Resize(int newWidth, int newHeight)
     {
-        if (newWidth < 0 || newHeight < 0)
-            return E.E_INVALIDARG;
-
         if (newWidth == 0 || newHeight == 0)
         {
             this.tex.Reset();
@@ -225,13 +201,13 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
             this.srvPremultiplied.Reset();
             this.rtvPremultiplied.Reset();
             this.width = newWidth;
-            this.Height = newHeight;
+            this.height = newHeight;
             this.srv = new((ID3D11ShaderResourceView*)this.emptyTexture.Handle.Handle);
-            return S.S_FALSE;
+            return;
         }
 
         if (this.width == newWidth && this.height == newHeight)
-            return S.S_FALSE;
+            return;
 
         // These new resources will take replace the existing resources, only once all allocations are completed.
         using var tmptex = default(ComPtr<ID3D11Texture2D>);
@@ -247,7 +223,7 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
             Height = (uint)newHeight,
             MipLevels = 1,
             ArraySize = 1,
-            Format = newFormat,
+            Format = DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM,
             SampleDesc = new(1, 0),
             Usage = D3D11_USAGE.D3D11_USAGE_DEFAULT,
             BindFlags = (uint)(D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE |
@@ -255,35 +231,12 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
             CPUAccessFlags = 0u,
             MiscFlags = 0u,
         };
-        var hr = this.device.Get()->CreateTexture2D(&tmpTexDesc, null, tmptex.GetAddressOf());
-        if (hr.FAILED)
-            return hr;
-
-        var tmpres = (ID3D11Resource*)tmptex.Get();
-        var srvDesc = new D3D11_SHADER_RESOURCE_VIEW_DESC(tmptex, D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
-        hr = this.device.Get()->CreateShaderResourceView(tmpres, &srvDesc, tmpsrv.GetAddressOf());
-        if (hr.FAILED)
-            return hr;
-
-        var rtvDesc = new D3D11_RENDER_TARGET_VIEW_DESC(tmptex, D3D11_RTV_DIMENSION.D3D11_RTV_DIMENSION_TEXTURE2D);
-        hr = this.device.Get()->CreateRenderTargetView(tmpres, &rtvDesc, tmprtv.GetAddressOf());
-        if (hr.FAILED)
-            return hr;
-
-        hr = this.device.Get()->CreateTexture2D(&tmpTexDesc, null, tmptexPremultiplied.GetAddressOf());
-        if (hr.FAILED)
-            return hr;
-
-        tmpres = (ID3D11Resource*)tmptexPremultiplied.Get();
-        srvDesc = new(tmptexPremultiplied, D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
-        hr = this.device.Get()->CreateShaderResourceView(tmpres, &srvDesc, tmpsrvPremultiplied.GetAddressOf());
-        if (hr.FAILED)
-            return hr;
-
-        rtvDesc = new(tmptexPremultiplied, D3D11_RTV_DIMENSION.D3D11_RTV_DIMENSION_TEXTURE2D);
-        hr = this.device.Get()->CreateRenderTargetView(tmpres, &rtvDesc, tmprtvPremultiplied.GetAddressOf());
-        if (hr.FAILED)
-            return hr;
+        this.CreateRenderTarget(&tmpTexDesc, tmptex.GetAddressOf(), tmpsrv.GetAddressOf(), tmprtv.GetAddressOf());
+        this.CreateRenderTarget(
+            &tmpTexDesc,
+            tmptexPremultiplied.GetAddressOf(),
+            tmpsrvPremultiplied.GetAddressOf(),
+            tmprtvPremultiplied.GetAddressOf());
 
         tmptex.Swap(ref this.tex);
         tmpsrv.Swap(ref this.srv);
@@ -293,10 +246,22 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
         tmprtvPremultiplied.Swap(ref this.rtvPremultiplied);
         this.width = newWidth;
         this.height = newHeight;
-        this.format = newFormat;
 
         this.textureManager.BlameSetName(this, this.debugName);
         this.textureManager.Blame(this, this.plugin);
-        return S.S_OK;
+    }
+
+    private void CreateRenderTarget(
+        D3D11_TEXTURE2D_DESC* desc,
+        ID3D11Texture2D** ppTex,
+        ID3D11ShaderResourceView** ppSrv,
+        ID3D11RenderTargetView** ppRtv)
+    {
+        this.device.Get()->CreateTexture2D(desc, null, ppTex).ThrowOnError();
+        var res = (ID3D11Resource*)*ppTex;
+        var srvDesc = new D3D11_SHADER_RESOURCE_VIEW_DESC(*ppTex, D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
+        this.device.Get()->CreateShaderResourceView(res, &srvDesc, ppSrv).ThrowOnError();
+        var rtvDesc = new D3D11_RENDER_TARGET_VIEW_DESC(*ppTex, D3D11_RTV_DIMENSION.D3D11_RTV_DIMENSION_TEXTURE2D);
+        this.device.Get()->CreateRenderTargetView(res, &rtvDesc, ppRtv).ThrowOnError();
     }
 }

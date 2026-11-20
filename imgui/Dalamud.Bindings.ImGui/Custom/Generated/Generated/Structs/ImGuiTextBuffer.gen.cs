@@ -40,6 +40,13 @@ public unsafe partial struct ImGuiTextBuffer
 				ImGuiNative.reserve(@this, capacity);
 			}
 		}
+		public unsafe void resize(int size)
+		{
+			fixed (ImGuiTextBuffer* @this = &this)
+			{
+				ImGuiNative.resize(@this, size);
+			}
+		}
 		public unsafe int size()
 		{
 			fixed (ImGuiTextBuffer* @this = &this)
@@ -58,3 +65,4 @@ public unsafe partial struct ImGuiTextBuffer
 // DISCARDED: c_strS
 // DISCARDED: end
 // DISCARDED: endS
+// DISCARDED: TextBufferAppendf
