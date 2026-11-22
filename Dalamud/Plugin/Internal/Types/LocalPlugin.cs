@@ -162,6 +162,11 @@ internal class LocalPlugin : IAsyncDisposable
     public bool IsLoaded => this.State == PluginState.Loaded;
 
     /// <summary>
+    /// Gets a value indicating whether the plugin can be unloaded asynchronously.
+    /// </summary>
+    public bool CanUnloadAsync => this.Manifest.CanUnloadAsync || this.pluginType?.IsAssignableTo(typeof(IAsyncDalamudPlugin)) == true;
+
+    /// <summary>
     /// Gets a value indicating whether this plugin is in the default profile.
     /// </summary>
     public bool IsInDefaultProfile =>

@@ -394,12 +394,12 @@ internal class PluginManager : IInternalDisposableService
 
         // Unload plugins that requires to be unloaded synchronously,
         // just in case some plugin codes are still running via callbacks initiated externally.
-        foreach (var plugin in disposablePlugins.Where(plugin => !plugin.Manifest.CanUnloadAsync))
+        foreach (var plugin in disposablePlugins.Where(plugin => !plugin.CanUnloadAsync))
             await plugin.UnloadAsync(PluginLoaderDisposalMode.None).SuppressException();
 
         // Unload plugins that can be unloaded from any thread.
         await Task.WhenAll(
-                      disposablePlugins.Where(plugin => plugin.Manifest.CanUnloadAsync)
+                      disposablePlugins.Where(plugin => plugin.CanUnloadAsync)
                                        .Select(plugin => plugin.UnloadAsync(PluginLoaderDisposalMode.None)))
                   .SuppressException();
 
