@@ -137,7 +137,7 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
                     args.AddMenuItem(new()
                     {
                         Name = "Self Test",
-                        Prefix = SeIconChar.Hyadelyn,
+                        Prefix = SeIconChar.Hydaelyn,
                         PrefixColor = 56,
                         Priority = -1,
                         IsSubmenu = true,
