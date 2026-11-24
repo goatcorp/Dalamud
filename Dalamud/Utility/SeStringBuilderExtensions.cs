@@ -32,7 +32,7 @@ public static class SeStringBuilderExtensions
     {
         return builder
             .BeginMacro(MacroCode.Link)
-            .AppendIntExpression((int)EmbeddedInfoType.DalamudLink)
+            .AppendIntExpression((int)EmbeddedInfoType.DalamudLink - 1)
             .AppendUIntExpression(commandId)
             .AppendIntExpression(extra1)
             .AppendIntExpression(extra2)
