@@ -11,6 +11,9 @@ using Lumina.Text.ReadOnly;
 
 using Microsoft.Extensions.ObjectPool;
 
+using DalamudLinkPayload = Dalamud.Game.Text.SeStringHandling.Payloads.DalamudLinkPayload;
+using Item = Lumina.Excel.Sheets.Item;
+
 #pragma warning disable SA1122 // Use string.Empty for empty strings
 
 namespace Dalamud.Utility;
@@ -547,6 +550,31 @@ public readonly struct RentedSeStringBuilder() : IResettable, IDisposable
 
     /// <inheritdoc cref="SeStringBuilder.PopShadowColor()"/>
     public SeStringBuilder PopShadowColor() => this.Builder.PopShadowColor();
+
+    #endregion
+
+    #region Dalamud\Utility\SeStringBuilderExtensions.cs
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.PushDalamudLink(SeStringBuilder, uint, string, int, int, string)"/>
+    public SeStringBuilder PushDalamudLink(uint commandId, string pluginName, int extra1, int extra2, string extraString) => this.Builder.PushDalamudLink(commandId, pluginName, extra1, extra2, extraString);
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.PushDalamudLink(SeStringBuilder, DalamudLinkPayload)"/>
+    public SeStringBuilder PushDalamudLink(DalamudLinkPayload payload) => this.Builder.PushDalamudLink(payload);
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.PushItemLink(SeStringBuilder, uint, string?)"/>
+    public SeStringBuilder PushItemLink(uint itemId, string? displayNameOverride = null) => this.Builder.PushItemLink(itemId, displayNameOverride);
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.PushItemLink(SeStringBuilder, uint, ItemKind, string?)"/>
+    public SeStringBuilder PushItemLink(uint baseItemId, ItemKind itemKind, string? displayNameOverride = null) => this.Builder.PushItemLink(baseItemId, itemKind, displayNameOverride);
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.PushItemLink(SeStringBuilder, Item, bool, string?)"/>
+    public SeStringBuilder PushItemLink(Item item, bool isHq, string? displayNameOverride = null) => this.Builder.PushItemLink(item, isHq, displayNameOverride);
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.PushPartyFinderLink(SeStringBuilder, uint, string, bool)"/>
+    public SeStringBuilder PushPartyFinderLink(uint listingId, string recruiterName, bool isCrossWorld = false) => this.Builder.PushPartyFinderLink(listingId, recruiterName, isCrossWorld);
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.PushPartyFinderSearchConditionsLink(SeStringBuilder, string)"/>
+    public SeStringBuilder PushPartyFinderSearchConditionsLink(string message) => this.Builder.PushPartyFinderSearchConditionsLink(message);
 
     #endregion
 }
