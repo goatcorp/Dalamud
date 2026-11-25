@@ -44,5 +44,15 @@ namespace Dalamud.Bindings.ImPlot
 		/// To be documented.
 		/// </summary>
 		Delayed = unchecked(8),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NoMove = unchecked(16),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NoResize = unchecked(32),
 	}
 }

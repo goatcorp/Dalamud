@@ -49,3 +49,10 @@ namespace Dalamud.Bindings.ImGui
 	{
 	}
 }
+/* Functions.006.cs */
+namespace Dalamud.Bindings.ImGui
+{
+	public unsafe partial class ImGui
+	{
+	}
+}

@@ -6,7 +6,8 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Interface.ImGuiSeStringRenderer;
+using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Fonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.IoC;
@@ -67,17 +68,13 @@ internal sealed class TextureManagerPluginScoped
     /// <inheritdoc/>
     public event ITextureSubstitutionProvider.TextureDataInterceptorDelegate? InterceptTexDataLoad;
 
-    /// <summary>Gets the task resulting in an instance of <see cref="TextureManager"/>.</summary>
-    /// <exception cref="ObjectDisposedException">Thrown if disposed.</exception>
     private Task<TextureManager> ManagerTask
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => this.managerTaskNullable ?? throw new ObjectDisposedException(this.ToString());
     }
 
-    /// <summary>Gets an instance of <see cref="TextureManager"/>.</summary>
-    /// <exception cref="ObjectDisposedException">Thrown if disposed.</exception>
-    /// <exception cref="InvalidOperationException">Thrown if called at an unfortune time.</exception>
+    // Throws InvalidOperationException if waiting for it would stall the game during plugin load.
     private TextureManager ManagerOrThrow
     {
         get
@@ -285,13 +282,17 @@ internal sealed class TextureManagerPluginScoped
     }
 
     /// <inheritdoc/>
-    public IDalamudTextureWrap CreateTextureFromSeString(
-        ReadOnlySpan<byte> text,
-        scoped in SeStringDrawParams drawParams = default,
+    public IDalamudTextureWrap CreateTextureFromText(
+        ImU8String text,
+        TextMarkup markup,
+        scoped in TextStyle style = default,
+        float scale = 0,
+        float wrapWidth = float.MaxValue,
         string? debugName = null)
     {
+        // CreateTextureFromText recycles text.
         var manager = this.ManagerOrThrow;
-        var textureWrap = manager.CreateTextureFromSeString(text, drawParams, debugName);
+        var textureWrap = manager.CreateTextureFromText(text, markup, style, scale, wrapWidth, debugName);
         manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }

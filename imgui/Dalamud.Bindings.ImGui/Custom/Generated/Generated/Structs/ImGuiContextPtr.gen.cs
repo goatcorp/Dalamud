@@ -11,8 +11,4 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImGuiContextPtr
 {
-		public unsafe void Destroy()
-		{
-			ImGuiNative.Destroy(Handle);
-		}
 }

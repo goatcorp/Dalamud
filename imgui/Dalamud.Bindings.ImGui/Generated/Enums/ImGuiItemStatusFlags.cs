@@ -67,6 +67,21 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		FocusedByTabbing = unchecked(256),
+		Visible = unchecked(256),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		HasClipRect = unchecked(512),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		HasShortcut = unchecked(1024),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		EditedInternal = unchecked(2048),
 	}
 }

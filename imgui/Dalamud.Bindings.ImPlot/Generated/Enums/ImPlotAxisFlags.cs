@@ -108,6 +108,11 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		TickLabelsInside = unchecked(65536),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		Lock = unchecked(49152),
 
 		/// <summary>

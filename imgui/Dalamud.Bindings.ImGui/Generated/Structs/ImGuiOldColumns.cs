@@ -133,17 +133,6 @@ namespace Dalamud.Bindings.ImGui
 		}
 
 
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiOldColumns* @this = &this)
-			{
-				ImGui.DestroyNative(@this);
-			}
-		}
-
 	}
 
 	/// <summary>
@@ -255,14 +244,6 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref ImDrawListSplitter Splitter => ref Unsafe.AsRef<ImDrawListSplitter>(&Handle->Splitter);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			ImGui.DestroyNative(Handle);
-		}
-
 	}
 
 }

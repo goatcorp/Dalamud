@@ -17,7 +17,7 @@ internal class FontAwesomeIconNotificationIcon : INotificationIcon
             minCoord,
             maxCoord,
             this.iconChar,
-            Service<NotificationManager>.Get().IconFontAwesomeFontHandle,
+            NotificationManager.IconFontAwesomeFont,
             color);
 
     /// <inheritdoc/>

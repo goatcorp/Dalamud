@@ -11,11 +11,4 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImGuiInputEvent
 {
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiInputEvent* @this = &this)
-			{
-				ImGuiNative.Destroy(@this);
-			}
-		}
 }

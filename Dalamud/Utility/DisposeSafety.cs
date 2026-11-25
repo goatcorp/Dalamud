@@ -47,11 +47,11 @@ public static class DisposeSafety
                 r =>
                 {
                     _ = r.Exception;
-                    if (r.IsCompleted)
+                    if (r.IsCompletedSuccessfully)
                     {
                         try
                         {
-                            r.Dispose();
+                            r.Result.Dispose();
                         }
                         catch
                         {

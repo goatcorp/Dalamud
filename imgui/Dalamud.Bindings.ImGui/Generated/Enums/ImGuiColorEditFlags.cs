@@ -77,17 +77,27 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AlphaBar = unchecked(65536),
+		NoColorMarkers = unchecked(2048),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AlphaPreview = unchecked(131072),
+		AlphaOpaque = unchecked(4096),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AlphaPreviewHalf = unchecked(262144),
+		AlphaNoBg = unchecked(8192),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		AlphaPreviewHalf = unchecked(16384),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		AlphaBar = unchecked(262144),
 
 		/// <summary>
 		/// To be documented.
@@ -132,22 +142,27 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		InputRgb = unchecked(134217728),
+		PickerNoRotate = unchecked(134217728),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		InputHsv = unchecked(268435456),
+		InputRgb = unchecked(268435456),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		OptionsDefault = unchecked(177209344),
+		InputHsv = unchecked(536870912),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		DefaultOptions = unchecked(177209344),
+		DefaultOptions = unchecked(311427072),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		AlphaMask = unchecked(28674),
 
 		/// <summary>
 		/// To be documented.
@@ -167,6 +182,6 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		InputMask = unchecked(402653184),
+		InputMask = unchecked(805306368),
 	}
 }

@@ -32,5 +32,9 @@ public unsafe partial struct ImGuiInputTextCallbackDataPtr
 		{
 			ImGuiNative.SelectAll(Handle);
 		}
+		public unsafe void SetSelection(int s, int e)
+		{
+			ImGuiNative.SetSelection(Handle, s, e);
+		}
 }
 // DISCARDED: InsertChars

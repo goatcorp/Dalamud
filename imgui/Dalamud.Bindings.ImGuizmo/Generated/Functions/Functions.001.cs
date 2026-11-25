@@ -22,6 +22,408 @@ namespace Dalamud.Bindings.ImGuizmo
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public static bool Manipulate(ref float view, float* projection, ImGuizmoOperation operation, ImGuizmoMode mode, ref float matrix, ref float deltaMatrix, float* snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pview = &view)
+			{
+				fixed (float* pmatrix = &matrix)
+				{
+					fixed (float* pdeltaMatrix = &deltaMatrix)
+					{
+						fixed (float* pboundsSnap = &boundsSnap)
+						{
+							byte ret = ManipulateNative((float*)pview, projection, operation, mode, (float*)pmatrix, (float*)pdeltaMatrix, snap, localBounds, (float*)pboundsSnap);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(float* view, ref float projection, ImGuizmoOperation operation, ImGuizmoMode mode, ref float matrix, ref float deltaMatrix, float* snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pprojection = &projection)
+			{
+				fixed (float* pmatrix = &matrix)
+				{
+					fixed (float* pdeltaMatrix = &deltaMatrix)
+					{
+						fixed (float* pboundsSnap = &boundsSnap)
+						{
+							byte ret = ManipulateNative(view, (float*)pprojection, operation, mode, (float*)pmatrix, (float*)pdeltaMatrix, snap, localBounds, (float*)pboundsSnap);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(ref float view, ref float projection, ImGuizmoOperation operation, ImGuizmoMode mode, ref float matrix, ref float deltaMatrix, float* snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pview = &view)
+			{
+				fixed (float* pprojection = &projection)
+				{
+					fixed (float* pmatrix = &matrix)
+					{
+						fixed (float* pdeltaMatrix = &deltaMatrix)
+						{
+							fixed (float* pboundsSnap = &boundsSnap)
+							{
+								byte ret = ManipulateNative((float*)pview, (float*)pprojection, operation, mode, (float*)pmatrix, (float*)pdeltaMatrix, snap, localBounds, (float*)pboundsSnap);
+								return ret != 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(float* view, float* projection, ImGuizmoOperation operation, ImGuizmoMode mode, float* matrix, float* deltaMatrix, ref float snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* psnap = &snap)
+			{
+				fixed (float* pboundsSnap = &boundsSnap)
+				{
+					byte ret = ManipulateNative(view, projection, operation, mode, matrix, deltaMatrix, (float*)psnap, localBounds, (float*)pboundsSnap);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(ref float view, float* projection, ImGuizmoOperation operation, ImGuizmoMode mode, float* matrix, float* deltaMatrix, ref float snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pview = &view)
+			{
+				fixed (float* psnap = &snap)
+				{
+					fixed (float* pboundsSnap = &boundsSnap)
+					{
+						byte ret = ManipulateNative((float*)pview, projection, operation, mode, matrix, deltaMatrix, (float*)psnap, localBounds, (float*)pboundsSnap);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(float* view, ref float projection, ImGuizmoOperation operation, ImGuizmoMode mode, float* matrix, float* deltaMatrix, ref float snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pprojection = &projection)
+			{
+				fixed (float* psnap = &snap)
+				{
+					fixed (float* pboundsSnap = &boundsSnap)
+					{
+						byte ret = ManipulateNative(view, (float*)pprojection, operation, mode, matrix, deltaMatrix, (float*)psnap, localBounds, (float*)pboundsSnap);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(ref float view, ref float projection, ImGuizmoOperation operation, ImGuizmoMode mode, float* matrix, float* deltaMatrix, ref float snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pview = &view)
+			{
+				fixed (float* pprojection = &projection)
+				{
+					fixed (float* psnap = &snap)
+					{
+						fixed (float* pboundsSnap = &boundsSnap)
+						{
+							byte ret = ManipulateNative((float*)pview, (float*)pprojection, operation, mode, matrix, deltaMatrix, (float*)psnap, localBounds, (float*)pboundsSnap);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(float* view, float* projection, ImGuizmoOperation operation, ImGuizmoMode mode, ref float matrix, float* deltaMatrix, ref float snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pmatrix = &matrix)
+			{
+				fixed (float* psnap = &snap)
+				{
+					fixed (float* pboundsSnap = &boundsSnap)
+					{
+						byte ret = ManipulateNative(view, projection, operation, mode, (float*)pmatrix, deltaMatrix, (float*)psnap, localBounds, (float*)pboundsSnap);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(ref float view, float* projection, ImGuizmoOperation operation, ImGuizmoMode mode, ref float matrix, float* deltaMatrix, ref float snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pview = &view)
+			{
+				fixed (float* pmatrix = &matrix)
+				{
+					fixed (float* psnap = &snap)
+					{
+						fixed (float* pboundsSnap = &boundsSnap)
+						{
+							byte ret = ManipulateNative((float*)pview, projection, operation, mode, (float*)pmatrix, deltaMatrix, (float*)psnap, localBounds, (float*)pboundsSnap);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(float* view, ref float projection, ImGuizmoOperation operation, ImGuizmoMode mode, ref float matrix, float* deltaMatrix, ref float snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pprojection = &projection)
+			{
+				fixed (float* pmatrix = &matrix)
+				{
+					fixed (float* psnap = &snap)
+					{
+						fixed (float* pboundsSnap = &boundsSnap)
+						{
+							byte ret = ManipulateNative(view, (float*)pprojection, operation, mode, (float*)pmatrix, deltaMatrix, (float*)psnap, localBounds, (float*)pboundsSnap);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(ref float view, ref float projection, ImGuizmoOperation operation, ImGuizmoMode mode, ref float matrix, float* deltaMatrix, ref float snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pview = &view)
+			{
+				fixed (float* pprojection = &projection)
+				{
+					fixed (float* pmatrix = &matrix)
+					{
+						fixed (float* psnap = &snap)
+						{
+							fixed (float* pboundsSnap = &boundsSnap)
+							{
+								byte ret = ManipulateNative((float*)pview, (float*)pprojection, operation, mode, (float*)pmatrix, deltaMatrix, (float*)psnap, localBounds, (float*)pboundsSnap);
+								return ret != 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(float* view, float* projection, ImGuizmoOperation operation, ImGuizmoMode mode, float* matrix, ref float deltaMatrix, ref float snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pdeltaMatrix = &deltaMatrix)
+			{
+				fixed (float* psnap = &snap)
+				{
+					fixed (float* pboundsSnap = &boundsSnap)
+					{
+						byte ret = ManipulateNative(view, projection, operation, mode, matrix, (float*)pdeltaMatrix, (float*)psnap, localBounds, (float*)pboundsSnap);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(ref float view, float* projection, ImGuizmoOperation operation, ImGuizmoMode mode, float* matrix, ref float deltaMatrix, ref float snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pview = &view)
+			{
+				fixed (float* pdeltaMatrix = &deltaMatrix)
+				{
+					fixed (float* psnap = &snap)
+					{
+						fixed (float* pboundsSnap = &boundsSnap)
+						{
+							byte ret = ManipulateNative((float*)pview, projection, operation, mode, matrix, (float*)pdeltaMatrix, (float*)psnap, localBounds, (float*)pboundsSnap);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(float* view, ref float projection, ImGuizmoOperation operation, ImGuizmoMode mode, float* matrix, ref float deltaMatrix, ref float snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pprojection = &projection)
+			{
+				fixed (float* pdeltaMatrix = &deltaMatrix)
+				{
+					fixed (float* psnap = &snap)
+					{
+						fixed (float* pboundsSnap = &boundsSnap)
+						{
+							byte ret = ManipulateNative(view, (float*)pprojection, operation, mode, matrix, (float*)pdeltaMatrix, (float*)psnap, localBounds, (float*)pboundsSnap);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(ref float view, ref float projection, ImGuizmoOperation operation, ImGuizmoMode mode, float* matrix, ref float deltaMatrix, ref float snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pview = &view)
+			{
+				fixed (float* pprojection = &projection)
+				{
+					fixed (float* pdeltaMatrix = &deltaMatrix)
+					{
+						fixed (float* psnap = &snap)
+						{
+							fixed (float* pboundsSnap = &boundsSnap)
+							{
+								byte ret = ManipulateNative((float*)pview, (float*)pprojection, operation, mode, matrix, (float*)pdeltaMatrix, (float*)psnap, localBounds, (float*)pboundsSnap);
+								return ret != 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(float* view, float* projection, ImGuizmoOperation operation, ImGuizmoMode mode, ref float matrix, ref float deltaMatrix, ref float snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pmatrix = &matrix)
+			{
+				fixed (float* pdeltaMatrix = &deltaMatrix)
+				{
+					fixed (float* psnap = &snap)
+					{
+						fixed (float* pboundsSnap = &boundsSnap)
+						{
+							byte ret = ManipulateNative(view, projection, operation, mode, (float*)pmatrix, (float*)pdeltaMatrix, (float*)psnap, localBounds, (float*)pboundsSnap);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(ref float view, float* projection, ImGuizmoOperation operation, ImGuizmoMode mode, ref float matrix, ref float deltaMatrix, ref float snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pview = &view)
+			{
+				fixed (float* pmatrix = &matrix)
+				{
+					fixed (float* pdeltaMatrix = &deltaMatrix)
+					{
+						fixed (float* psnap = &snap)
+						{
+							fixed (float* pboundsSnap = &boundsSnap)
+							{
+								byte ret = ManipulateNative((float*)pview, projection, operation, mode, (float*)pmatrix, (float*)pdeltaMatrix, (float*)psnap, localBounds, (float*)pboundsSnap);
+								return ret != 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(float* view, ref float projection, ImGuizmoOperation operation, ImGuizmoMode mode, ref float matrix, ref float deltaMatrix, ref float snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pprojection = &projection)
+			{
+				fixed (float* pmatrix = &matrix)
+				{
+					fixed (float* pdeltaMatrix = &deltaMatrix)
+					{
+						fixed (float* psnap = &snap)
+						{
+							fixed (float* pboundsSnap = &boundsSnap)
+							{
+								byte ret = ManipulateNative(view, (float*)pprojection, operation, mode, (float*)pmatrix, (float*)pdeltaMatrix, (float*)psnap, localBounds, (float*)pboundsSnap);
+								return ret != 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Manipulate(ref float view, ref float projection, ImGuizmoOperation operation, ImGuizmoMode mode, ref float matrix, ref float deltaMatrix, ref float snap, float* localBounds, ref float boundsSnap)
+		{
+			fixed (float* pview = &view)
+			{
+				fixed (float* pprojection = &projection)
+				{
+					fixed (float* pmatrix = &matrix)
+					{
+						fixed (float* pdeltaMatrix = &deltaMatrix)
+						{
+							fixed (float* psnap = &snap)
+							{
+								fixed (float* pboundsSnap = &boundsSnap)
+								{
+									byte ret = ManipulateNative((float*)pview, (float*)pprojection, operation, mode, (float*)pmatrix, (float*)pdeltaMatrix, (float*)psnap, localBounds, (float*)pboundsSnap);
+									return ret != 0;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public static bool Manipulate(float* view, float* projection, ImGuizmoOperation operation, ImGuizmoMode mode, float* matrix, float* deltaMatrix, float* snap, ref float localBounds, ref float boundsSnap)
 		{
 			fixed (float* plocalBounds = &localBounds)
@@ -746,9 +1148,9 @@ namespace Dalamud.Bindings.ImGuizmo
 		internal static void ViewManipulateNative(float* view, float length, Vector2 position, Vector2 size, uint backgroundColor)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float*, float, Vector2, Vector2, uint, void>)funcTable[13])(view, length, position, size, backgroundColor);
+			((delegate* unmanaged[Cdecl]<float*, float, Vector2, Vector2, uint, void>)funcTable[19])(view, length, position, size, backgroundColor);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, float, Vector2, Vector2, uint, void>)funcTable[13])((nint)view, length, position, size, backgroundColor);
+			((delegate* unmanaged[Cdecl]<nint, float, Vector2, Vector2, uint, void>)funcTable[19])((nint)view, length, position, size, backgroundColor);
 			#endif
 		}
 
@@ -789,9 +1191,9 @@ namespace Dalamud.Bindings.ImGuizmo
 		internal static void ViewManipulateNative(float* view, float* projection, ImGuizmoOperation operation, ImGuizmoMode mode, float* matrix, float length, Vector2 position, Vector2 size, uint backgroundColor)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float*, float*, ImGuizmoOperation, ImGuizmoMode, float*, float, Vector2, Vector2, uint, void>)funcTable[14])(view, projection, operation, mode, matrix, length, position, size, backgroundColor);
+			((delegate* unmanaged[Cdecl]<float*, float*, ImGuizmoOperation, ImGuizmoMode, float*, float, Vector2, Vector2, uint, void>)funcTable[20])(view, projection, operation, mode, matrix, length, position, size, backgroundColor);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, ImGuizmoOperation, ImGuizmoMode, nint, float, Vector2, Vector2, uint, void>)funcTable[14])((nint)view, (nint)projection, operation, mode, (nint)matrix, length, position, size, backgroundColor);
+			((delegate* unmanaged[Cdecl]<nint, nint, ImGuizmoOperation, ImGuizmoMode, nint, float, Vector2, Vector2, uint, void>)funcTable[20])((nint)view, (nint)projection, operation, mode, (nint)matrix, length, position, size, backgroundColor);
 			#endif
 		}
 
@@ -916,12 +1318,44 @@ namespace Dalamud.Bindings.ImGuizmo
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetAlternativeWindowNative(ImGuiWindow* window)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<ImGuiWindow*, void>)funcTable[21])(window);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[21])((nint)window);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetAlternativeWindow(ImGuiWindowPtr window)
+		{
+			SetAlternativeWindowNative(window);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetAlternativeWindow(ref ImGuiWindow window)
+		{
+			fixed (ImGuiWindow* pwindow = &window)
+			{
+				SetAlternativeWindowNative((ImGuiWindow*)pwindow);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static void SetIDNative(int id)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<int, void>)funcTable[15])(id);
+			((delegate* unmanaged[Cdecl]<int, void>)funcTable[22])(id);
 			#else
-			((delegate* unmanaged[Cdecl]<int, void>)funcTable[15])(id);
+			((delegate* unmanaged[Cdecl]<int, void>)funcTable[22])(id);
 			#endif
 		}
 
@@ -937,12 +1371,975 @@ namespace Dalamud.Bindings.ImGuizmo
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushIDNative(byte* strId)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, void>)funcTable[23])(strId);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[23])((nint)strId);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(byte* strId)
+		{
+			PushIDNative(strId);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(ref byte strId)
+		{
+			fixed (byte* pstrId = &strId)
+			{
+				PushIDNative((byte*)pstrId);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(ReadOnlySpan<byte> strId)
+		{
+			fixed (byte* pstrId = strId)
+			{
+				PushIDNative((byte*)pstrId);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(string strId)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PushIDNative(pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushIDNative(byte* strIdBegin, byte* strIdEnd)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, byte*, void>)funcTable[24])(strIdBegin, strIdEnd);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nint, void>)funcTable[24])((nint)strIdBegin, (nint)strIdEnd);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(byte* strIdBegin, byte* strIdEnd)
+		{
+			PushIDNative(strIdBegin, strIdEnd);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(ref byte strIdBegin, byte* strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = &strIdBegin)
+			{
+				PushIDNative((byte*)pstrIdBegin, strIdEnd);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(ReadOnlySpan<byte> strIdBegin, byte* strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = strIdBegin)
+			{
+				PushIDNative((byte*)pstrIdBegin, strIdEnd);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(string strIdBegin, byte* strIdEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strIdBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strIdBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PushIDNative(pStr0, strIdEnd);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(byte* strIdBegin, ref byte strIdEnd)
+		{
+			fixed (byte* pstrIdEnd = &strIdEnd)
+			{
+				PushIDNative(strIdBegin, (byte*)pstrIdEnd);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(byte* strIdBegin, ReadOnlySpan<byte> strIdEnd)
+		{
+			fixed (byte* pstrIdEnd = strIdEnd)
+			{
+				PushIDNative(strIdBegin, (byte*)pstrIdEnd);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(byte* strIdBegin, string strIdEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strIdEnd != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strIdEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdEnd, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PushIDNative(strIdBegin, pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(ref byte strIdBegin, ref byte strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = &strIdBegin)
+			{
+				fixed (byte* pstrIdEnd = &strIdEnd)
+				{
+					PushIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(ReadOnlySpan<byte> strIdBegin, ReadOnlySpan<byte> strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = strIdBegin)
+			{
+				fixed (byte* pstrIdEnd = strIdEnd)
+				{
+					PushIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(string strIdBegin, string strIdEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strIdBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strIdBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			byte* pStr1 = null;
+			int pStrSize1 = 0;
+			if (strIdEnd != null)
+			{
+				pStrSize1 = Utils.GetByteCountUTF8(strIdEnd);
+				if (pStrSize1 >= Utils.MaxStackallocSize)
+				{
+					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+				}
+				else
+				{
+					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+					pStr1 = pStrStack1;
+				}
+				int pStrOffset1 = Utils.EncodeStringUTF8(strIdEnd, pStr1, pStrSize1);
+				pStr1[pStrOffset1] = 0;
+			}
+			PushIDNative(pStr0, pStr1);
+			if (pStrSize1 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr1);
+			}
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(ref byte strIdBegin, ReadOnlySpan<byte> strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = &strIdBegin)
+			{
+				fixed (byte* pstrIdEnd = strIdEnd)
+				{
+					PushIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(ref byte strIdBegin, string strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = &strIdBegin)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (strIdEnd != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(strIdEnd);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(strIdEnd, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				PushIDNative((byte*)pstrIdBegin, pStr0);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(ReadOnlySpan<byte> strIdBegin, ref byte strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = strIdBegin)
+			{
+				fixed (byte* pstrIdEnd = &strIdEnd)
+				{
+					PushIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(ReadOnlySpan<byte> strIdBegin, string strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = strIdBegin)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (strIdEnd != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(strIdEnd);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(strIdEnd, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				PushIDNative((byte*)pstrIdBegin, pStr0);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(string strIdBegin, ref byte strIdEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strIdBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strIdBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (byte* pstrIdEnd = &strIdEnd)
+			{
+				PushIDNative(pStr0, (byte*)pstrIdEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(string strIdBegin, ReadOnlySpan<byte> strIdEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strIdBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strIdBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (byte* pstrIdEnd = strIdEnd)
+			{
+				PushIDNative(pStr0, (byte*)pstrIdEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushIDNative(void* ptrId)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<void*, void>)funcTable[25])(ptrId);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[25])((nint)ptrId);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(void* ptrId)
+		{
+			PushIDNative(ptrId);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushIDNative(int intId)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<int, void>)funcTable[26])(intId);
+			#else
+			((delegate* unmanaged[Cdecl]<int, void>)funcTable[26])(intId);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(int intId)
+		{
+			PushIDNative(intId);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PopIDNative()
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<void>)funcTable[27])();
+			#else
+			((delegate* unmanaged[Cdecl]<void>)funcTable[27])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PopID()
+		{
+			PopIDNative();
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static uint GetIDNative(byte* strId)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<byte*, uint>)funcTable[28])(strId);
+			#else
+			return (uint)((delegate* unmanaged[Cdecl]<nint, uint>)funcTable[28])((nint)strId);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(byte* strId)
+		{
+			uint ret = GetIDNative(strId);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ref byte strId)
+		{
+			fixed (byte* pstrId = &strId)
+			{
+				uint ret = GetIDNative((byte*)pstrId);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ReadOnlySpan<byte> strId)
+		{
+			fixed (byte* pstrId = strId)
+			{
+				uint ret = GetIDNative((byte*)pstrId);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(string strId)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			uint ret = GetIDNative(pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static uint GetIDNative(byte* strIdBegin, byte* strIdEnd)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, uint>)funcTable[29])(strIdBegin, strIdEnd);
+			#else
+			return (uint)((delegate* unmanaged[Cdecl]<nint, nint, uint>)funcTable[29])((nint)strIdBegin, (nint)strIdEnd);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(byte* strIdBegin, byte* strIdEnd)
+		{
+			uint ret = GetIDNative(strIdBegin, strIdEnd);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ref byte strIdBegin, byte* strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = &strIdBegin)
+			{
+				uint ret = GetIDNative((byte*)pstrIdBegin, strIdEnd);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ReadOnlySpan<byte> strIdBegin, byte* strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = strIdBegin)
+			{
+				uint ret = GetIDNative((byte*)pstrIdBegin, strIdEnd);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(string strIdBegin, byte* strIdEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strIdBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strIdBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			uint ret = GetIDNative(pStr0, strIdEnd);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(byte* strIdBegin, ref byte strIdEnd)
+		{
+			fixed (byte* pstrIdEnd = &strIdEnd)
+			{
+				uint ret = GetIDNative(strIdBegin, (byte*)pstrIdEnd);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(byte* strIdBegin, ReadOnlySpan<byte> strIdEnd)
+		{
+			fixed (byte* pstrIdEnd = strIdEnd)
+			{
+				uint ret = GetIDNative(strIdBegin, (byte*)pstrIdEnd);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(byte* strIdBegin, string strIdEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strIdEnd != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strIdEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdEnd, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			uint ret = GetIDNative(strIdBegin, pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ref byte strIdBegin, ref byte strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = &strIdBegin)
+			{
+				fixed (byte* pstrIdEnd = &strIdEnd)
+				{
+					uint ret = GetIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ReadOnlySpan<byte> strIdBegin, ReadOnlySpan<byte> strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = strIdBegin)
+			{
+				fixed (byte* pstrIdEnd = strIdEnd)
+				{
+					uint ret = GetIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(string strIdBegin, string strIdEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strIdBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strIdBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			byte* pStr1 = null;
+			int pStrSize1 = 0;
+			if (strIdEnd != null)
+			{
+				pStrSize1 = Utils.GetByteCountUTF8(strIdEnd);
+				if (pStrSize1 >= Utils.MaxStackallocSize)
+				{
+					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+				}
+				else
+				{
+					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+					pStr1 = pStrStack1;
+				}
+				int pStrOffset1 = Utils.EncodeStringUTF8(strIdEnd, pStr1, pStrSize1);
+				pStr1[pStrOffset1] = 0;
+			}
+			uint ret = GetIDNative(pStr0, pStr1);
+			if (pStrSize1 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr1);
+			}
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ref byte strIdBegin, ReadOnlySpan<byte> strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = &strIdBegin)
+			{
+				fixed (byte* pstrIdEnd = strIdEnd)
+				{
+					uint ret = GetIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ref byte strIdBegin, string strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = &strIdBegin)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (strIdEnd != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(strIdEnd);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(strIdEnd, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				uint ret = GetIDNative((byte*)pstrIdBegin, pStr0);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ReadOnlySpan<byte> strIdBegin, ref byte strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = strIdBegin)
+			{
+				fixed (byte* pstrIdEnd = &strIdEnd)
+				{
+					uint ret = GetIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ReadOnlySpan<byte> strIdBegin, string strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = strIdBegin)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (strIdEnd != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(strIdEnd);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(strIdEnd, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				uint ret = GetIDNative((byte*)pstrIdBegin, pStr0);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(string strIdBegin, ref byte strIdEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strIdBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strIdBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (byte* pstrIdEnd = &strIdEnd)
+			{
+				uint ret = GetIDNative(pStr0, (byte*)pstrIdEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(string strIdBegin, ReadOnlySpan<byte> strIdEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strIdBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strIdBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (byte* pstrIdEnd = strIdEnd)
+			{
+				uint ret = GetIDNative(pStr0, (byte*)pstrIdEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static uint GetIDNative(void* ptrId)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<void*, uint>)funcTable[30])(ptrId);
+			#else
+			return (uint)((delegate* unmanaged[Cdecl]<nint, uint>)funcTable[30])((nint)ptrId);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(void* ptrId)
+		{
+			uint ret = GetIDNative(ptrId);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static byte IsOverNative(ImGuizmoOperation op)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImGuizmoOperation, byte>)funcTable[16])(op);
+			return ((delegate* unmanaged[Cdecl]<ImGuizmoOperation, byte>)funcTable[31])(op);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<ImGuizmoOperation, byte>)funcTable[16])(op);
+			return (byte)((delegate* unmanaged[Cdecl]<ImGuizmoOperation, byte>)funcTable[31])(op);
 			#endif
 		}
 
@@ -962,9 +2359,9 @@ namespace Dalamud.Bindings.ImGuizmo
 		internal static void SetGizmoSizeClipSpaceNative(float value)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[17])(value);
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[32])(value);
 			#else
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[17])(value);
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[32])(value);
 			#endif
 		}
 
@@ -980,12 +2377,100 @@ namespace Dalamud.Bindings.ImGuizmo
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static Movetype GetActiveHandleTypeNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<Movetype>)funcTable[33])();
+			#else
+			return (Movetype)((delegate* unmanaged[Cdecl]<Movetype>)funcTable[33])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Movetype GetActiveHandleType()
+		{
+			Movetype ret = GetActiveHandleTypeNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static Movetype GetHoveredHandleTypeNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<Movetype>)funcTable[34])();
+			#else
+			return (Movetype)((delegate* unmanaged[Cdecl]<Movetype>)funcTable[34])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Movetype GetHoveredHandleType()
+		{
+			Movetype ret = GetHoveredHandleTypeNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static Movetype GetActiveMoveTypeNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<Movetype>)funcTable[35])();
+			#else
+			return (Movetype)((delegate* unmanaged[Cdecl]<Movetype>)funcTable[35])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Movetype GetActiveMoveType()
+		{
+			Movetype ret = GetActiveMoveTypeNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static Movetype GetHoveredMoveTypeNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<Movetype>)funcTable[36])();
+			#else
+			return (Movetype)((delegate* unmanaged[Cdecl]<Movetype>)funcTable[36])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Movetype GetHoveredMoveType()
+		{
+			Movetype ret = GetHoveredMoveTypeNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static void AllowAxisFlipNative(byte value)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte, void>)funcTable[18])(value);
+			((delegate* unmanaged[Cdecl]<byte, void>)funcTable[37])(value);
 			#else
-			((delegate* unmanaged[Cdecl]<byte, void>)funcTable[18])(value);
+			((delegate* unmanaged[Cdecl]<byte, void>)funcTable[37])(value);
 			#endif
 		}
 
@@ -995,6 +2480,416 @@ namespace Dalamud.Bindings.ImGuizmo
 		public static void AllowAxisFlip(bool value)
 		{
 			AllowAxisFlipNative(value ? (byte)1 : (byte)0);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetAxisLimitNative(float value)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[38])(value);
+			#else
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[38])(value);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetAxisLimit(float value)
+		{
+			SetAxisLimitNative(value);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetAxisMaskNative(byte x, byte y, byte z)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte, byte, byte, void>)funcTable[39])(x, y, z);
+			#else
+			((delegate* unmanaged[Cdecl]<byte, byte, byte, void>)funcTable[39])(x, y, z);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetAxisMask(bool x, bool y, bool z)
+		{
+			SetAxisMaskNative(x ? (byte)1 : (byte)0, y ? (byte)1 : (byte)0, z ? (byte)1 : (byte)0);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetPlaneLimitNative(float value)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[40])(value);
+			#else
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[40])(value);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetPlaneLimit(float value)
+		{
+			SetPlaneLimitNative(value);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static byte IsOverNative(float* position, float pixelRadius)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<float*, float, byte>)funcTable[41])(position, pixelRadius);
+			#else
+			return (byte)((delegate* unmanaged[Cdecl]<nint, float, byte>)funcTable[41])((nint)position, pixelRadius);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool IsOver(float* position, float pixelRadius)
+		{
+			byte ret = IsOverNative(position, pixelRadius);
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool IsOver(ref float position, float pixelRadius)
+		{
+			fixed (float* pposition = &position)
+			{
+				byte ret = IsOverNative((float*)pposition, pixelRadius);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void ComputeMouseRayNative(float* view, float* projection, Vector2 mousePosition, Vector2 rectPosition, Vector2 rectSize, float* rayOrigin, float* rayDirection)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float*, float*, Vector2, Vector2, Vector2, float*, float*, void>)funcTable[42])(view, projection, mousePosition, rectPosition, rectSize, rayOrigin, rayDirection);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nint, Vector2, Vector2, Vector2, nint, nint, void>)funcTable[42])((nint)view, (nint)projection, mousePosition, rectPosition, rectSize, (nint)rayOrigin, (nint)rayDirection);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ComputeMouseRay(float* view, float* projection, Vector2 mousePosition, Vector2 rectPosition, Vector2 rectSize, float* rayOrigin, float* rayDirection)
+		{
+			ComputeMouseRayNative(view, projection, mousePosition, rectPosition, rectSize, rayOrigin, rayDirection);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ComputeMouseRay(ref float view, float* projection, Vector2 mousePosition, Vector2 rectPosition, Vector2 rectSize, float* rayOrigin, float* rayDirection)
+		{
+			fixed (float* pview = &view)
+			{
+				ComputeMouseRayNative((float*)pview, projection, mousePosition, rectPosition, rectSize, rayOrigin, rayDirection);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ComputeMouseRay(float* view, ref float projection, Vector2 mousePosition, Vector2 rectPosition, Vector2 rectSize, float* rayOrigin, float* rayDirection)
+		{
+			fixed (float* pprojection = &projection)
+			{
+				ComputeMouseRayNative(view, (float*)pprojection, mousePosition, rectPosition, rectSize, rayOrigin, rayDirection);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ComputeMouseRay(ref float view, ref float projection, Vector2 mousePosition, Vector2 rectPosition, Vector2 rectSize, float* rayOrigin, float* rayDirection)
+		{
+			fixed (float* pview = &view)
+			{
+				fixed (float* pprojection = &projection)
+				{
+					ComputeMouseRayNative((float*)pview, (float*)pprojection, mousePosition, rectPosition, rectSize, rayOrigin, rayDirection);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ComputeMouseRay(float* view, float* projection, Vector2 mousePosition, Vector2 rectPosition, Vector2 rectSize, ref float rayOrigin, float* rayDirection)
+		{
+			fixed (float* prayOrigin = &rayOrigin)
+			{
+				ComputeMouseRayNative(view, projection, mousePosition, rectPosition, rectSize, (float*)prayOrigin, rayDirection);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ComputeMouseRay(ref float view, float* projection, Vector2 mousePosition, Vector2 rectPosition, Vector2 rectSize, ref float rayOrigin, float* rayDirection)
+		{
+			fixed (float* pview = &view)
+			{
+				fixed (float* prayOrigin = &rayOrigin)
+				{
+					ComputeMouseRayNative((float*)pview, projection, mousePosition, rectPosition, rectSize, (float*)prayOrigin, rayDirection);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ComputeMouseRay(float* view, ref float projection, Vector2 mousePosition, Vector2 rectPosition, Vector2 rectSize, ref float rayOrigin, float* rayDirection)
+		{
+			fixed (float* pprojection = &projection)
+			{
+				fixed (float* prayOrigin = &rayOrigin)
+				{
+					ComputeMouseRayNative(view, (float*)pprojection, mousePosition, rectPosition, rectSize, (float*)prayOrigin, rayDirection);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ComputeMouseRay(ref float view, ref float projection, Vector2 mousePosition, Vector2 rectPosition, Vector2 rectSize, ref float rayOrigin, float* rayDirection)
+		{
+			fixed (float* pview = &view)
+			{
+				fixed (float* pprojection = &projection)
+				{
+					fixed (float* prayOrigin = &rayOrigin)
+					{
+						ComputeMouseRayNative((float*)pview, (float*)pprojection, mousePosition, rectPosition, rectSize, (float*)prayOrigin, rayDirection);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ComputeMouseRay(float* view, float* projection, Vector2 mousePosition, Vector2 rectPosition, Vector2 rectSize, float* rayOrigin, ref float rayDirection)
+		{
+			fixed (float* prayDirection = &rayDirection)
+			{
+				ComputeMouseRayNative(view, projection, mousePosition, rectPosition, rectSize, rayOrigin, (float*)prayDirection);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ComputeMouseRay(ref float view, float* projection, Vector2 mousePosition, Vector2 rectPosition, Vector2 rectSize, float* rayOrigin, ref float rayDirection)
+		{
+			fixed (float* pview = &view)
+			{
+				fixed (float* prayDirection = &rayDirection)
+				{
+					ComputeMouseRayNative((float*)pview, projection, mousePosition, rectPosition, rectSize, rayOrigin, (float*)prayDirection);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ComputeMouseRay(float* view, ref float projection, Vector2 mousePosition, Vector2 rectPosition, Vector2 rectSize, float* rayOrigin, ref float rayDirection)
+		{
+			fixed (float* pprojection = &projection)
+			{
+				fixed (float* prayDirection = &rayDirection)
+				{
+					ComputeMouseRayNative(view, (float*)pprojection, mousePosition, rectPosition, rectSize, rayOrigin, (float*)prayDirection);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ComputeMouseRay(ref float view, ref float projection, Vector2 mousePosition, Vector2 rectPosition, Vector2 rectSize, float* rayOrigin, ref float rayDirection)
+		{
+			fixed (float* pview = &view)
+			{
+				fixed (float* pprojection = &projection)
+				{
+					fixed (float* prayDirection = &rayDirection)
+					{
+						ComputeMouseRayNative((float*)pview, (float*)pprojection, mousePosition, rectPosition, rectSize, rayOrigin, (float*)prayDirection);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ComputeMouseRay(float* view, float* projection, Vector2 mousePosition, Vector2 rectPosition, Vector2 rectSize, ref float rayOrigin, ref float rayDirection)
+		{
+			fixed (float* prayOrigin = &rayOrigin)
+			{
+				fixed (float* prayDirection = &rayDirection)
+				{
+					ComputeMouseRayNative(view, projection, mousePosition, rectPosition, rectSize, (float*)prayOrigin, (float*)prayDirection);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ComputeMouseRay(ref float view, float* projection, Vector2 mousePosition, Vector2 rectPosition, Vector2 rectSize, ref float rayOrigin, ref float rayDirection)
+		{
+			fixed (float* pview = &view)
+			{
+				fixed (float* prayOrigin = &rayOrigin)
+				{
+					fixed (float* prayDirection = &rayDirection)
+					{
+						ComputeMouseRayNative((float*)pview, projection, mousePosition, rectPosition, rectSize, (float*)prayOrigin, (float*)prayDirection);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ComputeMouseRay(float* view, ref float projection, Vector2 mousePosition, Vector2 rectPosition, Vector2 rectSize, ref float rayOrigin, ref float rayDirection)
+		{
+			fixed (float* pprojection = &projection)
+			{
+				fixed (float* prayOrigin = &rayOrigin)
+				{
+					fixed (float* prayDirection = &rayDirection)
+					{
+						ComputeMouseRayNative(view, (float*)pprojection, mousePosition, rectPosition, rectSize, (float*)prayOrigin, (float*)prayDirection);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ComputeMouseRay(ref float view, ref float projection, Vector2 mousePosition, Vector2 rectPosition, Vector2 rectSize, ref float rayOrigin, ref float rayDirection)
+		{
+			fixed (float* pview = &view)
+			{
+				fixed (float* pprojection = &projection)
+				{
+					fixed (float* prayOrigin = &rayOrigin)
+					{
+						fixed (float* prayDirection = &rayDirection)
+						{
+							ComputeMouseRayNative((float*)pview, (float*)pprojection, mousePosition, rectPosition, rectSize, (float*)prayOrigin, (float*)prayDirection);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static Style* StyleNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<Style*>)funcTable[43])();
+			#else
+			return (Style*)((delegate* unmanaged[Cdecl]<nint>)funcTable[43])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static StylePtr Style()
+		{
+			StylePtr ret = StyleNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void DestroyNative(Style* self)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<Style*, void>)funcTable[44])(self);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[44])((nint)self);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void Destroy(StylePtr self)
+		{
+			DestroyNative(self);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void Destroy(ref Style self)
+		{
+			fixed (Style* pself = &self)
+			{
+				DestroyNative((Style*)pself);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static Style* GetStyleNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<Style*>)funcTable[45])();
+			#else
+			return (Style*)((delegate* unmanaged[Cdecl]<nint>)funcTable[45])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static StylePtr GetStyle()
+		{
+			StylePtr ret = GetStyleNative();
+			return ret;
 		}
 
 	}

@@ -33,5 +33,25 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		HasOpen = unchecked(2),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		HasShortcut = unchecked(4),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		HasRefVal = unchecked(8),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		HasStorageId = unchecked(16),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		HasColorMarker = unchecked(32),
 	}
 }

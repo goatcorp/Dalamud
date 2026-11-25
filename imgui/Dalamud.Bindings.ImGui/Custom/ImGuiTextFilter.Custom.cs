@@ -8,6 +8,12 @@ public unsafe partial struct ImGuiTextFilter
             return ImGui.Draw(thisPtr, label, width);
     }
 
+    public bool DrawWithHint(ImU8String label, ImU8String hint, float width = 0.0f)
+    {
+        fixed (ImGuiTextFilter* thisPtr = &this)
+            return ImGui.DrawWithHint(thisPtr, label, hint, width);
+    }
+
     public bool PassFilter(ImU8String text)
     {
         fixed (ImGuiTextFilter* thisPtr = &this)
@@ -18,5 +24,9 @@ public unsafe partial struct ImGuiTextFilter
 public partial struct ImGuiTextFilterPtr
 {
     public bool Draw(ImU8String label = default, float width = 0.0f) => ImGui.Draw(this, label, width);
+
+    public bool DrawWithHint(ImU8String label, ImU8String hint, float width = 0.0f) =>
+        ImGui.DrawWithHint(this, label, hint, width);
+
     public bool PassFilter(ImU8String text) => ImGui.PassFilter(this, text);
 }

@@ -23,7 +23,12 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		None = unchecked(-1),
+		None = unchecked(-2),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		Auto = unchecked(-1),
 
 		/// <summary>
 		/// To be documented.
@@ -78,6 +83,16 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Count = unchecked(10),
+		Vertical = unchecked(10),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		Horizontal = unchecked(11),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		Count = unchecked(12),
 	}
 }
